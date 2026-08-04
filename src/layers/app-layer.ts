@@ -1,0 +1,37 @@
+import { NodeFileSystem, NodePath } from "@effect/platform-node";
+import * as Layer from "effect/Layer";
+
+import { CLILive } from "@/services/cli/cli-service.ts";
+import { FellowshipLive } from "@/services/fellowship/fellowship-service.ts";
+import { FileMonitorLive } from "@/services/filesystem/file-monitor-service.ts";
+import { LiveSplitFileLive } from "@/services/live-split/files/live-split-file-service.ts";
+
+export const PlatformLive = Layer.mergeAll(
+  NodeFileSystem.layer,
+  NodePath.layer,
+);
+
+export const FileMonitorWithPlatform = FileMonitorLive.pipe(
+  Layer.provide(PlatformLive),
+);
+
+export const FellowshipWithDependencies = FellowshipLive.pipe(
+  Layer.provide(FileMonitorWithPlatform),
+);
+
+/*
+ * This layer intentionally does not include LiveSplitClientLive.
+ *
+ * It supports commands that:
+ * - analyze historical logs
+ * - filter logs
+ * - monitor Fellowship logs and print milestones
+ * - generate .lss files
+ */
+export const AppLive = Layer.mergeAll(
+  PlatformLive,
+  FileMonitorWithPlatform,
+  FellowshipWithDependencies,
+  LiveSplitFileLive,
+  CLILive,
+);

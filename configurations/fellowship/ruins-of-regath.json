@@ -1,0 +1,40 @@
+{
+  "dungeonKey": "RUINS_OF_REGATH",
+  "milestones": [
+    {
+      "label": "First Sanguine Disciple",
+      "milestoneId": "sanguine-disciple:1",
+      "trigger": {
+        "occurrence": 1,
+        "type": "UNIT_DEATH",
+        "unitTypeId": 331
+      }
+    },
+    {
+      "label": "Second Sanguine Disciple",
+      "milestoneId": "sanguine-disciple:2",
+      "trigger": {
+        "occurrence": 2,
+        "type": "UNIT_DEATH",
+        "unitTypeId": 331
+      }
+    },
+    {
+      "label": "Third Sanguine Disciple",
+      "milestoneId": "sanguine-disciple:3",
+      "trigger": {
+        "occurrence": 3,
+        "type": "UNIT_DEATH",
+        "unitTypeId": 331
+      }
+    },
+    {
+      "label": "Xurath Defeated",
+      "milestoneId": "xurath:defeated",
+      "trigger": {
+        "encounterId": 35,
+        "type": "ENCOUNTER_END"
+      }
+    }
+  ]
+}
