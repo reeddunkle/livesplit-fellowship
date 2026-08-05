@@ -25,11 +25,11 @@ export function analyzeDungeonRun({
 
   return {
     affixIds: run.start.affixIds,
+    dungeonId: run.start.dungeonId,
     dungeonName: run.start.dungeonName,
     durationMilliseconds: getElapsedMilliseconds(startTime, endTime),
     endTime,
     events: run.events,
-    keyLevel: run.start.keyLevel,
     mapId: run.mapId,
     milestones,
     startTime,

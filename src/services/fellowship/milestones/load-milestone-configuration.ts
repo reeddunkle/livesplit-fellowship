@@ -96,14 +96,7 @@ function resolveConfiguration({
       milestones: configurationFile.milestones,
     };
 
-    if (configurationFile.keyLevel === undefined) {
-      return configuration;
-    }
-
-    return {
-      ...configuration,
-      keyLevel: configurationFile.keyLevel,
-    };
+    return configuration;
   });
 }
 

@@ -33,7 +33,7 @@ export type AnalyzedFellowshipDungeonRun = {
   readonly durationMilliseconds: number;
   readonly endTime: DateTime.Utc;
   readonly events: ReadonlyArray<FellowshipEvent>;
-  readonly keyLevel: number;
+  readonly dungeonId: number;
   readonly mapId: MapChangeEvent["mapId"];
   readonly milestones: ReadonlyArray<FellowshipRunMilestone>;
   readonly startTime: DateTime.Utc;

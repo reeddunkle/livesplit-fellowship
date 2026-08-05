@@ -45,7 +45,6 @@ const FellowshipMilestoneDefinitionSchema = Schema.Struct({
 
 export const FellowshipMilestoneConfigurationFileSchema = Schema.Struct({
   dungeonKey: NonEmptyStringSchema,
-  keyLevel: Schema.optionalKey(PositiveIntegerSchema),
   milestones: Schema.Array(FellowshipMilestoneDefinitionSchema),
 });
 

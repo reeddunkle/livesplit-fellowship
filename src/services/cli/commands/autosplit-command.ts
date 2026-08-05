@@ -23,15 +23,7 @@ export function runAutosplitCommand(input: AutosplitCommandInput) {
       milestoneCount: configuration.milestones.length,
     };
 
-    yield* E.logInfo(
-      "Starting Fellowship LiveSplit autosplitter.",
-      configuration.keyLevel === undefined
-        ? metadata
-        : {
-            ...metadata,
-            keyLevel: configuration.keyLevel,
-          },
-    );
+    yield* E.logInfo("Starting Fellowship LiveSplit autosplitter.", metadata);
 
     return yield* processLiveSplitLog({
       configuration,

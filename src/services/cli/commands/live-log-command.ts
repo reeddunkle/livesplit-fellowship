@@ -23,15 +23,7 @@ export function runLiveLogCommand(input: LiveLogCommandInput) {
       milestoneCount: configuration.milestones.length,
     };
 
-    yield* E.logInfo(
-      "Monitoring Fellowship log.",
-      configuration.keyLevel === undefined
-        ? logMetadata
-        : {
-            ...logMetadata,
-            keyLevel: configuration.keyLevel,
-          },
-    );
+    yield* E.logInfo("Monitoring Fellowship log.", logMetadata);
 
     return yield* processLiveLog({
       configuration,

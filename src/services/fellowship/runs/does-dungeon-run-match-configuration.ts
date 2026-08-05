@@ -16,13 +16,8 @@ export function doesDungeonRunMatchConfiguration({
   configuration,
   run,
 }: DoesDungeonRunMatchConfigurationOptions): boolean {
-  const matchesDungeon =
+  return (
     run.mapId === configuration.dungeon.mapId &&
-    run.start.dungeonName === configuration.dungeon.name;
-
-  const matchesKeyLevel =
-    configuration.keyLevel === undefined ||
-    run.start.keyLevel === configuration.keyLevel;
-
-  return matchesDungeon && matchesKeyLevel;
+    run.start.dungeonName === configuration.dungeon.name
+  );
 }

@@ -11,11 +11,7 @@ function createGameName(
 ): string {
   const baseName = `Fellowship ${configuration.dungeon.name}`;
 
-  if (configuration.keyLevel === undefined) {
-    return baseName;
-  }
-
-  return `${baseName} +${configuration.keyLevel}`;
+  return baseName;
 }
 
 function createSegment(label: string): XMLElement {

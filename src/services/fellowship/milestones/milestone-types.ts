@@ -36,7 +36,6 @@ export type FellowshipMilestoneTrigger =
 
 export type FellowshipMilestoneConfigurationFile = {
   readonly dungeonKey: FellowshipDungeonKey;
-  readonly keyLevel: number;
   readonly milestones: ReadonlyArray<FellowshipMilestoneDefinition>;
 };
 
@@ -48,7 +47,6 @@ export type FellowshipMilestoneDefinition = {
 
 export type FellowshipMilestoneConfiguration = {
   readonly dungeon: FellowshipDungeon;
-  readonly keyLevel?: number;
   readonly milestones: ReadonlyArray<FellowshipMilestoneDefinition>;
 };
 

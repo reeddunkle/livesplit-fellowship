@@ -174,12 +174,7 @@ function makeCLILive(): CLIService {
 
             yield* E.logInfo(
               `Goal written to ${input.outputFilePath}.`,
-              goal.configuration.keyLevel === undefined
-                ? logMetadata
-                : {
-                    ...logMetadata,
-                    keyLevel: goal.configuration.keyLevel,
-                  },
+              logMetadata,
             );
 
             return;

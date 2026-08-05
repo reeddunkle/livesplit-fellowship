@@ -38,14 +38,7 @@ export function runAnalyzeLogCommand(input: AnalyzeLogCommandInput) {
         logFilePath: input.logFilePath,
       };
 
-      return yield* new FellowshipRunNotFoundError(
-        configuration.keyLevel === undefined
-          ? errorProperties
-          : {
-              ...errorProperties,
-              keyLevel: configuration.keyLevel,
-            },
-      );
+      return yield* new FellowshipRunNotFoundError(errorProperties);
     }
 
     const splitModel = createSplitModelFromRun({
