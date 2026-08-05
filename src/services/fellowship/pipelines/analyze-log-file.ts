@@ -32,7 +32,7 @@ export function analyzeFellowshipEvents({
     groupDungeonRuns,
     (runs) => {
       return filterDungeonRuns({
-        query: configuration,
+        configuration,
         runs,
       });
     },

@@ -4,17 +4,17 @@ import { type FellowshipMilestoneConfiguration } from "../milestones/milestone-t
 import { doesDungeonStartMatchConfiguration } from "./does-dungeon-start-match-configuration.ts";
 
 type FilterDungeonRunsOptions = {
-  readonly query: FellowshipMilestoneConfiguration;
+  readonly configuration: FellowshipMilestoneConfiguration;
   readonly runs: ReadonlyArray<RawFellowshipDungeonRun>;
 };
 
 export function filterDungeonRuns({
-  query,
+  configuration,
   runs,
 }: FilterDungeonRunsOptions): ReadonlyArray<RawFellowshipDungeonRun> {
   return runs.filter((run) => {
     return doesDungeonStartMatchConfiguration({
-      configuration: query,
+      configuration,
       dungeonStart: run.start,
     });
   });
