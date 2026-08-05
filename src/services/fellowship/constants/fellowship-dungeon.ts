@@ -4,9 +4,19 @@ export const FELLOWSHIP_DUNGEON = {
     name: "Cithrel's Fall",
     zoneId: 48,
   },
+  EMPYREAN_SANDS: {
+    mapId: 27,
+    name: "Empyrean Sands",
+    zoneId: 44,
+  },
   EVERDAWN_GROVE: {
     mapId: 26,
     name: "Everdawn Grove",
+    zoneId: 44,
+  },
+  GODFALL_QUARRY: {
+    mapId: 32,
+    name: "Godfall Quarry",
     zoneId: 44,
   },
   HEART_OF_TUZARI: {
@@ -28,6 +38,10 @@ export const FELLOWSHIP_DUNGEON = {
     mapId: 24,
     name: "Sailor's Abyss",
     zoneId: 59,
+  },
+  SILKEN_HOLLOW: {
+    mapId: 30,
+    name: "Silken Hollow",
   },
   STORMWATCH: {
     mapId: 20,
