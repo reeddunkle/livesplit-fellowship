@@ -84,7 +84,7 @@ function parsePositiveNumber({
 function includeWhenDefined<Key extends string, Value>(
   key: Key,
   value: Value | undefined,
-): {} | Record<Key, Value> {
+): Partial<Record<Key, Value>> {
   return value === undefined
     ? {}
     : ({
