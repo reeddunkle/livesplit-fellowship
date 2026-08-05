@@ -25,7 +25,7 @@ const RESPONSE_EOL = "\n";
 const RESPONSE_TIMEOUT = "5 seconds";
 const SOCKET_OPEN_TIMEOUT = "5 seconds";
 
-export type LiveSplitRequestError =
+type LiveSplitRequestError =
   | Cause.TimeoutError
   | LiveSplitClientUnavailableError
   | Socket.SocketError;

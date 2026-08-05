@@ -15,7 +15,7 @@ export type RawFellowshipDungeonRun = {
   readonly start: DungeonStartEvent;
 };
 
-export type FellowshipRunMilestoneType = FellowshipMilestoneTrigger["type"];
+type FellowshipRunMilestoneType = FellowshipMilestoneTrigger["type"];
 
 export type FellowshipRunMilestone = {
   readonly elapsedMilliseconds: number;
@@ -38,7 +38,7 @@ export type AnalyzedFellowshipDungeonRun = {
   readonly zoneId: number;
 };
 
-export type FellowshipGoalMilestone = {
+type FellowshipGoalMilestone = {
   readonly elapsedMilliseconds: number;
   readonly milestoneId: string;
 };

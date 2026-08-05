@@ -25,20 +25,20 @@ import {
 
 export type FileMonitorError = FileNotFoundError | PlatformError.PlatformError;
 
-export type FindLatestFileOptions = {
+type FindLatestFileOptions = {
   readonly directoryPath: string;
   readonly matches: (fileName: string) => boolean;
 };
 
-export type ReadLinesOptions = {
+type ReadLinesOptions = {
   readonly filePath: string;
 };
 
-export type StreamLinesOptions = {
+type StreamLinesOptions = {
   readonly filePath: string;
 };
 
-export type StreamLatestFileLinesOptions = {
+type StreamLatestFileLinesOptions = {
   readonly directoryPath: string;
   readonly matches: (fileName: string) => boolean;
   readonly pollInterval: Duration.Input;

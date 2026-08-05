@@ -8,14 +8,12 @@
     "lint": "biome check",
     "lint:fix": "biome check --write",
     "knip": "knip",
-    "start": "tsx --env-file=.env src/main.ts",
     "test:replay-log-file": "tsx src/scripts/replay-log-file.ts",
     "typecheck": "tsc --noEmit"
   },
   "packageManager": "pnpm@10.34.3",
   "dependencies": {
     "@effect/platform-node": "catalog:effect",
-    "@effect/platform-node-shared": "catalog:effect",
     "dotenv": "catalog:util",
     "effect": "catalog:effect"
   },

@@ -1,4 +1,4 @@
-export type XMLAttributes = Readonly<Record<string, string>>;
+type XMLAttributes = Readonly<Record<string, string>>;
 
 export type XMLElement = readonly [
   name: string,
@@ -6,7 +6,7 @@ export type XMLElement = readonly [
   children: ReadonlyArray<XMLNode>,
 ];
 
-export type XMLNode = string | XMLElement;
+type XMLNode = string | XMLElement;
 
 export type CreateXMLElementOptions = {
   readonly attributes?: XMLAttributes;

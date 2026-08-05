@@ -6,16 +6,13 @@ import { FellowshipLive } from "@/services/fellowship/fellowship-service.ts";
 import { FileMonitorLive } from "@/services/filesystem/file-monitor-service.ts";
 import { LiveSplitFileLive } from "@/services/live-split/files/live-split-file-service.ts";
 
-export const PlatformLive = Layer.mergeAll(
-  NodeFileSystem.layer,
-  NodePath.layer,
-);
+const PlatformLive = Layer.mergeAll(NodeFileSystem.layer, NodePath.layer);
 
-export const FileMonitorWithPlatform = FileMonitorLive.pipe(
+const FileMonitorWithPlatform = FileMonitorLive.pipe(
   Layer.provide(PlatformLive),
 );
 
-export const FellowshipWithDependencies = FellowshipLive.pipe(
+const FellowshipWithDependencies = FellowshipLive.pipe(
   Layer.provide(FileMonitorWithPlatform),
 );
 

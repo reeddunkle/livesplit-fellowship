@@ -13,7 +13,7 @@ import {
   runAutosplitCommand,
 } from "./commands/autosplit-command.ts";
 
-export type LiveSplitCLIEnvironment =
+type LiveSplitCLIEnvironment =
   | FileSystem.FileSystem
   | Fellowship
   | LiveSplitClient;

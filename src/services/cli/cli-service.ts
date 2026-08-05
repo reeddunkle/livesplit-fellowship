@@ -30,7 +30,7 @@ import {
   runReplayLogCommand,
 } from "./commands/replay-log-command.ts";
 
-export type CLIEnvironment =
+type CLIEnvironment =
   | FileSystem.FileSystem
   | Fellowship
   | Path.Path

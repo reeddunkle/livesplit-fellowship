@@ -18,7 +18,7 @@ export type AnalyzeLogFileOptions = {
   readonly logFilePath: string;
 };
 
-export type AnalyzeFellowshipEventsOptions = {
+type AnalyzeFellowshipEventsOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly events: ReadonlyArray<FellowshipEvent>;
 };

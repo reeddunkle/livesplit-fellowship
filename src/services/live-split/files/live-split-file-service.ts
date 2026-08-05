@@ -9,11 +9,11 @@ import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/mil
 
 import { createLSSFromConfiguration } from "./lss/create-lss-from-configuration.ts";
 
-export type CreateLSSOptions = {
+type CreateLSSOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
 };
 
-export type WriteLSSFileOptions = {
+type WriteLSSFileOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly filePath: string;
 };

@@ -3,6 +3,7 @@ import * as ManagedRuntime from "effect/ManagedRuntime";
 
 import { AppLive } from "@/layers/app-layer.ts";
 
-export type AppRuntimeEnvironment = Layer.Success<typeof AppLive>;
+// biome-ignore lint/correctness/noUnusedVariables: Leaving for now
+type AppRuntimeEnvironment = Layer.Success<typeof AppLive>;
 
 export const AppRuntime = ManagedRuntime.make(AppLive);
