@@ -2,7 +2,7 @@ import type * as DateTime from "effect/DateTime";
 
 import {
   type FellowshipMilestoneConfiguration,
-  type FellowshipMilestoneTrigger,
+  type FellowshipMilestoneDefinition,
   type FellowshipSplitModel,
 } from "./milestones/milestone-types.ts";
 import { type DungeonEndEvent } from "./validation/events/dungeon-end.ts";
@@ -17,7 +17,7 @@ export type RawFellowshipDungeonRun = {
   readonly start: DungeonStartEvent;
 };
 
-type FellowshipRunMilestoneType = FellowshipMilestoneTrigger["type"];
+type FellowshipRunMilestoneType = FellowshipMilestoneDefinition["type"];
 
 export type FellowshipRunMilestone = {
   readonly elapsedMilliseconds: number;
@@ -29,11 +29,11 @@ export type FellowshipRunMilestone = {
 
 export type AnalyzedFellowshipDungeonRun = {
   readonly affixIds: ReadonlyArray<number>;
+  readonly dungeonId: number;
   readonly dungeonName: string;
   readonly durationMilliseconds: number;
   readonly endTime: DateTime.Utc;
   readonly events: ReadonlyArray<FellowshipEvent>;
-  readonly dungeonId: number;
   readonly mapId: MapChangeEvent["mapId"];
   readonly milestones: ReadonlyArray<FellowshipRunMilestone>;
   readonly startTime: DateTime.Utc;

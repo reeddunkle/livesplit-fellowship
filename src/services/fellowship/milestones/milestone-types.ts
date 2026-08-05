@@ -2,47 +2,46 @@ import {
   type FellowshipDungeon,
   type FellowshipDungeonKey,
 } from "@/services/fellowship/constants/fellowship-dungeon.ts";
+import { type FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 
-type DungeonStartedMilestoneTrigger = {
-  readonly type: "DUNGEON_START";
+export type FellowshipMilestoneBase = {
+  readonly label: string;
+  readonly milestoneId: string;
 };
 
-type DungeonEndedMilestoneTrigger = {
-  readonly type: "DUNGEON_END";
+export type DungeonStartMilestoneDefinition = FellowshipMilestoneBase & {
+  readonly type: typeof FELLOWSHIP_EVENT.DUNGEON_START;
 };
 
-type EncounterStartedMilestoneTrigger = {
+export type DungeonEndMilestoneDefinition = FellowshipMilestoneBase & {
+  readonly type: typeof FELLOWSHIP_EVENT.DUNGEON_END;
+};
+
+export type EncounterStartMilestoneDefinition = FellowshipMilestoneBase & {
   readonly encounterId: number;
-  readonly type: "ENCOUNTER_START";
+  readonly type: typeof FELLOWSHIP_EVENT.ENCOUNTER_START;
 };
 
-type EncounterEndedMilestoneTrigger = {
+export type EncounterEndMilestoneDefinition = FellowshipMilestoneBase & {
   readonly encounterId: number;
-  readonly type: "ENCOUNTER_END";
+  readonly type: typeof FELLOWSHIP_EVENT.ENCOUNTER_END;
 };
 
-type UnitDeathMilestoneTrigger = {
-  readonly occurrence: number;
-  readonly type: "UNIT_DEATH";
+export type UnitDeathMilestoneDefinition = FellowshipMilestoneBase & {
+  readonly type: typeof FELLOWSHIP_EVENT.UNIT_DEATH;
   readonly unitTypeId: number;
 };
 
-export type FellowshipMilestoneTrigger =
-  | DungeonEndedMilestoneTrigger
-  | DungeonStartedMilestoneTrigger
-  | EncounterEndedMilestoneTrigger
-  | EncounterStartedMilestoneTrigger
-  | UnitDeathMilestoneTrigger;
+export type FellowshipMilestoneDefinition =
+  | DungeonEndMilestoneDefinition
+  | DungeonStartMilestoneDefinition
+  | EncounterEndMilestoneDefinition
+  | EncounterStartMilestoneDefinition
+  | UnitDeathMilestoneDefinition;
 
 export type FellowshipMilestoneConfigurationFile = {
   readonly dungeonKey: FellowshipDungeonKey;
   readonly milestones: ReadonlyArray<FellowshipMilestoneDefinition>;
-};
-
-export type FellowshipMilestoneDefinition = {
-  readonly label: string;
-  readonly milestoneId: string;
-  readonly trigger: FellowshipMilestoneTrigger;
 };
 
 export type FellowshipMilestoneConfiguration = {

@@ -4,29 +4,20 @@
     {
       "label": "Eira Defeated",
       "milestoneId": "eira:defeated",
-      "trigger": {
-        "occurrence": 1,
-        "type": "UNIT_DEATH",
-        "unitTypeId": 281
-      }
+      "type": "UNIT_DEATH",
+      "unitTypeId": 281
     },
     {
       "label": "Boss 1st Encounter Completed",
       "milestoneId": "boss:defeated:1",
-      "trigger": {
-        "occurrence": 1,
-        "encounterId": 26,
-        "type": "ENCOUNTER_END"
-      }
+      "encounterId": 26,
+      "type": "ENCOUNTER_END"
     },
     {
       "label": "Boss 2nd Encounter Completed",
       "milestoneId": "boss:defeated:2",
-      "trigger": {
-        "occurrence": 2,
-        "encounterId": 26,
-        "type": "ENCOUNTER_END"
-      }
+      "encounterId": 26,
+      "type": "ENCOUNTER_END"
     }
   ]
 }
