@@ -7,11 +7,13 @@ import {
 } from "./milestones/milestone-types.ts";
 import { type DungeonEndEvent } from "./validation/events/dungeon-end.ts";
 import { type DungeonStartEvent } from "./validation/events/dungeon-start.ts";
+import { type MapChangeEvent } from "./validation/events/map-change.ts";
 import { type FellowshipEvent } from "./validation/fellowship-event-schema.ts";
 
 export type RawFellowshipDungeonRun = {
   readonly end: DungeonEndEvent;
   readonly events: ReadonlyArray<FellowshipEvent>;
+  readonly mapId: MapChangeEvent["mapId"];
   readonly start: DungeonStartEvent;
 };
 
@@ -32,10 +34,10 @@ export type AnalyzedFellowshipDungeonRun = {
   readonly endTime: DateTime.Utc;
   readonly events: ReadonlyArray<FellowshipEvent>;
   readonly keyLevel: number;
+  readonly mapId: MapChangeEvent["mapId"];
   readonly milestones: ReadonlyArray<FellowshipRunMilestone>;
   readonly startTime: DateTime.Utc;
   readonly succeeded: boolean;
-  readonly zoneId: number;
 };
 
 type FellowshipGoalMilestone = {

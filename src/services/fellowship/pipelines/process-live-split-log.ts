@@ -9,7 +9,7 @@ import {
 } from "@/services/fellowship/live/live-run-state.ts";
 import { processLiveEvent } from "@/services/fellowship/live/process-live-event.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
-import { doesDungeonStartMatchConfiguration } from "@/services/fellowship/runs/does-dungeon-start-match-configuration.ts";
+import { doesDungeonRunMatchConfiguration } from "@/services/fellowship/runs/does-dungeon-run-match-configuration.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 import { LiveSplitClient } from "@/services/live-split/client/live-split-client-service.ts";
 
@@ -32,9 +32,22 @@ function processLiveSplitEvent({
 }: ProcessLiveSplitEventOptions) {
   return E.gen(function* () {
     if (event.type === FELLOWSHIP_EVENT.DUNGEON_START) {
-      const matchesConfiguration = doesDungeonStartMatchConfiguration({
+      const mapId = state.runTracker.latestMapId;
+
+      if (mapId === undefined) {
+        return yield* E.fail(
+          new Error(
+            `Received DUNGEON_START for "${event.dungeonName}" before MAP_CHANGE.`,
+          ),
+        );
+      }
+
+      const matchesConfiguration = doesDungeonRunMatchConfiguration({
         configuration,
-        dungeonStart: event,
+        run: {
+          mapId,
+          start: event,
+        },
       });
 
       if (matchesConfiguration) {

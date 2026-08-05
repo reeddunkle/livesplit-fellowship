@@ -2,7 +2,7 @@ import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-eve
 import { initialMilestoneProcessorState } from "@/services/fellowship/milestones/milestone-processor-state.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { processMilestoneEvent } from "@/services/fellowship/milestones/process-milestone-event.ts";
-import { doesDungeonStartMatchConfiguration } from "@/services/fellowship/runs/does-dungeon-start-match-configuration.ts";
+import { doesDungeonRunMatchConfiguration } from "@/services/fellowship/runs/does-dungeon-run-match-configuration.ts";
 import { trackDungeonRunEvent } from "@/services/fellowship/runs/track-dungeon-run.ts";
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
@@ -61,11 +61,20 @@ export function processLiveEvent({
     event,
   });
 
+  const mapId =
+    event.type === FELLOWSHIP_EVENT.DUNGEON_START
+      ? state.runTracker.latestMapId
+      : trackerResult.state.currentMapId;
+
   const isConfiguredRun =
     runStart !== undefined &&
-    doesDungeonStartMatchConfiguration({
+    mapId !== undefined &&
+    doesDungeonRunMatchConfiguration({
       configuration,
-      dungeonStart: runStart,
+      run: {
+        mapId,
+        start: runStart,
+      },
     });
 
   if (!isConfiguredRun) {

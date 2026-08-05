@@ -5,6 +5,7 @@ import { type RawFellowshipDungeonRun } from "@/services/fellowship/types.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
 import {
+  type DungeonRunTrackerState,
   initialDungeonRunTrackerState,
   trackDungeonRunEvent,
 } from "./track-dungeon-run.ts";
@@ -14,9 +15,12 @@ export function groupDungeonRuns(
 ): ReadonlyArray<RawFellowshipDungeonRun> {
   return pipe(
     events,
-    A.reduce(initialDungeonRunTrackerState, (state, event) => {
-      return trackDungeonRunEvent({ event, state }).state;
-    }),
+    A.reduce<DungeonRunTrackerState, FellowshipEvent>(
+      initialDungeonRunTrackerState,
+      (state, event) => {
+        return trackDungeonRunEvent({ event, state }).state;
+      },
+    ),
     (state) => state.completedRuns,
   );
 }

@@ -30,9 +30,9 @@ export function analyzeDungeonRun({
     endTime,
     events: run.events,
     keyLevel: run.start.keyLevel,
+    mapId: run.mapId,
     milestones,
     startTime,
     succeeded: run.end.succeeded,
-    zoneId: run.start.zoneId,
   };
 }
