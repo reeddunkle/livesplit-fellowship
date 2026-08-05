@@ -10,6 +10,7 @@ import {
 import { processLiveEvent } from "@/services/fellowship/live/process-live-event.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { doesDungeonRunMatchConfiguration } from "@/services/fellowship/runs/does-dungeon-run-match-configuration.ts";
+import { isDungeonExitEvent } from "@/services/fellowship/runs/is-dungeon-exit-event.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 import { LiveSplitClient } from "@/services/live-split/client/live-split-client-service.ts";
 
@@ -31,6 +32,33 @@ function processLiveSplitEvent({
   state,
 }: ProcessLiveSplitEventOptions) {
   return E.gen(function* () {
+    const currentStart = state.runTracker.currentStart;
+
+    const isConfiguredRunActive =
+      currentStart !== undefined &&
+      doesDungeonRunMatchConfiguration({
+        configuration,
+        run: {
+          start: currentStart,
+        },
+      });
+
+    const hasExitedConfiguredRun =
+      isConfiguredRunActive &&
+      isDungeonExitEvent({
+        event,
+        runStart: currentStart,
+      });
+
+    if (hasExitedConfiguredRun) {
+      yield* liveSplitClient.pause();
+
+      yield* E.logInfo("Paused LiveSplit after leaving dungeon.", {
+        dungeonId: currentStart.dungeonId,
+        dungeonName: currentStart.dungeonName,
+      });
+    }
+
     if (event.type === FELLOWSHIP_EVENT.DUNGEON_START) {
       const matchesConfiguration = doesDungeonRunMatchConfiguration({
         configuration,

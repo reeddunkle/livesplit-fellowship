@@ -40,6 +40,8 @@ export interface LiveSplitClientService {
 
   readonly getTimerPhase: () => E.Effect<string, LiveSplitRequestError>;
 
+  readonly pause: () => E.Effect<void, Socket.SocketError>;
+
   readonly reset: () => E.Effect<void, Socket.SocketError>;
 
   readonly setComparison: (
@@ -201,6 +203,10 @@ const makeLiveSplitClient = E.gen(function* () {
 
     getTimerPhase: () => {
       return request(LiveSplitRequestCommand.getTimerPhase);
+    },
+
+    pause: () => {
+      return send(LiveSplitSendCommand.pause);
     },
 
     reset: () => {

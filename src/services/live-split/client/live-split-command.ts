@@ -1,4 +1,5 @@
 export const LiveSplitSendCommand = {
+  pause: "pause",
   reset: "reset",
   setComparison: "setcomparison",
   setCurrentSplitName: "setcurrentsplitname",

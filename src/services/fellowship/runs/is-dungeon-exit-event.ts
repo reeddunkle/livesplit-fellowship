@@ -2,7 +2,7 @@ import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-eve
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
-type IsDungeonExitEventOptions = {
+export type IsDungeonExitEventOptions = {
   readonly event: FellowshipEvent;
   readonly runStart: DungeonStartEvent;
 };
@@ -13,6 +13,6 @@ export function isDungeonExitEvent({
 }: IsDungeonExitEventOptions): boolean {
   return (
     event.type === FELLOWSHIP_EVENT.ZONE_CHANGE &&
-    event.dungeonName !== runStart.dungeonName
+    event.dungeonId !== runStart.dungeonId
   );
 }
