@@ -224,13 +224,6 @@ const makeFileMonitor = E.gen(function* () {
 
       const bytesToRead = FileSystem.Size(file.size - state.byteOffset);
 
-      // yield* E.logInfo("Checked monitored file for appended content.", {
-      //   byteOffset: state.byteOffset,
-      //   bytesToRead,
-      //   filePath: file.filePath,
-      //   fileSize: file.size,
-      // });
-
       if (bytesToRead === FileSystem.Size(0)) {
         return {
           lines: [],
@@ -260,15 +253,6 @@ const makeFileMonitor = E.gen(function* () {
         incompleteLine: state.incompleteLine,
         text: appendedText,
       });
-
-      // yield* E.logInfo("Processed appended file content.", {
-      //   appendedTextLength: appendedText.length,
-      //   bytesRead,
-      //   completeLineCount: splitResult.lines.length,
-      //   filePath: file.filePath,
-      //   incompleteLineLength: splitResult.incompleteLine.length,
-      //   sampleLine: splitResult.lines.at(0),
-      // });
 
       return {
         lines: splitResult.lines,

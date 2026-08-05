@@ -14,28 +14,11 @@ export function parseFellowshipEventStream<E, R>(
   lines: Stream.Stream<string, E, R>,
 ): Stream.Stream<FellowshipEvent, E | FellowshipLogParseError, R> {
   return lines.pipe(
-    Stream.filterEffect((line) => {
-      const eventType = getEventType(line);
-      const isParsedEventType = isParsedFellowshipEventType(eventType);
-
-      return E.gen(function* () {
-        yield* E.logInfo("Checked Fellowship event type.", {
-          eventType,
-          isParsedEventType,
-          preview: line.slice(0, 200),
-        });
-
-        return isParsedEventType;
-      });
+    Stream.filter((line) => {
+      return isParsedFellowshipEventType(getEventType(line));
     }),
     Stream.mapEffect((line) => {
       return parseFellowshipLogLine(line).pipe(
-        E.tap((event) => {
-          return E.logInfo("Parsed Fellowship event.", {
-            event,
-            eventType: event.type,
-          });
-        }),
         E.tapError((error) => {
           return E.logError("Failed to parse Fellowship log line.", {
             error,

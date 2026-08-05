@@ -37,26 +37,9 @@ function processLiveSplitEvent({
         dungeonStart: event,
       });
 
-      yield* E.logInfo("Checked dungeon start.", {
-        configuredDungeonName: configuration.dungeon.name,
-        configuredKeyLevel: configuration.keyLevel,
-        configuredZoneId: configuration.dungeon.zoneId,
-        eventDungeonName: event.dungeonName,
-        eventKeyLevel: event.keyLevel,
-        eventZoneId: event.zoneId,
-        matchesConfiguration,
-      });
-
       if (matchesConfiguration) {
-        yield* E.logInfo("Sending LiveSplit reset command.");
-
         yield* liveSplitClient.reset();
-
-        yield* E.logInfo("Sending LiveSplit starttimer command.");
-
         yield* liveSplitClient.startTimer();
-
-        yield* E.logInfo("LiveSplit timer started.");
       }
     }
 
@@ -64,12 +47,6 @@ function processLiveSplitEvent({
       configuration,
       event,
       state,
-    });
-
-    yield* E.logInfo("Processed autosplit event.", {
-      eventType: event.type,
-      milestoneCount: result.milestones.length,
-      milestoneIds: result.milestones.map((milestone) => milestone.milestoneId),
     });
 
     return [result.state, result.milestones] as const;
@@ -84,17 +61,8 @@ export function processLiveSplitLog({
     const liveSplitClient = yield* LiveSplitClient;
 
     return yield* fellowship.liveEvents().pipe(
-      Stream.tap((event) => {
-        return E.logInfo("Autosplit stream received event.", {
-          eventType: event.type,
-        });
-      }),
       Stream.mapAccumEffect(createInitialLiveRunState, (state, event) => {
         return E.gen(function* () {
-          yield* E.logInfo("Processing autosplit event.", {
-            eventType: event.type,
-          });
-
           return yield* processLiveSplitEvent({
             configuration,
             event,
@@ -103,18 +71,9 @@ export function processLiveSplitLog({
           });
         });
       }),
-      Stream.runForEach((milestone) => {
+      Stream.runForEach(() => {
         return E.gen(function* () {
-          yield* E.logInfo("Autosplit milestone emitted.", {
-            label: milestone.label,
-            milestoneId: milestone.milestoneId,
-          });
-
           yield* liveSplitClient.split();
-
-          yield* E.logInfo("LiveSplit split command completed.", {
-            milestoneId: milestone.milestoneId,
-          });
         });
       }),
     );

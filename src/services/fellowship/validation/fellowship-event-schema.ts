@@ -9,6 +9,7 @@ import { DungeonEndEventFromLogSchema } from "./events/dungeon-end.ts";
 import { DungeonStartEventFromLogSchema } from "./events/dungeon-start.ts";
 import { EncounterEndEventFromLogSchema } from "./events/encounter-end.ts";
 import { EncounterStartEventFromLogSchema } from "./events/encounter-start.ts";
+import { MapChangeEventFromLogSchema } from "./events/map-change.ts";
 import { UnitDeathEventFromLogSchema } from "./events/unit-death.ts";
 import { ZoneChangeEventFromLogSchema } from "./events/zone-change.ts";
 
@@ -17,8 +18,9 @@ export const fellowshipEventSchemas = {
   [FELLOWSHIP_EVENT.DUNGEON_START]: DungeonStartEventFromLogSchema,
   [FELLOWSHIP_EVENT.ENCOUNTER_END]: EncounterEndEventFromLogSchema,
   [FELLOWSHIP_EVENT.ENCOUNTER_START]: EncounterStartEventFromLogSchema,
-  [FELLOWSHIP_EVENT.ZONE_CHANGE]: ZoneChangeEventFromLogSchema,
+  [FELLOWSHIP_EVENT.MAP_CHANGE]: MapChangeEventFromLogSchema,
   [FELLOWSHIP_EVENT.UNIT_DEATH]: UnitDeathEventFromLogSchema,
+  [FELLOWSHIP_EVENT.ZONE_CHANGE]: ZoneChangeEventFromLogSchema,
 } as const;
 
 export type ParsedFellowshipEventType = keyof typeof fellowshipEventSchemas;

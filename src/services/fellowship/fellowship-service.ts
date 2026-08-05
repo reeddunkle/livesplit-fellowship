@@ -81,21 +81,7 @@ const makeFellowshipLive = E.gen(function* () {
             pollInterval: LIVE_LOG_POLL_INTERVAL,
             startFrom: "end",
           })
-          .pipe(
-            Stream.tap((line) => {
-              return E.logInfo("Fellowship parser received line.", {
-                length: line.length,
-                preview: line.slice(0, 200),
-              });
-            }),
-            parseFellowshipEventStream,
-            Stream.tap((event) => {
-              return E.logInfo("Fellowship parser emitted event.", {
-                event,
-                eventType: event.type,
-              });
-            }),
-          );
+          .pipe(parseFellowshipEventStream);
       }),
     );
   };
