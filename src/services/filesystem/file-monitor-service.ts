@@ -5,7 +5,6 @@ import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
 import * as Path from "effect/Path";
 import type * as PlatformError from "effect/PlatformError";
-import * as Schedule from "effect/Schedule";
 import * as Stream from "effect/Stream";
 
 import { FileNotFoundError } from "@/errors/file-not-found-error.ts";

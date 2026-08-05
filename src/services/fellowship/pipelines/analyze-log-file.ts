@@ -31,18 +31,8 @@ export function analyzeFellowshipEvents({
     events,
     groupDungeonRuns,
     (runs) => {
-      const query =
-        configuration.keyLevel === undefined
-          ? {
-              dungeon: configuration.dungeon,
-            }
-          : {
-              dungeon: configuration.dungeon,
-              keyLevel: configuration.keyLevel,
-            };
-
       return filterDungeonRuns({
-        query,
+        query: configuration,
         runs,
       });
     },
