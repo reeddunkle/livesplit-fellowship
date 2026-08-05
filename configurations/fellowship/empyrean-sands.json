@@ -1,0 +1,22 @@
+{
+  "dungeonKey": "EMPYREAN_SANDS",
+  "milestones": [
+    {
+      "label": "Ghorn Defeated",
+      "milestoneId": "ghorn:defeated",
+      "trigger": {
+        "occurrence": 1,
+        "type": "UNIT_DEATH",
+        "unitTypeId": 280
+      }
+    },
+    {
+      "label": "Boss Defeated",
+      "milestoneId": "boss:defeated",
+      "trigger": {
+        "encounterId": 31,
+        "type": "ENCOUNTER_END"
+      }
+    }
+  ]
+}

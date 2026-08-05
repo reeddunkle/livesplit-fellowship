@@ -3,10 +3,10 @@ import * as Schema from "effect/Schema";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import {
+  DungeonIdSchema,
   DungeonNameSchema,
-  KeyLevelSchema,
+  InstanceIdSchema,
   TimestampSchema,
-  ZoneIdSchema,
 } from "@/services/fellowship/validation/common.ts";
 import {
   EmptyStringSchema,
@@ -24,34 +24,33 @@ const ZoneChangeLogLineSchema = Schema.Tuple([
 ]);
 
 const ZoneChangeEventSchema = Schema.Struct({
+  dungeonId: DungeonIdSchema,
   dungeonName: DungeonNameSchema,
-  keyLevel: KeyLevelSchema,
+  instanceId: InstanceIdSchema,
   timestamp: TimestampSchema,
   type: Schema.Literal(FELLOWSHIP_EVENT.ZONE_CHANGE),
-  zoneId: ZoneIdSchema,
 });
 
 export const ZoneChangeEventFromLogSchema = ZoneChangeLogLineSchema.pipe(
   Schema.decodeTo(ZoneChangeEventSchema, {
     decode: SchemaGetter.transform(
-      ([timestamp, type, dungeonName, keyLevel, zoneId]) => {
+      ([timestamp, type, dungeonName, dungeonId, instanceId]) => {
         return {
+          dungeonId,
           dungeonName,
-          keyLevel,
+          instanceId,
           timestamp,
           type,
-          zoneId,
         };
       },
     ),
-
     encode: SchemaGetter.transform((event) => {
       return [
         event.timestamp,
         event.type,
         event.dungeonName,
-        event.keyLevel,
-        event.zoneId,
+        event.dungeonId,
+        event.instanceId,
         "",
       ] as const;
     }),

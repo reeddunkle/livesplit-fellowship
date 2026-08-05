@@ -4,10 +4,10 @@ import * as Schema from "effect/Schema";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import {
   DungeonAffixIdsSchema,
+  DungeonIdSchema,
   DungeonNameSchema,
-  KeyLevelSchema,
+  InstanceIdSchema,
   TimestampSchema,
-  ZoneIdSchema,
 } from "@/services/fellowship/validation/common.ts";
 import {
   BooleanFlagSchema,
@@ -41,13 +41,13 @@ const DungeonEndUnmappedSchema = Schema.Struct({
 
 const DungeonEndEventSchema = Schema.Struct({
   affixIds: DungeonAffixIdsSchema,
+  dungeonId: DungeonIdSchema,
   dungeonName: DungeonNameSchema,
-  keyLevel: KeyLevelSchema,
+  instanceId: InstanceIdSchema,
   succeeded: Schema.Boolean,
   timestamp: TimestampSchema,
   type: Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_END),
   unmapped: DungeonEndUnmappedSchema,
-  zoneId: ZoneIdSchema,
 });
 
 export const DungeonEndEventFromLogSchema = DungeonEndLogLineSchema.pipe(
@@ -57,8 +57,8 @@ export const DungeonEndEventFromLogSchema = DungeonEndLogLineSchema.pipe(
         timestamp,
         type,
         dungeonName,
-        keyLevel,
-        zoneId,
+        dungeonId,
+        instanceId,
         affixIds,
         succeeded,
         numericField1,
@@ -69,8 +69,9 @@ export const DungeonEndEventFromLogSchema = DungeonEndLogLineSchema.pipe(
       ]) => {
         return {
           affixIds,
+          dungeonId,
           dungeonName,
-          keyLevel,
+          instanceId,
           succeeded,
           timestamp,
           type,
@@ -81,18 +82,16 @@ export const DungeonEndEventFromLogSchema = DungeonEndLogLineSchema.pipe(
             numericField1,
             numericField2,
           },
-          zoneId,
         };
       },
     ),
-
     encode: SchemaGetter.transform((event) => {
       return [
         event.timestamp,
         event.type,
         event.dungeonName,
-        event.keyLevel,
-        event.zoneId,
+        event.dungeonId,
+        event.instanceId,
         event.affixIds,
         event.succeeded,
         event.unmapped.numericField1,
