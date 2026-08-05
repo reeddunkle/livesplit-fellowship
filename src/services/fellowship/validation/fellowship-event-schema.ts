@@ -5,6 +5,7 @@ import {
   type FellowshipEventType,
 } from "@/services/fellowship/constants/fellowship-event.ts";
 
+import { AbilityActivatedEventFromLogSchema } from "./events/ability-activated.ts";
 import { DungeonEndEventFromLogSchema } from "./events/dungeon-end.ts";
 import { DungeonStartEventFromLogSchema } from "./events/dungeon-start.ts";
 import { EncounterEndEventFromLogSchema } from "./events/encounter-end.ts";
@@ -14,6 +15,7 @@ import { UnitDeathEventFromLogSchema } from "./events/unit-death.ts";
 import { ZoneChangeEventFromLogSchema } from "./events/zone-change.ts";
 
 export const fellowshipEventSchemas = {
+  [FELLOWSHIP_EVENT.ABILITY_ACTIVATED]: AbilityActivatedEventFromLogSchema,
   [FELLOWSHIP_EVENT.DUNGEON_END]: DungeonEndEventFromLogSchema,
   [FELLOWSHIP_EVENT.DUNGEON_START]: DungeonStartEventFromLogSchema,
   [FELLOWSHIP_EVENT.ENCOUNTER_END]: EncounterEndEventFromLogSchema,

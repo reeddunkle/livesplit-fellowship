@@ -16,8 +16,8 @@
       "milestoneId": "boss:defeated:1",
       "requirements": [
         {
-          "encounterId": 26,
-          "type": "ENCOUNTER_END"
+          "abilityId": 634,
+          "type": "ABILITY_ACTIVATED"
         }
       ]
     },

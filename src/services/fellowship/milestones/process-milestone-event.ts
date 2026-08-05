@@ -37,6 +37,13 @@ const doesEventSatisfyRequirement = ({
   requirement,
 }: DoesEventSatisfyRequirementOptions): boolean => {
   return Match.value(requirement).pipe(
+    Match.when({ type: FELLOWSHIP_EVENT.ABILITY_ACTIVATED }, (requirement) => {
+      return (
+        event.type === FELLOWSHIP_EVENT.ABILITY_ACTIVATED &&
+        event.abilityId === requirement.abilityId
+      );
+    }),
+
     Match.when(
       { type: FELLOWSHIP_EVENT.DUNGEON_START },
       () => event.type === FELLOWSHIP_EVENT.DUNGEON_START,

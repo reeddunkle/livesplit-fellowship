@@ -1,5 +1,3 @@
-// src/services/fellowship/pipelines/process-live-event-stream.ts
-
 import * as E from "effect/Effect";
 import * as Stream from "effect/Stream";
 

@@ -1,6 +1,11 @@
 import { type FellowshipDungeon } from "@/services/fellowship/constants/fellowship-dungeon.ts";
 import { type FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 
+type AbilityActivatedMilestoneRequirement = {
+  readonly abilityId: number;
+  readonly type: typeof FELLOWSHIP_EVENT.ABILITY_ACTIVATED;
+};
+
 type DungeonStartMilestoneRequirement = {
   readonly type: typeof FELLOWSHIP_EVENT.DUNGEON_START;
 };
@@ -25,6 +30,7 @@ type UnitDeathMilestoneRequirement = {
 };
 
 export type FellowshipMilestoneRequirement =
+  | AbilityActivatedMilestoneRequirement
   | DungeonEndMilestoneRequirement
   | DungeonStartMilestoneRequirement
   | EncounterEndMilestoneRequirement

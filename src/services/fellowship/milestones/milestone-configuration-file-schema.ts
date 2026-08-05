@@ -19,6 +19,11 @@ const FellowshipDungeonKeySchema = Schema.Union([
   Schema.Literal("STORMWATCH"),
 ]);
 
+const AbilityActivatedMilestoneRequirementSchema = Schema.Struct({
+  abilityId: PositiveIntegerSchema,
+  type: Schema.Literal(FELLOWSHIP_EVENT.ABILITY_ACTIVATED),
+});
+
 const DungeonStartMilestoneRequirementSchema = Schema.Struct({
   type: Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_START),
 });
@@ -43,6 +48,7 @@ const UnitDeathMilestoneRequirementSchema = Schema.Struct({
 });
 
 const FellowshipMilestoneRequirementSchema = Schema.Union([
+  AbilityActivatedMilestoneRequirementSchema,
   DungeonEndMilestoneRequirementSchema,
   DungeonStartMilestoneRequirementSchema,
   EncounterEndMilestoneRequirementSchema,
