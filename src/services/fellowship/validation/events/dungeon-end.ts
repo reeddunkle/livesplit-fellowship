@@ -103,3 +103,5 @@ export const DungeonEndEventFromLogSchema = DungeonEndLogLineSchema.pipe(
     }),
   }),
 );
+
+export type DungeonEndEvent = typeof DungeonEndEventFromLogSchema.Type;
