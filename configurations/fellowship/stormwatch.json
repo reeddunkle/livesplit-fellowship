@@ -4,20 +4,32 @@
     {
       "label": "Eira Defeated",
       "milestoneId": "eira:defeated",
-      "type": "UNIT_DEATH",
-      "unitTypeId": 281
+      "requirements": [
+        {
+          "type": "UNIT_DEATH",
+          "unitTypeId": 281
+        }
+      ]
     },
     {
       "label": "Boss 1st Encounter Completed",
       "milestoneId": "boss:defeated:1",
-      "encounterId": 26,
-      "type": "ENCOUNTER_END"
+      "requirements": [
+        {
+          "encounterId": 26,
+          "type": "ENCOUNTER_END"
+        }
+      ]
     },
     {
       "label": "Boss 2nd Encounter Completed",
       "milestoneId": "boss:defeated:2",
-      "encounterId": 26,
-      "type": "ENCOUNTER_END"
+      "requirements": [
+        {
+          "encounterId": 26,
+          "type": "ENCOUNTER_END"
+        }
+      ]
     }
   ]
 }
