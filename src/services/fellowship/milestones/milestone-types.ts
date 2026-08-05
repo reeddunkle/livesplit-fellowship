@@ -1,25 +1,25 @@
 import { type FellowshipDungeon } from "@/services/fellowship/constants/fellowship-dungeon.ts";
 import { type FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 
-export type DungeonStartMilestoneRequirement = {
+type DungeonStartMilestoneRequirement = {
   readonly type: typeof FELLOWSHIP_EVENT.DUNGEON_START;
 };
 
-export type DungeonEndMilestoneRequirement = {
+type DungeonEndMilestoneRequirement = {
   readonly type: typeof FELLOWSHIP_EVENT.DUNGEON_END;
 };
 
-export type EncounterStartMilestoneRequirement = {
+type EncounterStartMilestoneRequirement = {
   readonly encounterId: number;
   readonly type: typeof FELLOWSHIP_EVENT.ENCOUNTER_START;
 };
 
-export type EncounterEndMilestoneRequirement = {
+type EncounterEndMilestoneRequirement = {
   readonly encounterId: number;
   readonly type: typeof FELLOWSHIP_EVENT.ENCOUNTER_END;
 };
 
-export type UnitDeathMilestoneRequirement = {
+type UnitDeathMilestoneRequirement = {
   readonly type: typeof FELLOWSHIP_EVENT.UNIT_DEATH;
   readonly unitTypeId: number;
 };

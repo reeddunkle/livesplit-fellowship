@@ -53,5 +53,3 @@ export const EncounterEndEventFromLogSchema = EncounterEndLogLineSchema.pipe(
     }),
   }),
 );
-
-export type EncounterEndEvent = typeof EncounterEndEventFromLogSchema.Type;

@@ -16,22 +16,3 @@ export type FellowshipRunMilestone = {
   readonly milestoneId: string;
   readonly timestamp: DateTime.Utc;
 };
-
-export type AnalyzedFellowshipDungeonRun = {
-  readonly affixIds: DungeonStartEvent["affixIds"];
-  readonly dungeonId: DungeonStartEvent["dungeonId"];
-  readonly dungeonName: DungeonStartEvent["dungeonName"];
-  readonly durationMilliseconds: number;
-  readonly endTime: DateTime.Utc;
-  readonly events: ReadonlyArray<FellowshipEvent>;
-  readonly milestones: ReadonlyArray<FellowshipRunMilestone>;
-  readonly startTime: DateTime.Utc;
-  readonly succeeded: DungeonEndEvent["succeeded"];
-};
-
-export type FellowshipSplitResult = {
-  readonly elapsedMilliseconds: number;
-  readonly label: string;
-  readonly milestoneId: string;
-  readonly segmentMilliseconds: number;
-};

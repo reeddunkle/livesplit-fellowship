@@ -1,7 +1,7 @@
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 
-export type DungeonRunIdentity = {
+type DungeonRunIdentity = {
   readonly start: DungeonStartEvent;
 };
 

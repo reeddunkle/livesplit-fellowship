@@ -107,5 +107,3 @@ export const UnitDeathEventFromLogSchema = UnitDeathLogLineSchema.pipe(
     }),
   }),
 );
-
-export type UnitDeathEvent = typeof UnitDeathEventFromLogSchema.Type;

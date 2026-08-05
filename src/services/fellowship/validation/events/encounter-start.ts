@@ -49,5 +49,3 @@ export const EncounterStartEventFromLogSchema =
       }),
     }),
   );
-
-export type EncounterStartEvent = typeof EncounterStartEventFromLogSchema.Type;

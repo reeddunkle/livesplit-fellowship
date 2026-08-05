@@ -8,5 +8,3 @@ export const FellowshipLogHeaderSchema = Schema.TupleWithRest(
   Schema.Tuple([Schema.String, FellowshipEventTypeSchema]),
   [Schema.String],
 );
-
-export type FellowshipLogHeader = typeof FellowshipLogHeaderSchema.Type;

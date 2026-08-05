@@ -16,7 +16,7 @@ import { type FellowshipEvent } from "./validation/fellowship-event-schema.ts";
 const LIVE_LOG_POLL_INTERVAL = "250 millis";
 const FELLOWSHIP_LOG_FILE_EXTENSION = ".txt";
 
-export type FellowshipReadError =
+type FellowshipReadError =
   | FileMonitorError
   | FellowshipLogParseError
   | Config.ConfigError;

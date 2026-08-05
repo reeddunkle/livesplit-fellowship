@@ -87,7 +87,7 @@ export const FELLOWSHIP_DUNGEON = {
   // },
 } as const satisfies Record<string, FellowshipDungeonDefinition>;
 
-export type FellowshipDungeonKey = keyof typeof FELLOWSHIP_DUNGEON;
+type FellowshipDungeonKey = keyof typeof FELLOWSHIP_DUNGEON;
 
 export type FellowshipDungeon =
   (typeof FELLOWSHIP_DUNGEON)[FellowshipDungeonKey];

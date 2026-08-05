@@ -42,7 +42,7 @@ const UnitDeathMilestoneRequirementSchema = Schema.Struct({
   unitTypeId: PositiveIntegerSchema,
 });
 
-export const FellowshipMilestoneRequirementSchema = Schema.Union([
+const FellowshipMilestoneRequirementSchema = Schema.Union([
   DungeonEndMilestoneRequirementSchema,
   DungeonStartMilestoneRequirementSchema,
   EncounterEndMilestoneRequirementSchema,
@@ -50,7 +50,7 @@ export const FellowshipMilestoneRequirementSchema = Schema.Union([
   UnitDeathMilestoneRequirementSchema,
 ]);
 
-export const FellowshipMilestoneDefinitionSchema = Schema.Struct({
+const FellowshipMilestoneDefinitionSchema = Schema.Struct({
   label: NonEmptyStringSchema,
   milestoneId: NonEmptyStringSchema,
   requirements: Schema.NonEmptyArray(FellowshipMilestoneRequirementSchema),

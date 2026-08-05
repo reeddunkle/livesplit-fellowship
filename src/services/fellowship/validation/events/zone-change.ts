@@ -56,5 +56,3 @@ export const ZoneChangeEventFromLogSchema = ZoneChangeLogLineSchema.pipe(
     }),
   }),
 );
-
-export type ZoneChangeEvent = typeof ZoneChangeEventFromLogSchema.Type;

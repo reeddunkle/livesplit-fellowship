@@ -74,5 +74,3 @@ export const MapChangeEventFromLogSchema = MapChangeLogLineSchema.pipe(
     }),
   }),
 );
-
-export type MapChangeEvent = typeof MapChangeEventFromLogSchema.Type;

@@ -80,5 +80,3 @@ export const DungeonStartEventFromLogSchema = DungeonStartLogLineSchema.pipe(
     }),
   }),
 );
-
-export type DungeonStartEvent = typeof DungeonStartEventFromLogSchema.Type;
