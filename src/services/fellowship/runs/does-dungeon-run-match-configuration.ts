@@ -1,9 +1,7 @@
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
-import { type MapChangeEvent } from "@/services/fellowship/validation/events/map-change.ts";
 
 export type DungeonRunIdentity = {
-  readonly mapId: MapChangeEvent["mapId"];
   readonly start: DungeonStartEvent;
 };
 
@@ -17,7 +15,7 @@ export function doesDungeonRunMatchConfiguration({
   run,
 }: DoesDungeonRunMatchConfigurationOptions): boolean {
   return (
-    run.mapId === configuration.dungeon.mapId &&
+    run.start.dungeonId === configuration.dungeon.dungeonId &&
     run.start.dungeonName === configuration.dungeon.name
   );
 }

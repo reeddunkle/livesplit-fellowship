@@ -13,6 +13,5 @@ export function handleLiveMilestone({
     elapsedMilliseconds: milestone.elapsedMilliseconds,
     label: milestone.label,
     milestoneId: milestone.milestoneId,
-    type: milestone.type,
   });
 }

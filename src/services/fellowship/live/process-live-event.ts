@@ -61,18 +61,11 @@ export function processLiveEvent({
     event,
   });
 
-  const mapId =
-    event.type === FELLOWSHIP_EVENT.DUNGEON_START
-      ? state.runTracker.latestMapId
-      : trackerResult.state.currentMapId;
-
   const isConfiguredRun =
     runStart !== undefined &&
-    mapId !== undefined &&
     doesDungeonRunMatchConfiguration({
       configuration,
       run: {
-        mapId,
         start: runStart,
       },
     });
@@ -95,9 +88,11 @@ export function processLiveEvent({
     state: milestoneProcessor,
   });
 
+  const completedMilestone = milestoneResult.milestones.at(-1);
+
   const latestMilestone = isDungeonStart
-    ? milestoneResult.milestones.at(-1)
-    : (milestoneResult.milestones.at(-1) ?? state.latestMilestone);
+    ? completedMilestone
+    : (completedMilestone ?? state.latestMilestone);
 
   return {
     milestones: milestoneResult.milestones,

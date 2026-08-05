@@ -1,54 +1,32 @@
 import type * as DateTime from "effect/DateTime";
 
-import {
-  type FellowshipMilestoneConfiguration,
-  type FellowshipMilestoneDefinition,
-  type FellowshipSplitModel,
-} from "./milestones/milestone-types.ts";
 import { type DungeonEndEvent } from "./validation/events/dungeon-end.ts";
 import { type DungeonStartEvent } from "./validation/events/dungeon-start.ts";
-import { type MapChangeEvent } from "./validation/events/map-change.ts";
 import { type FellowshipEvent } from "./validation/fellowship-event-schema.ts";
 
 export type RawFellowshipDungeonRun = {
   readonly end: DungeonEndEvent;
   readonly events: ReadonlyArray<FellowshipEvent>;
-  readonly mapId: MapChangeEvent["mapId"];
   readonly start: DungeonStartEvent;
 };
-
-type FellowshipRunMilestoneType = FellowshipMilestoneDefinition["type"];
 
 export type FellowshipRunMilestone = {
   readonly elapsedMilliseconds: number;
   readonly label: string;
   readonly milestoneId: string;
   readonly timestamp: DateTime.Utc;
-  readonly type: FellowshipRunMilestoneType;
 };
 
 export type AnalyzedFellowshipDungeonRun = {
-  readonly affixIds: ReadonlyArray<number>;
-  readonly dungeonId: number;
-  readonly dungeonName: string;
+  readonly affixIds: DungeonStartEvent["affixIds"];
+  readonly dungeonId: DungeonStartEvent["dungeonId"];
+  readonly dungeonName: DungeonStartEvent["dungeonName"];
   readonly durationMilliseconds: number;
   readonly endTime: DateTime.Utc;
   readonly events: ReadonlyArray<FellowshipEvent>;
-  readonly mapId: MapChangeEvent["mapId"];
   readonly milestones: ReadonlyArray<FellowshipRunMilestone>;
   readonly startTime: DateTime.Utc;
-  readonly succeeded: boolean;
-};
-
-type FellowshipGoalMilestone = {
-  readonly elapsedMilliseconds: number;
-  readonly milestoneId: string;
-};
-
-export type FellowshipGoalData = {
-  readonly configuration: FellowshipMilestoneConfiguration;
-  readonly milestones: ReadonlyArray<FellowshipGoalMilestone>;
-  readonly splitModel: FellowshipSplitModel;
+  readonly succeeded: DungeonEndEvent["succeeded"];
 };
 
 export type FellowshipSplitResult = {

@@ -19,46 +19,42 @@ const FellowshipDungeonKeySchema = Schema.Union([
   Schema.Literal("STORMWATCH"),
 ]);
 
-const FellowshipMilestoneBaseSchema = Schema.Struct({
-  label: NonEmptyStringSchema,
-  milestoneId: NonEmptyStringSchema,
-});
-
-const DungeonStartMilestoneDefinitionSchema = Schema.Struct({
-  ...FellowshipMilestoneBaseSchema.fields,
+const DungeonStartMilestoneRequirementSchema = Schema.Struct({
   type: Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_START),
 });
 
-const DungeonEndMilestoneDefinitionSchema = Schema.Struct({
-  ...FellowshipMilestoneBaseSchema.fields,
+const DungeonEndMilestoneRequirementSchema = Schema.Struct({
   type: Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_END),
 });
 
-const EncounterStartMilestoneDefinitionSchema = Schema.Struct({
-  ...FellowshipMilestoneBaseSchema.fields,
+const EncounterStartMilestoneRequirementSchema = Schema.Struct({
   encounterId: PositiveIntegerSchema,
   type: Schema.Literal(FELLOWSHIP_EVENT.ENCOUNTER_START),
 });
 
-const EncounterEndMilestoneDefinitionSchema = Schema.Struct({
-  ...FellowshipMilestoneBaseSchema.fields,
+const EncounterEndMilestoneRequirementSchema = Schema.Struct({
   encounterId: PositiveIntegerSchema,
   type: Schema.Literal(FELLOWSHIP_EVENT.ENCOUNTER_END),
 });
 
-const UnitDeathMilestoneDefinitionSchema = Schema.Struct({
-  ...FellowshipMilestoneBaseSchema.fields,
+const UnitDeathMilestoneRequirementSchema = Schema.Struct({
   type: Schema.Literal(FELLOWSHIP_EVENT.UNIT_DEATH),
   unitTypeId: PositiveIntegerSchema,
 });
 
-export const FellowshipMilestoneDefinitionSchema = Schema.Union([
-  DungeonEndMilestoneDefinitionSchema,
-  DungeonStartMilestoneDefinitionSchema,
-  EncounterEndMilestoneDefinitionSchema,
-  EncounterStartMilestoneDefinitionSchema,
-  UnitDeathMilestoneDefinitionSchema,
+export const FellowshipMilestoneRequirementSchema = Schema.Union([
+  DungeonEndMilestoneRequirementSchema,
+  DungeonStartMilestoneRequirementSchema,
+  EncounterEndMilestoneRequirementSchema,
+  EncounterStartMilestoneRequirementSchema,
+  UnitDeathMilestoneRequirementSchema,
 ]);
+
+export const FellowshipMilestoneDefinitionSchema = Schema.Struct({
+  label: NonEmptyStringSchema,
+  milestoneId: NonEmptyStringSchema,
+  requirements: Schema.NonEmptyArray(FellowshipMilestoneRequirementSchema),
+});
 
 export const FellowshipMilestoneConfigurationFileSchema = Schema.Struct({
   dungeonKey: FellowshipDungeonKeySchema,

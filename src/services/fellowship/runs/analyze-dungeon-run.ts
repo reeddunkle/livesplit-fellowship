@@ -30,7 +30,6 @@ export function analyzeDungeonRun({
     durationMilliseconds: getElapsedMilliseconds(startTime, endTime),
     endTime,
     events: run.events,
-    mapId: run.mapId,
     milestones,
     startTime,
     succeeded: run.end.succeeded,

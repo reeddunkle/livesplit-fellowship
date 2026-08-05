@@ -10,10 +10,6 @@ import { type Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { type LiveSplitFile } from "@/services/live-split/files/live-split-file-service.ts";
 
 import {
-  AnalyzeLogCommandInputSchema,
-  runAnalyzeLogCommand,
-} from "./commands/analyze-log-command.ts";
-import {
   FilterLogCommandInputSchema,
   runFilterLogCommand,
 } from "./commands/filter-log-command.ts";
@@ -99,18 +95,6 @@ function validateNoExtraPositionals(
   );
 }
 
-function parseAnalyzeLogInput({ positionals, values }: ParsedArguments) {
-  return E.gen(function* () {
-    yield* validateNoExtraPositionals(positionals);
-
-    return yield* Schema.decodeUnknownEffect(AnalyzeLogCommandInputSchema)({
-      configurationFilePath: values.configuration,
-      logFilePath: values.log,
-      outputFilePath: values.output,
-    });
-  });
-}
-
 function parseLiveLogInput({ positionals, values }: ParsedArguments) {
   return E.gen(function* () {
     yield* validateNoExtraPositionals(positionals);
@@ -162,24 +146,6 @@ function makeCLILive(): CLIService {
         const [commandName] = parsedArguments.positionals;
 
         switch (commandName) {
-          case "analyze-log": {
-            const input = yield* parseAnalyzeLogInput(parsedArguments);
-
-            const goal = yield* runAnalyzeLogCommand(input);
-
-            const logMetadata = {
-              dungeon: goal.configuration.dungeon.name,
-              milestoneCount: goal.milestones.length,
-            };
-
-            yield* E.logInfo(
-              `Goal written to ${input.outputFilePath}.`,
-              logMetadata,
-            );
-
-            return;
-          }
-
           case "filter-log": {
             const input = yield* parseFilterLogInput(parsedArguments);
 

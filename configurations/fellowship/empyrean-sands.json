@@ -4,14 +4,12 @@
     {
       "label": "Ghorn Defeated",
       "milestoneId": "ghorn:defeated",
-      "type": "UNIT_DEATH",
-      "unitTypeId": 280
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 280 }]
     },
     {
       "label": "Boss Defeated",
       "milestoneId": "boss:defeated",
-      "encounterId": 31,
-      "type": "ENCOUNTER_END"
+      "requirements": [{ "encounterId": 31, "type": "ENCOUNTER_END" }]
     }
   ]
 }

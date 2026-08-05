@@ -32,20 +32,9 @@ function processLiveSplitEvent({
 }: ProcessLiveSplitEventOptions) {
   return E.gen(function* () {
     if (event.type === FELLOWSHIP_EVENT.DUNGEON_START) {
-      const mapId = state.runTracker.latestMapId;
-
-      if (mapId === undefined) {
-        return yield* E.fail(
-          new Error(
-            `Received DUNGEON_START for "${event.dungeonName}" before MAP_CHANGE.`,
-          ),
-        );
-      }
-
       const matchesConfiguration = doesDungeonRunMatchConfiguration({
         configuration,
         run: {
-          mapId,
           start: event,
         },
       });
@@ -75,19 +64,15 @@ export function processLiveSplitLog({
 
     return yield* fellowship.liveEvents().pipe(
       Stream.mapAccumEffect(createInitialLiveRunState, (state, event) => {
-        return E.gen(function* () {
-          return yield* processLiveSplitEvent({
-            configuration,
-            event,
-            liveSplitClient,
-            state,
-          });
+        return processLiveSplitEvent({
+          configuration,
+          event,
+          liveSplitClient,
+          state,
         });
       }),
       Stream.runForEach(() => {
-        return E.gen(function* () {
-          yield* liveSplitClient.split();
-        });
+        return liveSplitClient.split();
       }),
     );
   });
