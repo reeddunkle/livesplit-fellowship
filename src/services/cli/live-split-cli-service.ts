@@ -3,20 +3,25 @@ import * as Context from "effect/Context";
 import * as E from "effect/Effect";
 import type * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
+import type * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 
 import { type Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { type LiveSplitClient } from "@/services/live-split/client/live-split-client-service.ts";
+import { type LiveSplitFile } from "@/services/live-split/files/live-split-file-service.ts";
 
 import {
   AutosplitCommandInputSchema,
   runAutosplitCommand,
 } from "./commands/autosplit-command.ts";
+import { validateNoExtraPositionals } from "./util/util.ts";
 
 type LiveSplitCLIEnvironment =
-  | FileSystem.FileSystem
   | Fellowship
-  | LiveSplitClient;
+  | FileSystem.FileSystem
+  | LiveSplitClient
+  | LiveSplitFile
+  | Path.Path;
 
 export interface LiveSplitCLIService {
   readonly run: (
@@ -58,22 +63,6 @@ function parseArguments(
       });
     },
   });
-}
-
-function validateNoExtraPositionals(
-  positionals: ReadonlyArray<string>,
-): E.Effect<void, Error> {
-  const [, ...extraPositionals] = positionals;
-
-  if (extraPositionals.length === 0) {
-    return E.void;
-  }
-
-  return E.fail(
-    new Error(
-      `Unexpected positional arguments: ${extraPositionals.join(", ")}`,
-    ),
-  );
 }
 
 function parseAutosplitInput({ positionals, values }: ParsedArguments) {

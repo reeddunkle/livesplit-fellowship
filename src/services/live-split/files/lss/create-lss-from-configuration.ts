@@ -24,11 +24,6 @@ function createSegment(label: string): XMLElement {
       createXMLElement({
         name: "Icon",
       }),
-
-      /*
-       * Keep the standard LiveSplit containers but omit all timing data.
-       * These render as self-closing XML elements.
-       */
       createXMLElement({
         name: "SplitTimes",
       }),

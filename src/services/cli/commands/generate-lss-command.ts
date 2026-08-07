@@ -2,7 +2,7 @@ import * as E from "effect/Effect";
 import * as Schema from "effect/Schema";
 
 import { loadMilestoneConfiguration } from "@/services/fellowship/milestones/load-milestone-configuration.ts";
-import { LiveSplitFile } from "@/services/live-split/files/live-split-file-service.ts";
+import { generateLSSFile } from "@/services/live-split/files/lss/generate-lss-file.ts";
 import { NonEmptyStringSchema } from "@/validation/common.ts";
 
 export const GenerateLSSCommandInputSchema = Schema.Struct({
@@ -14,20 +14,20 @@ export type GenerateLSSCommandInput = typeof GenerateLSSCommandInputSchema.Type;
 
 export function runGenerateLSSCommand(input: GenerateLSSCommandInput) {
   return E.gen(function* () {
-    const liveSplitFile = yield* LiveSplitFile;
-
     const configuration = yield* loadMilestoneConfiguration({
       filePath: input.configurationFilePath,
     });
 
-    yield* liveSplitFile.writeLSSFile({
+    yield* generateLSSFile({
       configuration,
       filePath: input.outputFilePath,
     });
 
-    yield* E.logInfo(`LiveSplit file written to ${input.outputFilePath}.`, {
+    yield* E.logInfo("Generated LiveSplit splits file.", {
+      configurationFilePath: input.configurationFilePath,
       dungeon: configuration.dungeon.name,
       milestoneCount: configuration.milestones.length,
+      outputFilePath: input.outputFilePath,
     });
   });
 }

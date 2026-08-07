@@ -55,6 +55,10 @@ export interface LiveSplitClientService {
   readonly split: () => E.Effect<void, Socket.SocketError>;
 
   readonly startTimer: () => E.Effect<void, Socket.SocketError>;
+
+  readonly switchSplits: (
+    filePath: string,
+  ) => E.Effect<void, InvalidLiveSplitResponseError | LiveSplitRequestError>;
 }
 
 export class LiveSplitClient extends Context.Service<
@@ -147,7 +151,7 @@ const makeLiveSplitClient = E.gen(function* () {
   };
 
   const request = (
-    command: LiveSplitRequestCommand,
+    command: string,
   ): E.Effect<string, LiveSplitRequestError> => {
     return requestSemaphore.withPermit(
       E.gen(function* () {
@@ -188,6 +192,25 @@ const makeLiveSplitClient = E.gen(function* () {
     }
 
     return E.succeed(splitIndex);
+  };
+
+  const requireSuccessfulBooleanResponse = ({
+    command,
+    response,
+  }: {
+    readonly command: string;
+    readonly response: string;
+  }): E.Effect<void, InvalidLiveSplitResponseError> => {
+    if (response.trim().toLowerCase() === "true") {
+      return E.void;
+    }
+
+    return E.fail(
+      new InvalidLiveSplitResponseError({
+        command,
+        response,
+      }),
+    );
   };
 
   return {
@@ -237,6 +260,22 @@ const makeLiveSplitClient = E.gen(function* () {
 
     startTimer: () => {
       return send(LiveSplitSendCommand.startTimer);
+    },
+
+    switchSplits: (filePath) => {
+      const command = appendCommandArgument({
+        argument: filePath,
+        command: LiveSplitRequestCommand.switchSplits,
+      });
+
+      return request(command).pipe(
+        E.flatMap((response) => {
+          return requireSuccessfulBooleanResponse({
+            command: LiveSplitRequestCommand.switchSplits,
+            response,
+          });
+        }),
+      );
     },
   } satisfies LiveSplitClientService;
 });

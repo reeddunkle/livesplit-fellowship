@@ -12,9 +12,14 @@ export type LiveSplitSendCommand =
 
 export const LiveSplitRequestCommand = {
   getCurrentTime: "getcurrenttime",
+  getLiveSplitVersion: "getlivesplitversion",
+  getServerType: "getservertype",
   getSplitIndex: "getsplitindex",
+  getSplitsPath: "getsplitspath",
   getTimerPhase: "getcurrenttimerphase",
   ping: "ping",
+  saveSplitsAs: "savesplitsas",
+  switchSplits: "switchsplits",
 } as const;
 
 export type LiveSplitRequestCommand =

@@ -25,6 +25,7 @@ import {
   ReplayLogCommandInputSchema,
   runReplayLogCommand,
 } from "./commands/replay-log-command.ts";
+import { validateNoExtraPositionals } from "./util/util.ts";
 
 type CLIEnvironment =
   | FileSystem.FileSystem
@@ -77,22 +78,6 @@ function parseArguments(
       });
     },
   });
-}
-
-function validateNoExtraPositionals(
-  positionals: ReadonlyArray<string>,
-): E.Effect<void, Error> {
-  const [, ...extraPositionals] = positionals;
-
-  if (extraPositionals.length === 0) {
-    return E.void;
-  }
-
-  return E.fail(
-    new Error(
-      `Unexpected positional arguments: ${extraPositionals.join(", ")}`,
-    ),
-  );
 }
 
 function parseLiveLogInput({ positionals, values }: ParsedArguments) {
