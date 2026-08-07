@@ -20,7 +20,7 @@
       "label": "Xurath Pulled",
       "milestoneId": "xurath:pulled",
       "targetElapsedTime": "00:10:00",
-      "requirements": [{ "encounterId": 35, "type": "ENCOUNTER_END" }]
+      "requirements": [{ "encounterId": 35, "type": "ENCOUNTER_START" }]
     },
     {
       "label": "Xurath Defeated",

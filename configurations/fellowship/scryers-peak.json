@@ -20,7 +20,7 @@
       "label": "Varux Pulled",
       "milestoneId": "varux:pulled",
       "targetElapsedTime": "00:10:00",
-      "requirements": [{ "encounterId": 36, "type": "ENCOUNTER_END" }]
+      "requirements": [{ "encounterId": 36, "type": "ENCOUNTER_START" }]
     },
     {
       "label": "Varux Defeated",
