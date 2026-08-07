@@ -5,15 +5,16 @@ import * as Option from "effect/Option";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { type MilestoneProcessorState } from "@/services/fellowship/milestones/milestone-processor-state.ts";
-import {
-  type FellowshipMilestoneConfiguration,
-  type FellowshipMilestoneDefinition,
-  type FellowshipMilestoneRequirement,
-} from "@/services/fellowship/milestones/milestone-types.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
+
+import {
+  type FellowshipMilestoneDefinition,
+  type FellowshipMilestoneRequirement,
+} from "./milestone-configuration-file-schema.ts";
 
 export type ProcessMilestoneEventOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
