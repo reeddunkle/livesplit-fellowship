@@ -1,3 +1,4 @@
+import { type FellowshipMilestoneDefinition } from "@/services/fellowship/milestones/milestone-configuration-file-schema.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 
 import { createXMLElement, renderXMLDocument, type XMLElement } from "./xml.ts";
@@ -9,24 +10,46 @@ export type CreateLSSFromConfigurationOptions = {
 function createGameName(
   configuration: FellowshipMilestoneConfiguration,
 ): string {
-  const baseName = `Fellowship ${configuration.dungeon.name}`;
-
-  return baseName;
+  return `Fellowship ${configuration.dungeon.name}`;
 }
 
-function createSegment(label: string): XMLElement {
+function createSplitTimes(targetElapsedTime: string | undefined): XMLElement {
+  if (targetElapsedTime === undefined) {
+    return createXMLElement({
+      name: "SplitTimes",
+    });
+  }
+
   return createXMLElement({
     children: [
       createXMLElement({
-        children: [label],
+        attributes: {
+          name: "Goal",
+        },
+        children: [
+          createXMLElement({
+            children: [targetElapsedTime],
+            name: "RealTime",
+          }),
+        ],
+        name: "SplitTime",
+      }),
+    ],
+    name: "SplitTimes",
+  });
+}
+
+function createSegment(milestone: FellowshipMilestoneDefinition): XMLElement {
+  return createXMLElement({
+    children: [
+      createXMLElement({
+        children: [milestone.label],
         name: "Name",
       }),
       createXMLElement({
         name: "Icon",
       }),
-      createXMLElement({
-        name: "SplitTimes",
-      }),
+      createSplitTimes(milestone.targetElapsedTime),
       createXMLElement({
         name: "BestSegmentTime",
       }),
@@ -94,9 +117,7 @@ function createLSSXMLTree(
         name: "AttemptCount",
       }),
       createXMLElement({
-        children: configuration.milestones.map((milestone) => {
-          return createSegment(milestone.label);
-        }),
+        children: configuration.milestones.map(createSegment),
         name: "Segments",
       }),
       createXMLElement({

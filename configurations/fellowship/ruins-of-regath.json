@@ -17,8 +17,15 @@
       "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 331 }]
     },
     {
+      "label": "Xurath Pulled",
+      "milestoneId": "xurath:pulled",
+      "targetElapsedTime": "00:10:00",
+      "requirements": [{ "encounterId": 35, "type": "ENCOUNTER_END" }]
+    },
+    {
       "label": "Xurath Defeated",
       "milestoneId": "xurath:defeated",
+      "targetElapsedTime": "00:15:00",
       "requirements": [{ "encounterId": 35, "type": "ENCOUNTER_END" }]
     }
   ]

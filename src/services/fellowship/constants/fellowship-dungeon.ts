@@ -45,11 +45,11 @@ export const FELLOWSHIP_DUNGEON = {
     mapId: 24,
     name: "Sailor's Abyss",
   },
-  // SCRYERS_PEAK: {
-  //   dungeonId: null,
-  //   mapId: null,
-  //   name: "Scryer's Peak",
-  // },
+  SCRYERS_PEAK: {
+    dungeonId: 31,
+    mapId: 37,
+    name: "Scryer's Peak",
+  },
   SILKEN_HOLLOW: {
     dungeonId: 24,
     mapId: 30,
@@ -60,31 +60,31 @@ export const FELLOWSHIP_DUNGEON = {
     mapId: 20,
     name: "Stormwatch",
   },
-  // URRAK_MARKETS: {
-  //   dungeonId: 21,
-  //   mapId: null,
-  //   name: "Urrak Markets",
-  // },
+  URRAK_MARKETS: {
+    dungeonId: 21,
+    mapId: 29,
+    name: "Urrak Markets",
+  },
   // WOODLAND_GLADE: {
   //   dungeonId: 28,
   //   mapId: null,
   //   name: "Woodland Glade",
   // },
-  // WRAITHTIDE_VAULT: {
-  //   dungeonId: 13,
-  //   mapId: null,
-  //   name: "Wraithtide Vault",
-  // },
-  // WYRMHEART: {
-  //   dungeonId: 8,
-  //   mapId: null,
-  //   name: "Wyrmheart",
-  // },
-  // XUL_THE_BLOOD_MONOLITH: {
-  //   dungeonId: null,
-  //   mapId: null,
-  //   name: "Xul, The Blood Monolith",
-  // },
+  WRAITHTIDE_VAULT: {
+    dungeonId: 13,
+    mapId: 10,
+    name: "Wraithtide Vault",
+  },
+  WYRMHEART: {
+    dungeonId: 8,
+    mapId: 22,
+    name: "Wyrmheart",
+  },
+  XUL_THE_BLOOD_MONOLITH: {
+    dungeonId: 30,
+    mapId: 38,
+    name: "Xul, The Blood Monolith",
+  },
 } as const satisfies Record<string, FellowshipDungeonDefinition>;
 
 type FellowshipDungeonKey = keyof typeof FELLOWSHIP_DUNGEON;
