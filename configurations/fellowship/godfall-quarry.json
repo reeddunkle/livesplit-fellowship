@@ -1,0 +1,16 @@
+{
+  "dungeonKey": "GODFALL_QUARRY",
+  "milestones": [
+    {
+      "label": "Boss Pull",
+      "milestoneId": "boss:pulled",
+      "requirements": [{ "encounterId": 34, "type": "ENCOUNTER_START" }]
+    },
+    {
+      "label": "Boss Kill",
+      "milestoneId": "boss:defeated",
+      "targetElapsedTime": "00:12:18",
+      "requirements": [{ "encounterId": 34, "type": "ENCOUNTER_END" }]
+    }
+  ]
+}

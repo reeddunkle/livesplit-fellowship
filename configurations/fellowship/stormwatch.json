@@ -12,8 +12,8 @@
       ]
     },
     {
-      "label": "Boss 1st Encounter Completed",
-      "milestoneId": "boss:defeated:1",
+      "label": "Boss Mid Encounter Completed",
+      "milestoneId": "boss:mid-encounter:completed",
       "requirements": [
         {
           "abilityId": 634,
@@ -22,8 +22,19 @@
       ]
     },
     {
-      "label": "Boss 2nd Encounter Completed",
-      "milestoneId": "boss:defeated:2",
+      "label": "Boss Pull",
+      "milestoneId": "boss:pull",
+      "requirements": [
+        {
+          "encounterId": 26,
+          "type": "ENCOUNTER_START"
+        }
+      ]
+    },
+    {
+      "label": "Boss Kill",
+      "milestoneId": "boss:kill",
+      "targetElapsedTime": "00:14:08",
       "requirements": [
         {
           "encounterId": 26,

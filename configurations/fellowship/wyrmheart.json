@@ -1,0 +1,31 @@
+{
+  "dungeonKey": "URRAK_MARKETS",
+  "milestones": [
+    {
+      "label": "Pull 1",
+      "milestoneId": "pull:1",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 331 }]
+    },
+    {
+      "label": "Pull 2",
+      "milestoneId": "pull:2",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 331 }]
+    },
+    {
+      "label": "Pull 3",
+      "milestoneId": "pull:3",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 331 }]
+    },
+    {
+      "label": "Boss Pull",
+      "milestoneId": "boss:pulled",
+      "requirements": [{ "encounterId": 27, "type": "ENCOUNTER_START" }]
+    },
+    {
+      "label": "Boss Kill",
+      "milestoneId": "boss:defeated",
+      "targetElapsedTime": "00:13:26",
+      "requirements": [{ "encounterId": 27, "type": "ENCOUNTER_END" }]
+    }
+  ]
+}

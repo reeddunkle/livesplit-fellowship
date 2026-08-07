@@ -32,8 +32,19 @@
       ]
     },
     {
+      "label": "Boss Pull",
+      "milestoneId": "boss:pull",
+      "requirements": [
+        {
+          "encounterId": 28,
+          "type": "ENCOUNTER_START"
+        }
+      ]
+    },
+    {
       "label": "Boss Defeated",
       "milestoneId": "boss:defeated",
+      "targetElapsedTime": "00:11:57",
       "requirements": [
         {
           "encounterId": 28,
