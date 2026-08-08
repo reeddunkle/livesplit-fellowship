@@ -114,6 +114,3 @@ export const AbilityActivatedEventFromLogSchema =
       }),
     }),
   );
-
-export type AbilityActivatedEvent =
-  typeof AbilityActivatedEventFromLogSchema.Type;

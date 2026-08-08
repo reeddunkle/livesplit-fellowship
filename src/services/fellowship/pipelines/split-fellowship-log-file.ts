@@ -20,7 +20,7 @@ export type SplitFellowshipLogFileError =
   | FellowshipLogParseError
   | PlatformError.PlatformError;
 
-export type SplitFellowshipLogFileOutput = {
+type SplitFellowshipLogFileOutput = {
   readonly dungeonId: number;
   readonly dungeonName: string;
   readonly filePath: string;
