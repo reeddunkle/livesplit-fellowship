@@ -238,7 +238,7 @@ export function splitFellowshipLogFile({
 
       const attemptSuffix = String(attemptNumber).padStart(2, "0");
 
-      const fileName = `${dungeonSlug}-attempt-${attemptSuffix}.log`;
+      const fileName = `${dungeonSlug}-attempt-${attemptSuffix}.txt`;
 
       const filePath = path.join(outputDirectoryPath, fileName);
 
