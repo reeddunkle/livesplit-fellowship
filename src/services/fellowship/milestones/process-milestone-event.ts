@@ -14,7 +14,7 @@ import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
 import {
   type FellowshipMilestoneDefinition,
   type FellowshipMilestoneRequirement,
-} from "./milestone-configuration-file-schema.ts";
+} from "../validation/milestone-configuration-file-schema.ts";
 
 export type ProcessMilestoneEventOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;

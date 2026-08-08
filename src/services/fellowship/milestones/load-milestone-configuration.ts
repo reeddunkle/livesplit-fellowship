@@ -11,11 +11,11 @@ import {
   FELLOWSHIP_DUNGEON,
   type FellowshipDungeon,
 } from "@/services/fellowship/constants/fellowship-dungeon.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import {
   type FellowshipMilestoneConfigurationFile,
   FellowshipMilestoneConfigurationFileSchema,
-} from "@/services/fellowship/milestones/milestone-configuration-file-schema.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+} from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 
 export type LoadMilestoneConfigurationOptions = {
   readonly filePath: string;

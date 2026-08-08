@@ -15,8 +15,13 @@ export const FellowshipDungeonKeySchema = Schema.Union([
   Schema.Literal("RANSACK_OF_DRAKHEIM"),
   Schema.Literal("RUINS_OF_REGATH"),
   Schema.Literal("SAILORS_ABYSS"),
+  Schema.Literal("SCRYERS_PEAK"),
   Schema.Literal("SILKEN_HOLLOW"),
   Schema.Literal("STORMWATCH"),
+  Schema.Literal("URRAK_MARKETS"),
+  Schema.Literal("WRAITHTIDE_VAULT"),
+  Schema.Literal("WYRMHEART"),
+  Schema.Literal("XUL_THE_BLOOD_MONOLITH"),
 ]);
 
 export type FellowshipDungeonKey = typeof FellowshipDungeonKeySchema.Type;
