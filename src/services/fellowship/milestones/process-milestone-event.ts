@@ -9,12 +9,11 @@ import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/mil
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
-import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
-
 import {
   type FellowshipMilestoneDefinition,
   type FellowshipMilestoneRequirement,
-} from "../validation/milestone-configuration-file-schema.ts";
+} from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
 
 export type ProcessMilestoneEventOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
