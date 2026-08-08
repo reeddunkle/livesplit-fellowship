@@ -25,6 +25,10 @@ import {
   ReplayLogCommandInputSchema,
   runReplayLogCommand,
 } from "./commands/replay-log-command.ts";
+import {
+  runSplitLogCommand,
+  SplitLogCommandInputSchema,
+} from "./commands/split-log-command.ts";
 import { validateNoExtraPositionals } from "./util/util.ts";
 
 type CLIEnvironment =
@@ -101,6 +105,17 @@ function parseFilterLogInput({ positionals, values }: ParsedArguments) {
   });
 }
 
+function parseSplitLogInput({ positionals, values }: ParsedArguments) {
+  return E.gen(function* () {
+    yield* validateNoExtraPositionals(positionals);
+
+    return yield* Schema.decodeUnknownEffect(SplitLogCommandInputSchema)({
+      inputFilePath: values.log,
+      outputDirectoryPath: values.output,
+    });
+  });
+}
+
 function parseGenerateLSSInput({ positionals, values }: ParsedArguments) {
   return E.gen(function* () {
     yield* validateNoExtraPositionals(positionals);
@@ -135,6 +150,13 @@ function makeCLILive(): CLIService {
             const input = yield* parseFilterLogInput(parsedArguments);
 
             yield* runFilterLogCommand(input);
+            return;
+          }
+
+          case "split-log": {
+            const input = yield* parseSplitLogInput(parsedArguments);
+
+            yield* runSplitLogCommand(input);
             return;
           }
 
