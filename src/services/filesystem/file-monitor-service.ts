@@ -202,7 +202,7 @@ const makeFileMonitor = E.gen(function* () {
   > => {
     return E.gen(function* () {
       /*
-       * A new latest file was selected. Read it from byte zero so content
+       * A new "latest file" was selected. Read it from byte zero so content
        * written before this polling cycle is not missed.
        */
       if (!isSameFile(file, state.file)) {
@@ -212,9 +212,7 @@ const makeFileMonitor = E.gen(function* () {
         });
       }
 
-      /*
-       * The selected file was truncated or replaced.
-       */
+      // The selected file was truncated or replaced.
       if (file.size < state.byteOffset) {
         return yield* readAppendedLines({
           file,

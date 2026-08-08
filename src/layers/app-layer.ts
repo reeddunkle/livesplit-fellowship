@@ -17,13 +17,8 @@ const FellowshipWithDependencies = FellowshipLive.pipe(
 );
 
 /*
- * This layer intentionally does not include LiveSplitClientLive.
- *
- * It supports commands that:
- * - analyze historical logs
- * - filter logs
- * - monitor Fellowship logs and print milestones
- * - generate .lss files
+ * This layer intentionally excludes LiveSplitClientLive for now.
+ * [TODO]: Find smarter way to manage TCP connection.
  */
 export const AppLive = Layer.mergeAll(
   PlatformLive,
