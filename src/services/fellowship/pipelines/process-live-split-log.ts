@@ -79,6 +79,18 @@ function processLiveSplitEvent({
       state,
     });
 
+    if (result.milestones.length > 0) {
+      yield* E.logInfo("LiveSplit milestones emitted.", {
+        eventType: event.type,
+        milestones: result.milestones.map((milestone) => {
+          return {
+            label: milestone.label,
+            milestoneId: milestone.milestoneId,
+          };
+        }),
+      });
+    }
+
     return [result.state, result.milestones] as const;
   });
 }
