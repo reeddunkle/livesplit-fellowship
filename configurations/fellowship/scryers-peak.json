@@ -1,0 +1,32 @@
+{
+  "dungeonKey": "SCRYERS_PEAK",
+  "milestones": [
+    {
+      "label": "Disciple 1",
+      "milestoneId": "sanguine-disciple:1",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 331 }]
+    },
+    {
+      "label": "Ghorn Defeated",
+      "milestoneId": "ghorn:defeated",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 280 }]
+    },
+    {
+      "label": "Disciple 2",
+      "milestoneId": "sanguine-disciple:2",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 331 }]
+    },
+    {
+      "label": "Varux Pulled",
+      "milestoneId": "varux:pulled",
+      "targetElapsedTime": "00:10:00",
+      "requirements": [{ "encounterId": 36, "type": "ENCOUNTER_START" }]
+    },
+    {
+      "label": "Varux Defeated",
+      "milestoneId": "varux:defeated",
+      "targetElapsedTime": "00:15:00",
+      "requirements": [{ "encounterId": 36, "type": "ENCOUNTER_END" }]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+.env
+
+generated/
+node_modules/
+test-combat-logs/
+test-logs/

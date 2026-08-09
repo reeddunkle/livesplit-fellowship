@@ -1,0 +1,40 @@
+{
+  "dungeonKey": "CITHRELS_FALL",
+  "milestones": [
+    {
+      "label": "Ghorn Defeated",
+      "milestoneId": "ghorn:defeated",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 280 }]
+    },
+    {
+      "label": "Noor Pull",
+      "milestoneId": "noor:pull",
+      "requirements": [{ "encounterId": 1, "type": "ENCOUNTER_START" }]
+    },
+    {
+      "label": "Noor Defeated",
+      "milestoneId": "noor:defeated",
+      "requirements": [{ "encounterId": 1, "type": "ENCOUNTER_END" }]
+    },
+    {
+      "label": "Koros Pull",
+      "milestoneId": "koros:pull",
+      "requirements": [{ "encounterId": 2, "type": "ENCOUNTER_START" }]
+    },
+    {
+      "label": "Koros Defeated",
+      "milestoneId": "koros:defeated",
+      "requirements": [{ "encounterId": 2, "type": "ENCOUNTER_END" }]
+    },
+    {
+      "label": "Cithrel Pull",
+      "milestoneId": "cithrel:pull",
+      "requirements": [{ "encounterId": 3, "type": "ENCOUNTER_START" }]
+    },
+    {
+      "label": "Cithrel Defeated",
+      "milestoneId": "cithrel:defeated",
+      "requirements": [{ "encounterId": 3, "type": "ENCOUNTER_END" }]
+    }
+  ]
+}

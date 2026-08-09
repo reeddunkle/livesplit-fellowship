@@ -1,0 +1,56 @@
+{
+  "dungeonKey": "SAILORS_ABYSS",
+  "milestones": [
+    {
+      "label": "First Hollowed Corsair Defeated",
+      "milestoneId": "corsair:defeated:1",
+      "requirements": [
+        {
+          "type": "UNIT_DEATH",
+          "unitTypeId": 97
+        }
+      ]
+    },
+    {
+      "label": "Second Hollowed Corsair Defeated",
+      "milestoneId": "corsair:defeated:2",
+      "requirements": [
+        {
+          "type": "UNIT_DEATH",
+          "unitTypeId": 97
+        }
+      ]
+    },
+    {
+      "label": "Third Hollowed Corsair Defeated",
+      "milestoneId": "corsair:defeated:3",
+      "requirements": [
+        {
+          "type": "UNIT_DEATH",
+          "unitTypeId": 97
+        }
+      ]
+    },
+    {
+      "label": "Boss Pull",
+      "milestoneId": "boss:pull",
+      "requirements": [
+        {
+          "encounterId": 28,
+          "type": "ENCOUNTER_START"
+        }
+      ]
+    },
+    {
+      "label": "Boss Defeated",
+      "milestoneId": "boss:defeated",
+      "targetElapsedTime": "00:11:57",
+      "requirements": [
+        {
+          "encounterId": 28,
+          "type": "ENCOUNTER_END"
+        }
+      ]
+    }
+  ]
+}

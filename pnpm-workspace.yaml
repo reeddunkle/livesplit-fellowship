@@ -1,0 +1,23 @@
+minimumReleaseAge: 10080 # Minutes -- (7 days)
+minimumReleaseAgeExclude:
+  - "@biomejs/*"
+  - "@effect/language-service"
+  - "@types/node"
+  - "tsx"
+  - "knip"
+
+catalogs:
+  biome:
+    "@biomejs/biome": "^2.5.6"
+  effect:
+    "@effect/language-service": "0.87.1"
+    "@effect/platform-node": "4.0.0-beta.102"
+    "effect": "4.0.0-beta.102"
+  node:
+    "@types/node": ^26.1.2
+  typescript:
+    "tsx": ^4.23.5
+    "typescript": ^7.0.2
+  util:
+    "knip": ^6.31.0
+    "dotenv": 17.4.2

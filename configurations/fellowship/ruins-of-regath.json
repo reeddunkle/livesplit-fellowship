@@ -1,0 +1,32 @@
+{
+  "dungeonKey": "RUINS_OF_REGATH",
+  "milestones": [
+    {
+      "label": "Disciple 1",
+      "milestoneId": "sanguine-disciple:1",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 331 }]
+    },
+    {
+      "label": "Disciple 2",
+      "milestoneId": "sanguine-disciple:2",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 331 }]
+    },
+    {
+      "label": "Disciple 3",
+      "milestoneId": "sanguine-disciple:3",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 331 }]
+    },
+    {
+      "label": "Xurath Pulled",
+      "milestoneId": "xurath:pulled",
+      "targetElapsedTime": "00:10:00",
+      "requirements": [{ "encounterId": 35, "type": "ENCOUNTER_START" }]
+    },
+    {
+      "label": "Xurath Defeated",
+      "milestoneId": "xurath:defeated",
+      "targetElapsedTime": "00:15:00",
+      "requirements": [{ "encounterId": 35, "type": "ENCOUNTER_END" }]
+    }
+  ]
+}

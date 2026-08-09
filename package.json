@@ -1,0 +1,28 @@
+{
+  "name": "livesplit-fellowship",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "cli": "tsx src/cli/cli.ts",
+    "cli:livesplit": "tsx src/cli/live-split-cli.ts",
+    "lint": "biome check",
+    "lint:fix": "biome check --write",
+    "knip": "knip",
+    "test:replay-log-file": "tsx src/scripts/replay-log-file.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "packageManager": "pnpm@10.34.3",
+  "dependencies": {
+    "@effect/platform-node": "catalog:effect",
+    "dotenv": "catalog:util",
+    "effect": "catalog:effect"
+  },
+  "devDependencies": {
+    "@effect/language-service": "catalog:effect",
+    "@biomejs/biome": "catalog:biome",
+    "@types/node": "catalog:node",
+    "knip": "catalog:util",
+    "tsx": "catalog:typescript",
+    "typescript": "catalog:typescript"
+  }
+}
