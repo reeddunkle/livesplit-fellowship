@@ -80,7 +80,7 @@ export class LiveSplitClient extends Context.Service<
   LiveSplitClientService
 >()("app/LiveSplitClient") {}
 
-function makeLiveSplitClient({
+export function makeLiveSplitClient({
   transport,
 }: {
   readonly transport: LiveSplitTransport;
