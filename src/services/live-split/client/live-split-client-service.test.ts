@@ -8,7 +8,7 @@ import { makeLiveSplitClient } from "./live-split-client-service.ts";
 import { appendEOL, LiveSplitRequestCommand } from "./live-split-command.ts";
 import { type LiveSplitTransport } from "./node-live-split-transport.ts";
 
-function makeTestTransport() {
+function makeLiveSplitTestHarness() {
   return E.gen(function* () {
     const incomingChunks = yield* Queue.unbounded<string>();
     const writtenData = yield* Queue.unbounded<string>();
@@ -21,10 +21,38 @@ function makeTestTransport() {
       },
     };
 
-    return {
-      incomingChunks,
+    const client = yield* makeLiveSplitClient({
       transport,
-      writtenData,
+    });
+
+    const start = <A, Error>(effect: E.Effect<A, Error>) => {
+      return E.gen(function* () {
+        const fiber = yield* effect.pipe(E.forkScoped);
+
+        return {
+          join: Fiber.join(fiber),
+        };
+      });
+    };
+
+    const takeCommand = () => {
+      return Queue.take(writtenData);
+    };
+
+    const sendResponse = (response: string) => {
+      return Queue.offer(incomingChunks, appendEOL(response)).pipe(E.asVoid);
+    };
+
+    const sendChunk = (chunk: string) => {
+      return Queue.offer(incomingChunks, chunk).pipe(E.asVoid);
+    };
+
+    return {
+      client,
+      sendChunk,
+      sendResponse,
+      start,
+      takeCommand,
     };
   });
 }
@@ -33,24 +61,17 @@ describe("LiveSplitClient", () => {
   test("gets the current time", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const { incomingChunks, transport, writtenData } =
-          yield* makeTestTransport();
+        const harness = yield* makeLiveSplitTestHarness();
 
-        const client = yield* makeLiveSplitClient({
-          transport,
-        });
+        const request = yield* harness.start(harness.client.getCurrentTime());
 
-        const requestFiber = yield* client.getCurrentTime().pipe(E.forkScoped);
-
-        const command = yield* Queue.take(writtenData);
+        const command = yield* harness.takeCommand();
 
         expect(command).toBe(appendEOL(LiveSplitRequestCommand.getCurrentTime));
 
-        yield* Queue.offer(incomingChunks, appendEOL("00:01:23"));
+        yield* harness.sendResponse("00:01:23");
 
-        const response = yield* Fiber.join(requestFiber);
-
-        expect(response).toBe("00:01:23");
+        expect(yield* request.join).toBe("00:01:23");
       }),
     );
 
@@ -60,24 +81,17 @@ describe("LiveSplitClient", () => {
   test("assembles a response split across multiple chunks", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const { incomingChunks, transport, writtenData } =
-          yield* makeTestTransport();
+        const harness = yield* makeLiveSplitTestHarness();
 
-        const client = yield* makeLiveSplitClient({
-          transport,
-        });
+        const request = yield* harness.start(harness.client.getCurrentTime());
 
-        const requestFiber = yield* client.getCurrentTime().pipe(E.forkScoped);
+        yield* harness.takeCommand();
 
-        yield* Queue.take(writtenData);
+        yield* harness.sendChunk("00:01");
+        yield* harness.sendChunk(":23\r");
+        yield* harness.sendChunk("\n");
 
-        yield* Queue.offer(incomingChunks, "00:01");
-        yield* Queue.offer(incomingChunks, ":23\r");
-        yield* Queue.offer(incomingChunks, "\n");
-
-        const response = yield* Fiber.join(requestFiber);
-
-        expect(response).toBe("00:01:23");
+        expect(yield* request.join).toBe("00:01:23");
       }),
     );
 
@@ -87,30 +101,26 @@ describe("LiveSplitClient", () => {
   test("handles multiple responses in one chunk", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const { incomingChunks, transport, writtenData } =
-          yield* makeTestTransport();
+        const harness = yield* makeLiveSplitTestHarness();
 
-        const client = yield* makeLiveSplitClient({
-          transport,
-        });
-
-        const currentTimeFiber = yield* client
-          .getCurrentTime()
-          .pipe(E.forkScoped);
-
-        yield* Queue.take(writtenData);
-
-        yield* Queue.offer(
-          incomingChunks,
-          `${appendEOL("00:01:23")}${appendEOL("4")}`,
+        const currentTimeRequest = yield* harness.start(
+          harness.client.getCurrentTime(),
         );
 
-        const currentTime = yield* Fiber.join(currentTimeFiber);
+        yield* harness.takeCommand();
+
+        const splitIndexRequest = yield* harness.start(
+          harness.client.getSplitIndex(),
+        );
+
+        yield* harness.sendChunk(`${appendEOL("00:01:23")}${appendEOL("4")}`);
+
+        const [currentTime, splitIndex] = yield* E.all(
+          [currentTimeRequest.join, splitIndexRequest.join],
+          { concurrency: "unbounded" },
+        );
 
         expect(currentTime).toBe("00:01:23");
-
-        const splitIndex = yield* client.getSplitIndex();
-
         expect(splitIndex).toBe(4);
       }),
     );
@@ -121,39 +131,36 @@ describe("LiveSplitClient", () => {
   test("serializes concurrent response-producing requests", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const { incomingChunks, transport, writtenData } =
-          yield* makeTestTransport();
+        const harness = yield* makeLiveSplitTestHarness();
 
-        const client = yield* makeLiveSplitClient({
-          transport,
-        });
+        const currentTimeRequest = yield* harness.start(
+          harness.client.getCurrentTime(),
+        );
 
-        const currentTimeFiber = yield* client
-          .getCurrentTime()
-          .pipe(E.forkScoped);
+        const splitIndexRequest = yield* harness.start(
+          harness.client.getSplitIndex(),
+        );
 
-        const splitIndexFiber = yield* client
-          .getSplitIndex()
-          .pipe(E.forkScoped);
-
-        const firstCommand = yield* Queue.take(writtenData);
+        const firstCommand = yield* harness.takeCommand();
 
         expect(firstCommand).toBe(
           appendEOL(LiveSplitRequestCommand.getCurrentTime),
         );
 
-        yield* Queue.offer(incomingChunks, appendEOL("00:01:23"));
+        yield* harness.sendResponse("00:01:23");
 
-        const secondCommand = yield* Queue.take(writtenData);
+        const secondCommand = yield* harness.takeCommand();
 
         expect(secondCommand).toBe(
           appendEOL(LiveSplitRequestCommand.getSplitIndex),
         );
 
-        yield* Queue.offer(incomingChunks, appendEOL("4"));
+        yield* harness.sendResponse("4");
 
-        const currentTime = yield* Fiber.join(currentTimeFiber);
-        const splitIndex = yield* Fiber.join(splitIndexFiber);
+        const [currentTime, splitIndex] = yield* E.all(
+          [currentTimeRequest.join, splitIndexRequest.join],
+          { concurrency: "unbounded" },
+        );
 
         expect(currentTime).toBe("00:01:23");
         expect(splitIndex).toBe(4);
