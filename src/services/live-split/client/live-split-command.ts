@@ -25,8 +25,23 @@ export const LiveSplitRequestCommand = {
 export type LiveSplitRequestCommand =
   (typeof LiveSplitRequestCommand)[keyof typeof LiveSplitRequestCommand];
 
+type LiveSplitCommand = LiveSplitSendCommand | LiveSplitRequestCommand;
+
 export const LIVE_SPLIT_EOL = "\r\n";
 
-export function appendEOL(command: string): string {
-  return `${command}${LIVE_SPLIT_EOL}`;
+export function appendEOL(value: string): string {
+  return `${value}${LIVE_SPLIT_EOL}`;
+}
+
+export function appendCommandArgument({
+  argument,
+  command,
+}: {
+  readonly argument: string;
+  readonly command: LiveSplitCommand;
+}): string {
+  // Ensure command arguments cannot inject additional protocol lines
+  const sanitizedArgument = argument.replaceAll(/[\r\n]/g, " ");
+
+  return `${command} ${sanitizedArgument}`;
 }

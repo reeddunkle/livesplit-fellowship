@@ -16,6 +16,7 @@ import {
 } from "@/errors/live-split-client-error.ts";
 
 import {
+  appendCommandArgument,
   appendEOL,
   LIVE_SPLIT_EOL,
   LiveSplitRequestCommand,
@@ -79,20 +80,7 @@ export class LiveSplitClient extends Context.Service<
   LiveSplitClientService
 >()("app/LiveSplitClient") {}
 
-function appendCommandArgument({
-  argument,
-  command,
-}: {
-  readonly argument: string;
-  readonly command: string;
-}): string {
-  // Ensure arguments don't include newlines
-  const sanitizedArgument = argument.replaceAll(/[\r\n]/g, " ");
-
-  return `${command} ${sanitizedArgument}`;
-}
-
-export function makeLiveSplitClient({
+function makeLiveSplitClient({
   transport,
 }: {
   readonly transport: LiveSplitTransport;
