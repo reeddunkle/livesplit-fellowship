@@ -9,6 +9,8 @@
     "lint:fix": "biome check --write",
     "knip": "knip",
     "test:replay-log-file": "tsx src/scripts/replay-log-file.ts",
+    "test:watch": "vitest",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "packageManager": "pnpm@10.34.3",
@@ -18,11 +20,12 @@
     "effect": "catalog:effect"
   },
   "devDependencies": {
-    "@effect/language-service": "catalog:effect",
     "@biomejs/biome": "catalog:biome",
+    "@effect/language-service": "catalog:effect",
     "@types/node": "catalog:node",
     "knip": "catalog:util",
     "tsx": "catalog:typescript",
-    "typescript": "catalog:typescript"
+    "typescript": "catalog:typescript",
+    "vitest": "catalog:vitest"
   }
 }

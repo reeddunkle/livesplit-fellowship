@@ -16,6 +16,8 @@ import {
 } from "@/errors/live-split-client-error.ts";
 
 import {
+  appendEOL,
+  LIVE_SPLIT_EOL,
   LiveSplitRequestCommand,
   LiveSplitSendCommand,
 } from "./live-split-command.ts";
@@ -24,8 +26,6 @@ import {
   makeNodeLiveSplitTransport,
 } from "./node-live-split-transport.ts";
 
-const COMMAND_EOL = "\r\n";
-const RESPONSE_EOL = "\n";
 const RESPONSE_TIMEOUT = "5 seconds";
 
 type LiveSplitRequestError =
@@ -120,16 +120,12 @@ export function makeLiveSplitClient({
         () => "",
         (responseBuffer, socketChunk) => {
           const responseParts = `${responseBuffer}${socketChunk}`.split(
-            RESPONSE_EOL,
+            LIVE_SPLIT_EOL,
           );
 
           const remainingBuffer = responseParts.pop() ?? "";
 
-          const completeResponses = responseParts.map((response) => {
-            return response.replace(/\r$/, "");
-          });
-
-          return E.succeed([remainingBuffer, completeResponses] as const);
+          return E.succeed([remainingBuffer, responseParts] as const);
         },
       ),
     );
@@ -168,7 +164,7 @@ export function makeLiveSplitClient({
     }).pipe(E.forkScoped);
 
     const send = (command: string): E.Effect<void, Socket.SocketError> => {
-      return transport.write(`${command}${COMMAND_EOL}`);
+      return transport.write(appendEOL(command));
     };
 
     /*
