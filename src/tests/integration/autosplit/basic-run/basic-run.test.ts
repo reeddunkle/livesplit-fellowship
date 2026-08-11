@@ -7,9 +7,10 @@ import {
   appendEOL,
   LiveSplitSendCommand,
 } from "@/services/live-split/client/live-split-command.ts";
+import { dungeonStartCommands } from "@/tests/common/live-split-test-commands.ts";
 import { makeLiveSplitAppMock } from "@/tests/layers/live-split-app-mock-layer.ts";
 
-import { configuration } from "./fixtures/basic-run/configuration.ts";
+import { configuration } from "./configuration.ts";
 
 describe("replayLog", () => {
   test("sends LiveSplit commands for completed milestones", async () => {
@@ -17,12 +18,7 @@ describe("replayLog", () => {
       E.gen(function* () {
         const { harness, layer } = yield* makeLiveSplitAppMock();
 
-        const logFilePath = path.join(
-          import.meta.dirname,
-          "fixtures",
-          "basic-run",
-          "log.txt",
-        );
+        const logFilePath = path.join(import.meta.dirname, "log.txt");
 
         yield* replayLog({
           configuration,
@@ -31,11 +27,13 @@ describe("replayLog", () => {
 
         const commands = yield* harness.getCommands();
 
+        const configuredMilestoneCommands = configuration.milestones.map(() => {
+          return appendEOL(LiveSplitSendCommand.split);
+        });
+
         expect(commands).toEqual([
-          appendEOL(LiveSplitSendCommand.reset),
-          appendEOL(LiveSplitSendCommand.startTimer),
-          appendEOL(LiveSplitSendCommand.split),
-          appendEOL(LiveSplitSendCommand.split),
+          ...dungeonStartCommands,
+          ...configuredMilestoneCommands,
         ]);
       }),
     );
