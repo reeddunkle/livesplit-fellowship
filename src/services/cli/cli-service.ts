@@ -22,10 +22,6 @@ import {
   runLiveLogCommand,
 } from "./commands/live-log-command.ts";
 import {
-  ReplayLogCommandInputSchema,
-  runReplayLogCommand,
-} from "./commands/replay-log-command.ts";
-import {
   runSplitLogCommand,
   SplitLogCommandInputSchema,
 } from "./commands/split-log-command.ts";
@@ -127,17 +123,6 @@ function parseGenerateLSSInput({ positionals, values }: ParsedArguments) {
   });
 }
 
-function parseReplayLogInput({ positionals, values }: ParsedArguments) {
-  return E.gen(function* () {
-    yield* validateNoExtraPositionals(positionals);
-
-    return yield* Schema.decodeUnknownEffect(ReplayLogCommandInputSchema)({
-      configurationFilePath: values.configuration,
-      logFilePath: values.log,
-    });
-  });
-}
-
 function makeCLILive(): CLIService {
   return {
     run: (args): E.Effect<void, unknown, CLIEnvironment> => {
@@ -170,12 +155,6 @@ function makeCLILive(): CLIService {
             const input = yield* parseLiveLogInput(parsedArguments);
 
             return yield* runLiveLogCommand(input);
-          }
-
-          case "replay-log": {
-            const input = yield* parseReplayLogInput(parsedArguments);
-
-            return yield* runReplayLogCommand(input);
           }
 
           default: {

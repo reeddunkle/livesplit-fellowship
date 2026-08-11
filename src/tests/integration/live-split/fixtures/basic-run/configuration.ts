@@ -5,15 +5,6 @@ export const configuration = {
   dungeon: FELLOWSHIP_DUNGEON.SAILORS_ABYSS,
   milestones: [
     {
-      label: "Dungeon Started",
-      milestoneId: "dungeon:start",
-      requirements: [
-        {
-          type: "DUNGEON_START",
-        },
-      ],
-    },
-    {
       label: "Boss Pulled",
       milestoneId: "boss:pull",
       requirements: [

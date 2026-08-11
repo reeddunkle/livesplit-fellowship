@@ -18,6 +18,11 @@ export type ProcessLiveSplitLogOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
 };
 
+export type ProcessLiveSplitEventStreamOptions<E> = {
+  readonly configuration: FellowshipMilestoneConfiguration;
+  readonly events: Stream.Stream<FellowshipEvent, E>;
+};
+
 type ProcessLiveSplitEventOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly event: FellowshipEvent;
@@ -95,14 +100,14 @@ function processLiveSplitEvent({
   });
 }
 
-export function processLiveSplitLog({
+export function processLiveSplitEventStream<E>({
   configuration,
-}: ProcessLiveSplitLogOptions) {
+  events,
+}: ProcessLiveSplitEventStreamOptions<E>) {
   return E.gen(function* () {
-    const fellowship = yield* Fellowship;
     const liveSplitClient = yield* LiveSplitClient;
 
-    return yield* fellowship.liveEvents().pipe(
+    return yield* events.pipe(
       Stream.mapAccumEffect(createInitialLiveRunState, (state, event) => {
         return processLiveSplitEvent({
           configuration,
@@ -115,5 +120,18 @@ export function processLiveSplitLog({
         return liveSplitClient.split();
       }),
     );
+  });
+}
+
+export function processLiveSplitLog({
+  configuration,
+}: ProcessLiveSplitLogOptions) {
+  return E.gen(function* () {
+    const fellowship = yield* Fellowship;
+
+    return yield* processLiveSplitEventStream({
+      configuration,
+      events: fellowship.liveEvents(),
+    });
   });
 }

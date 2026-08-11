@@ -3,7 +3,7 @@ import * as E from "effect/Effect";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 
-import { processLiveEventStream } from "./process-live-event-stream.ts";
+import { processLiveSplitEventStream } from "./process-live-split-log.ts";
 
 export type ReplayLogOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
@@ -14,7 +14,7 @@ export function replayLog({ configuration, logFilePath }: ReplayLogOptions) {
   return E.gen(function* () {
     const fellowship = yield* Fellowship;
 
-    return yield* processLiveEventStream({
+    return yield* processLiveSplitEventStream({
       configuration,
       events: fellowship.streamEvents(logFilePath),
     });

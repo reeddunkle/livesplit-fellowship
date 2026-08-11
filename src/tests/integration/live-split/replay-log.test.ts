@@ -21,7 +21,7 @@ describe("replayLog", () => {
           import.meta.dirname,
           "fixtures",
           "basic-run",
-          "Fellowship.log",
+          "log.txt",
         );
 
         yield* replayLog({
@@ -32,6 +32,7 @@ describe("replayLog", () => {
         const commands = yield* harness.getCommands();
 
         expect(commands).toEqual([
+          appendEOL(LiveSplitSendCommand.reset),
           appendEOL(LiveSplitSendCommand.startTimer),
           appendEOL(LiveSplitSendCommand.split),
           appendEOL(LiveSplitSendCommand.split),
