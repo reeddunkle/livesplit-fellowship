@@ -9,22 +9,22 @@ import {
 } from "@/services/fellowship/runs/run-processing-state.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
-export type ProcessLiveEventStreamOptions<E> = {
+export type ProcessEventStreamOptions<E> = {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly events: Stream.Stream<FellowshipEvent, E>;
 };
 
-type ProcessLiveEventEffectOptions = {
+type ProcessEventEffectOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly event: FellowshipEvent;
   readonly state: RunProcessingState;
 };
 
-function processLiveEventEffect({
+function processEventEffect({
   configuration,
   event,
   state,
-}: ProcessLiveEventEffectOptions) {
+}: ProcessEventEffectOptions) {
   const result = processRunEvent({
     configuration,
     event,
@@ -34,13 +34,13 @@ function processLiveEventEffect({
   return E.succeed([result.state, result.milestones] as const);
 }
 
-export function processLiveEventStream<E>({
+export function processEventStream<E>({
   configuration,
   events,
-}: ProcessLiveEventStreamOptions<E>) {
+}: ProcessEventStreamOptions<E>) {
   return events.pipe(
     Stream.mapAccumEffect(createInitialRunState, (state, event) => {
-      return processLiveEventEffect({
+      return processEventEffect({
         configuration,
         event,
         state,

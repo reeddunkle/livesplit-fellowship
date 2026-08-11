@@ -3,12 +3,31 @@ import { initialMilestoneProcessorState } from "@/services/fellowship/milestones
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { processMilestoneEvent } from "@/services/fellowship/milestones/process-milestone-event.ts";
 import { doesDungeonRunMatchConfiguration } from "@/services/fellowship/runs/does-dungeon-run-match-configuration.ts";
+import { isDungeonExitEvent } from "@/services/fellowship/runs/is-dungeon-exit-event.ts";
 import { trackDungeonRunEvent } from "@/services/fellowship/runs/track-dungeon-run.ts";
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
 import { type RunProcessingState } from "./run-processing-state.ts";
+
+export const RUN_PROCESSING_EVENT = {
+  MILESTONE_COMPLETED: "MILESTONE_COMPLETED",
+  RUN_EXITED: "RUN_EXITED",
+  RUN_STARTED: "RUN_STARTED",
+} as const;
+
+export type RunProcessingEvent =
+  | {
+      readonly type: typeof RUN_PROCESSING_EVENT.RUN_STARTED;
+    }
+  | {
+      readonly type: typeof RUN_PROCESSING_EVENT.RUN_EXITED;
+    }
+  | {
+      readonly milestone: FellowshipRunMilestone;
+      readonly type: typeof RUN_PROCESSING_EVENT.MILESTONE_COMPLETED;
+    };
 
 export type ProcessRunEventOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
@@ -17,7 +36,7 @@ export type ProcessRunEventOptions = {
 };
 
 export type ProcessRunEventResult = {
-  readonly milestones: ReadonlyArray<FellowshipRunMilestone>;
+  readonly events: ReadonlyArray<RunProcessingEvent>;
   readonly state: RunProcessingState;
 };
 
@@ -44,10 +63,30 @@ export function processRunEvent({
   event,
   state,
 }: ProcessRunEventOptions): ProcessRunEventResult {
+  const currentStart = state.runTracker.currentStart;
+
+  const isConfiguredRunActive =
+    currentStart !== undefined &&
+    doesDungeonRunMatchConfiguration({
+      configuration,
+      run: {
+        start: currentStart,
+      },
+    });
+
+  // Order matters here
+  const hasExitedConfiguredRun =
+    isConfiguredRunActive &&
+    isDungeonExitEvent({
+      event,
+      runStart: currentStart,
+    });
+
   const trackerResult = trackDungeonRunEvent({
     event,
     state: state.runTracker,
   });
+  // Order matters above
 
   const isDungeonStart = event.type === FELLOWSHIP_EVENT.DUNGEON_START;
 
@@ -72,7 +111,7 @@ export function processRunEvent({
 
   if (!isConfiguredRun) {
     return {
-      milestones: [],
+      events: [],
       state: {
         latestMilestone: isDungeonStart ? undefined : state.latestMilestone,
         milestoneProcessor,
@@ -94,8 +133,29 @@ export function processRunEvent({
     ? completedMilestone
     : (completedMilestone ?? state.latestMilestone);
 
+  const events: RunProcessingEvent[] = [];
+
+  if (isDungeonStart) {
+    events.push({
+      type: RUN_PROCESSING_EVENT.RUN_STARTED,
+    });
+  }
+
+  if (hasExitedConfiguredRun) {
+    events.push({
+      type: RUN_PROCESSING_EVENT.RUN_EXITED,
+    });
+  }
+
+  for (const milestone of milestoneResult.milestones) {
+    events.push({
+      milestone,
+      type: RUN_PROCESSING_EVENT.MILESTONE_COMPLETED,
+    });
+  }
+
   return {
-    milestones: milestoneResult.milestones,
+    events,
     state: {
       latestMilestone,
       milestoneProcessor: milestoneResult.state,
