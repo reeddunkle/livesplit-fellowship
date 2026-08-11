@@ -3,14 +3,14 @@ import * as Stream from "effect/Stream";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
-import {
-  createInitialLiveRunState,
-  type LiveRunState,
-} from "@/services/fellowship/live/live-run-state.ts";
-import { processLiveEvent } from "@/services/fellowship/live/process-live-event.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { doesDungeonRunMatchConfiguration } from "@/services/fellowship/runs/does-dungeon-run-match-configuration.ts";
 import { isDungeonExitEvent } from "@/services/fellowship/runs/is-dungeon-exit-event.ts";
+import { processRunEvent } from "@/services/fellowship/runs/process-run-event.ts";
+import {
+  createInitialRunState,
+  type RunProcessingState,
+} from "@/services/fellowship/runs/run-processing-state.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 import { LiveSplitClient } from "@/services/live-split/client/live-split-client-service.ts";
 
@@ -27,7 +27,7 @@ type ProcessLiveSplitEventOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly event: FellowshipEvent;
   readonly liveSplitClient: LiveSplitClient["Service"];
-  readonly state: LiveRunState;
+  readonly state: RunProcessingState;
 };
 
 function processLiveSplitEvent({
@@ -78,7 +78,7 @@ function processLiveSplitEvent({
       }
     }
 
-    const result = processLiveEvent({
+    const result = processRunEvent({
       configuration,
       event,
       state,
@@ -108,7 +108,7 @@ export function processLiveSplitEventStream<E>({
     const liveSplitClient = yield* LiveSplitClient;
 
     return yield* events.pipe(
-      Stream.mapAccumEffect(createInitialLiveRunState, (state, event) => {
+      Stream.mapAccumEffect(createInitialRunState, (state, event) => {
         return processLiveSplitEvent({
           configuration,
           event,

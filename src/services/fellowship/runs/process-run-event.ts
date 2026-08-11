@@ -8,17 +8,17 @@ import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
-import { type LiveRunState } from "./live-run-state.ts";
+import { type RunProcessingState } from "./run-processing-state.ts";
 
-export type ProcessLiveEventOptions = {
+export type ProcessRunEventOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly event: FellowshipEvent;
-  readonly state: LiveRunState;
+  readonly state: RunProcessingState;
 };
 
-export type ProcessLiveEventResult = {
+export type ProcessRunEventResult = {
   readonly milestones: ReadonlyArray<FellowshipRunMilestone>;
-  readonly state: LiveRunState;
+  readonly state: RunProcessingState;
 };
 
 type GetRunStartForEventOptions = {
@@ -39,11 +39,11 @@ function getRunStartForEvent({
   return completedRunStart ?? currentStart;
 }
 
-export function processLiveEvent({
+export function processRunEvent({
   configuration,
   event,
   state,
-}: ProcessLiveEventOptions): ProcessLiveEventResult {
+}: ProcessRunEventOptions): ProcessRunEventResult {
   const trackerResult = trackDungeonRunEvent({
     event,
     state: state.runTracker,

@@ -1,13 +1,12 @@
 import * as E from "effect/Effect";
 import * as Stream from "effect/Stream";
 
-import { handleLiveMilestone } from "@/services/fellowship/live/handle-live-milestone.ts";
-import {
-  createInitialLiveRunState,
-  type LiveRunState,
-} from "@/services/fellowship/live/live-run-state.ts";
-import { processLiveEvent } from "@/services/fellowship/live/process-live-event.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { processRunEvent } from "@/services/fellowship/runs/process-run-event.ts";
+import {
+  createInitialRunState,
+  type RunProcessingState,
+} from "@/services/fellowship/runs/run-processing-state.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
 export type ProcessLiveEventStreamOptions<E> = {
@@ -18,7 +17,7 @@ export type ProcessLiveEventStreamOptions<E> = {
 type ProcessLiveEventEffectOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly event: FellowshipEvent;
-  readonly state: LiveRunState;
+  readonly state: RunProcessingState;
 };
 
 function processLiveEventEffect({
@@ -26,7 +25,7 @@ function processLiveEventEffect({
   event,
   state,
 }: ProcessLiveEventEffectOptions) {
-  const result = processLiveEvent({
+  const result = processRunEvent({
     configuration,
     event,
     state,
@@ -40,7 +39,7 @@ export function processLiveEventStream<E>({
   events,
 }: ProcessLiveEventStreamOptions<E>) {
   return events.pipe(
-    Stream.mapAccumEffect(createInitialLiveRunState, (state, event) => {
+    Stream.mapAccumEffect(createInitialRunState, (state, event) => {
       return processLiveEventEffect({
         configuration,
         event,
@@ -48,8 +47,10 @@ export function processLiveEventStream<E>({
       });
     }),
     Stream.runForEach((milestone) => {
-      return handleLiveMilestone({
-        milestone,
+      return E.logInfo("Milestone completed.", {
+        elapsedMilliseconds: milestone.elapsedMilliseconds,
+        label: milestone.label,
+        milestoneId: milestone.milestoneId,
       });
     }),
   );

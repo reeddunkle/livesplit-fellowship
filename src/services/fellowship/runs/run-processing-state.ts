@@ -8,13 +8,13 @@ import {
 } from "@/services/fellowship/runs/track-dungeon-run.ts";
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 
-export type LiveRunState = {
+export type RunProcessingState = {
   readonly latestMilestone: FellowshipRunMilestone | undefined;
   readonly milestoneProcessor: MilestoneProcessorState;
   readonly runTracker: DungeonRunTrackerState;
 };
 
-export function createInitialLiveRunState(): LiveRunState {
+export function createInitialRunState(): RunProcessingState {
   return {
     latestMilestone: undefined,
     milestoneProcessor: initialMilestoneProcessorState,
