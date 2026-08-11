@@ -1,0 +1,23 @@
+import * as E from "effect/Effect";
+import * as Layer from "effect/Layer";
+
+import { AppLive } from "@/layers/app-layer.ts";
+import { LiveSplitCLILive } from "@/services/cli/live-split-cli-service.ts";
+import { makeLiveSplitTestHarness } from "@/tests/common/live-split-test-harness.ts";
+
+export function makeLiveSplitAppMock() {
+  return E.gen(function* () {
+    const harness = yield* makeLiveSplitTestHarness();
+
+    const layer = Layer.mergeAll(
+      AppLive,
+      harness.clientLayer,
+      LiveSplitCLILive,
+    );
+
+    return {
+      harness,
+      layer,
+    };
+  });
+}

@@ -1,61 +1,9 @@
 import * as E from "effect/Effect";
-import * as Fiber from "effect/Fiber";
-import * as Queue from "effect/Queue";
-import * as Stream from "effect/Stream";
 import { describe, expect, test } from "vitest";
 
-import { makeLiveSplitClient } from "./live-split-client-service.ts";
+import { makeLiveSplitTestHarness } from "@/tests/common/live-split-test-harness.ts";
+
 import { appendEOL, LiveSplitRequestCommand } from "./live-split-command.ts";
-import { type LiveSplitTransport } from "./node-live-split-transport.ts";
-
-function makeLiveSplitTestHarness() {
-  return E.gen(function* () {
-    const incomingChunks = yield* Queue.unbounded<string>();
-    const writtenData = yield* Queue.unbounded<string>();
-
-    const transport: LiveSplitTransport = {
-      chunks: Stream.fromQueue(incomingChunks),
-
-      write: (data) => {
-        return Queue.offer(writtenData, data).pipe(E.asVoid);
-      },
-    };
-
-    const client = yield* makeLiveSplitClient({
-      transport,
-    });
-
-    const start = <A, Error>(effect: E.Effect<A, Error>) => {
-      return E.gen(function* () {
-        const fiber = yield* effect.pipe(E.forkScoped);
-
-        return {
-          join: Fiber.join(fiber),
-        };
-      });
-    };
-
-    const takeCommand = () => {
-      return Queue.take(writtenData);
-    };
-
-    const sendResponse = (response: string) => {
-      return Queue.offer(incomingChunks, appendEOL(response)).pipe(E.asVoid);
-    };
-
-    const sendChunk = (chunk: string) => {
-      return Queue.offer(incomingChunks, chunk).pipe(E.asVoid);
-    };
-
-    return {
-      client,
-      sendChunk,
-      sendResponse,
-      start,
-      takeCommand,
-    };
-  });
-}
 
 describe("LiveSplitClient", () => {
   test("gets the current time", async () => {
