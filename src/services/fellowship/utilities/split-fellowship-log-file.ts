@@ -2,7 +2,6 @@ import * as A from "effect/Array";
 import * as E from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Path from "effect/Path";
-import type * as PlatformError from "effect/PlatformError";
 import * as Stream from "effect/Stream";
 
 import { type FellowshipLogParseError } from "@/errors/fellowship-log-parse-error.ts";
@@ -18,22 +17,12 @@ export type SplitFellowshipLogFileOptions = {
   readonly outputDirectoryPath: string;
 };
 
-export type SplitFellowshipLogFileError =
-  | FellowshipLogParseError
-  | PlatformError.PlatformError;
-
 type SplitFellowshipLogFileOutput = {
   readonly dungeonId: number;
   readonly dungeonName: string;
   readonly filePath: string;
   readonly isComplete: boolean;
   readonly retainedLineCount: number;
-};
-
-export type SplitFellowshipLogFileResult = {
-  readonly attemptCount: number;
-  readonly outputs: ReadonlyArray<SplitFellowshipLogFileOutput>;
-  readonly totalLineCount: number;
 };
 
 type InspectedLogLine = {
