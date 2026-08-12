@@ -6,7 +6,6 @@ export type ObservedRequirementCounts = HashMap.HashMap<string, number>;
 
 export type MilestoneProcessorState = {
   readonly observedMilestones: HashMap.HashMap<string, FellowshipRunMilestone>;
-
   readonly observedRequirementCounts: HashMap.HashMap<
     string,
     ObservedRequirementCounts
