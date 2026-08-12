@@ -16,20 +16,18 @@ import {
 } from "@/errors/live-split-client-error.ts";
 
 import {
-  appendCommandArgument,
-  appendEOL,
+  formatLiveSplitCommand,
   LIVE_SPLIT_EOL,
+  type LiveSplitCommandInput,
   LiveSplitRequestCommand,
+  type LiveSplitRequestCommandInput,
   LiveSplitSendCommand,
+  type LiveSplitSendCommandInput,
 } from "./live-split-command.ts";
 import {
   type LiveSplitTransport,
   makeNodeLiveSplitTransport,
 } from "./node-live-split-transport.ts";
-
-function getCommandName(command: string): string {
-  return command.split(" ", 1)[0] ?? command;
-}
 
 const RESPONSE_TIMEOUT = "5 seconds";
 
@@ -39,7 +37,7 @@ type LiveSplitRequestError =
   | Socket.SocketError;
 
 type PendingLiveSplitRequest = {
-  readonly command: string;
+  readonly command: LiveSplitRequestCommandInput;
   readonly responseDeferred: Deferred.Deferred<string, LiveSplitRequestError>;
 };
 
@@ -155,16 +153,25 @@ export function makeLiveSplitClient({
       yield* Queue.offer(responseQueue, Result.fail(failureCause));
     }).pipe(E.forkScoped);
 
-    const send = E.fn("livesplit.send")(function* (
-      command: string,
+    /*
+     * Write any valid LiveSplit command to the transport.
+     *
+     * Only the command name is recorded in telemetry. Command arguments may
+     * contain user-controlled or filesystem data and are intentionally omitted.
+     */
+    const writeCommand = E.fn("livesplit.send")(function* (
+      input: LiveSplitCommandInput,
     ): E.fn.Return<void, Socket.SocketError> {
-      yield* E.annotateCurrentSpan(
-        "livesplit.command",
-        getCommandName(command),
-      );
+      yield* E.annotateCurrentSpan("livesplit.command", input.command);
 
-      yield* transport.write(appendEOL(command));
+      yield* transport.write(formatLiveSplitCommand(input));
     });
+
+    const send = (
+      input: LiveSplitSendCommandInput,
+    ): E.Effect<void, Socket.SocketError> => {
+      return writeCommand(input);
+    };
 
     /*
      * Process response-producing commands sequentially.
@@ -184,7 +191,7 @@ export function makeLiveSplitClient({
               return yield* E.failCause(existingFailure);
             }
 
-            yield* send(command).pipe(
+            yield* writeCommand(command).pipe(
               E.tapCause((cause) => {
                 return Ref.set(responseChannelFailure, cause);
               }),
@@ -231,12 +238,9 @@ export function makeLiveSplitClient({
     );
 
     const request = E.fn("livesplit.request")(function* (
-      command: string,
+      command: LiveSplitRequestCommandInput,
     ): E.fn.Return<string, LiveSplitRequestError> {
-      yield* E.annotateCurrentSpan(
-        "livesplit.command",
-        getCommandName(command),
-      );
+      yield* E.annotateCurrentSpan("livesplit.command", command.command);
 
       const responseDeferred = yield* Deferred.make<
         string,
@@ -272,7 +276,7 @@ export function makeLiveSplitClient({
       command,
       response,
     }: {
-      readonly command: string;
+      readonly command: LiveSplitRequestCommand;
       readonly response: string;
     }): E.Effect<void, InvalidLiveSplitResponseError> => {
       if (response.trim().toLowerCase() === "true") {
@@ -289,63 +293,71 @@ export function makeLiveSplitClient({
 
     return {
       getCurrentTime: () => {
-        return request(LiveSplitRequestCommand.getCurrentTime);
+        return request({
+          command: LiveSplitRequestCommand.getCurrentTime,
+        });
       },
 
       getSplitIndex: () => {
-        return request(LiveSplitRequestCommand.getSplitIndex).pipe(
-          E.flatMap(parseSplitIndex),
-        );
+        return request({
+          command: LiveSplitRequestCommand.getSplitIndex,
+        }).pipe(E.flatMap(parseSplitIndex));
       },
 
       getTimerPhase: () => {
-        return request(LiveSplitRequestCommand.getTimerPhase);
+        return request({
+          command: LiveSplitRequestCommand.getTimerPhase,
+        });
       },
 
       pause: () => {
-        return send(LiveSplitSendCommand.pause);
+        return send({
+          command: LiveSplitSendCommand.pause,
+        });
       },
 
       reset: () => {
-        return send(LiveSplitSendCommand.reset);
+        return send({
+          command: LiveSplitSendCommand.reset,
+        });
       },
 
       setComparison: (comparisonName) => {
-        return send(
-          appendCommandArgument({
-            argument: comparisonName,
-            command: LiveSplitSendCommand.setComparison,
-          }),
-        );
+        return send({
+          argument: comparisonName,
+          command: LiveSplitSendCommand.setComparison,
+        });
       },
 
       setCurrentSplitName: (splitName) => {
-        return send(
-          appendCommandArgument({
-            argument: splitName,
-            command: LiveSplitSendCommand.setCurrentSplitName,
-          }),
-        );
+        return send({
+          argument: splitName,
+          command: LiveSplitSendCommand.setCurrentSplitName,
+        });
       },
 
       split: () => {
-        return send(LiveSplitSendCommand.split);
+        return send({
+          command: LiveSplitSendCommand.split,
+        });
       },
 
       startTimer: () => {
-        return send(LiveSplitSendCommand.startTimer);
+        return send({
+          command: LiveSplitSendCommand.startTimer,
+        });
       },
 
       switchSplits: (filePath) => {
-        const command = appendCommandArgument({
+        const command = {
           argument: filePath,
           command: LiveSplitRequestCommand.switchSplits,
-        });
+        } satisfies LiveSplitRequestCommandInput;
 
         return request(command).pipe(
           E.flatMap((response) => {
             return requireSuccessfulBooleanResponse({
-              command: LiveSplitRequestCommand.switchSplits,
+              command: command.command,
               response,
             });
           }),
