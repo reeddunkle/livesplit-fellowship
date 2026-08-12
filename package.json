@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "check": "run-s lint test typecheck",
+    "check": "run-s lint test typecheck knip",
     "cli": "tsx src/cli/cli.ts",
     "cli:livesplit": "tsx src/cli/live-split-cli.ts",
     "lint": "biome check",

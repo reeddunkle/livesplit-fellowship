@@ -4,6 +4,7 @@ import * as Layer from "effect/Layer";
 import { AppLive } from "@/layers/app-layer.ts";
 import { LiveSplitCLILive } from "@/services/cli/live-split-cli-service.ts";
 import { makeLiveSplitTestHarness } from "@/tests/common/live-split-test-harness.ts";
+import { NoopLoggerLayer } from "@/tests/layers/noop-logger-layer.ts";
 
 export function makeLiveSplitAppMock() {
   return E.gen(function* () {
@@ -13,6 +14,7 @@ export function makeLiveSplitAppMock() {
       AppLive,
       harness.clientLayer,
       LiveSplitCLILive,
+      NoopLoggerLayer,
     );
 
     return {
