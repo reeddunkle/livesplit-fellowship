@@ -15,11 +15,13 @@ catalogs:
     "effect": "4.0.0-beta.102"
   node:
     "@types/node": ^26.1.2
-  vitest:
+  tooling:
+    "knip": ^6.31.0
+    "npm-run-all2": ^9.0.3
+  runtime:
+    "dotenv": 17.4.2
+  testing:
     "vitest": "^4.1.10"
   typescript:
     "tsx": ^4.23.5
     "typescript": ^7.0.2
-  util:
-    "knip": ^6.31.0
-    "dotenv": 17.4.2

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "check": "run-s lint test typecheck",
     "cli": "tsx src/cli/cli.ts",
     "cli:livesplit": "tsx src/cli/live-split-cli.ts",
     "lint": "biome check",
@@ -16,16 +17,17 @@
   "packageManager": "pnpm@10.34.3",
   "dependencies": {
     "@effect/platform-node": "catalog:effect",
-    "dotenv": "catalog:util",
+    "dotenv": "catalog:runtime",
     "effect": "catalog:effect"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:biome",
     "@effect/language-service": "catalog:effect",
     "@types/node": "catalog:node",
-    "knip": "catalog:util",
+    "knip": "catalog:tooling",
+    "npm-run-all2": "catalog:tooling",
     "tsx": "catalog:typescript",
     "typescript": "catalog:typescript",
-    "vitest": "catalog:vitest"
+    "vitest": "catalog:testing"
   }
 }
