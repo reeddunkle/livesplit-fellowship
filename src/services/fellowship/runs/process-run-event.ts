@@ -113,7 +113,6 @@ export function processRunEvent({
     return {
       events: [],
       state: {
-        latestMilestone: isDungeonStart ? undefined : state.latestMilestone,
         milestoneProcessor,
         runTracker: trackerResult.state,
       },
@@ -126,12 +125,6 @@ export function processRunEvent({
     runStart,
     state: milestoneProcessor,
   });
-
-  const completedMilestone = milestoneResult.milestones.at(-1);
-
-  const latestMilestone = isDungeonStart
-    ? completedMilestone
-    : (completedMilestone ?? state.latestMilestone);
 
   const events: RunProcessingEvent[] = [];
 
@@ -157,7 +150,6 @@ export function processRunEvent({
   return {
     events,
     state: {
-      latestMilestone,
       milestoneProcessor: milestoneResult.state,
       runTracker: trackerResult.state,
     },
