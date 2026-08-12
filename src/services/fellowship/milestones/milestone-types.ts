@@ -33,7 +33,7 @@ export type MilestoneRequirementsById = HashMap.HashMap<
   ReadonlyArray<MilestoneRequirementTarget>
 >;
 
-type RequirementsByEvent = HashMap.HashMap<
+export type RequirementsByEvent = HashMap.HashMap<
   MilestoneRequirementEventType,
   MilestoneRequirementsById
 >;
