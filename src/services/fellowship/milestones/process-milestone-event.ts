@@ -222,16 +222,12 @@ export function processMilestoneEvent({
     return initialResult;
   }
 
+  const requirementKey = getMilestoneRequirementLookupKey(lookup);
+
   const targets = getMilestoneTargets({
     configuration,
     lookup,
   });
-
-  if (targets.length === 0) {
-    return initialResult;
-  }
-
-  const requirementKey = getMilestoneRequirementLookupKey(lookup);
 
   return targets.reduce<ProcessMilestoneTargetAccumulator>(
     (accumulator, target) => {
