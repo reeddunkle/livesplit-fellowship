@@ -3,6 +3,7 @@ import * as Context from "effect/Context";
 import * as E from "effect/Effect";
 import type * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
+import * as Match from "effect/Match";
 import type * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 
@@ -80,24 +81,24 @@ function makeLiveSplitCLILive(): LiveSplitCLIService {
     run: (args): E.Effect<void, unknown, LiveSplitCLIEnvironment> => {
       return E.gen(function* () {
         const parsedArguments = yield* parseArguments(args);
-
         const [commandName] = parsedArguments.positionals;
 
-        switch (commandName) {
-          case "autosplit": {
-            const input = yield* parseAutosplitInput(parsedArguments);
+        return yield* Match.value(commandName).pipe(
+          Match.when("autosplit", () =>
+            E.gen(function* () {
+              const input = yield* parseAutosplitInput(parsedArguments);
 
-            return yield* runAutosplitCommand(input);
-          }
-
-          default: {
-            return yield* E.fail(
+              yield* runAutosplitCommand(input);
+            }),
+          ),
+          Match.orElse((unknownCommand) =>
+            E.fail(
               new Error(
-                `Unknown LiveSplit command: ${commandName ?? "(missing)"}`,
+                `Unknown LiveSplit command: ${unknownCommand ?? "(missing)"}`,
               ),
-            );
-          }
-        }
+            ),
+          ),
+        );
       });
     },
   };

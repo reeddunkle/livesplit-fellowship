@@ -3,6 +3,7 @@ import * as Context from "effect/Context";
 import * as E from "effect/Effect";
 import type * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";
+import * as Match from "effect/Match";
 import type * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 
@@ -116,33 +117,34 @@ function makeCLILive(): CLIService {
         const parsedArguments = yield* parseArguments(args);
         const [commandName] = parsedArguments.positionals;
 
-        switch (commandName) {
-          case "filter-log": {
-            const input = yield* parseFilterLogInput(parsedArguments);
+        return yield* Match.value(commandName).pipe(
+          Match.when("filter-log", () =>
+            E.gen(function* () {
+              const input = yield* parseFilterLogInput(parsedArguments);
 
-            yield* runFilterLogCommand(input);
-            return;
-          }
+              yield* runFilterLogCommand(input);
+            }),
+          ),
+          Match.when("split-log", () =>
+            E.gen(function* () {
+              const input = yield* parseSplitLogInput(parsedArguments);
 
-          case "split-log": {
-            const input = yield* parseSplitLogInput(parsedArguments);
+              yield* runSplitLogCommand(input);
+            }),
+          ),
+          Match.when("generate-lss", () =>
+            E.gen(function* () {
+              const input = yield* parseGenerateLSSInput(parsedArguments);
 
-            yield* runSplitLogCommand(input);
-            return;
-          }
-
-          case "generate-lss": {
-            const input = yield* parseGenerateLSSInput(parsedArguments);
-
-            return yield* runGenerateLSSCommand(input);
-          }
-
-          default: {
-            return yield* E.fail(
-              new Error(`Unknown command: ${commandName ?? "(missing)"}`),
-            );
-          }
-        }
+              yield* runGenerateLSSCommand(input);
+            }),
+          ),
+          Match.orElse((unknownCommand) =>
+            E.fail(
+              new Error(`Unknown command: ${unknownCommand ?? "(missing)"}`),
+            ),
+          ),
+        );
       });
     },
   };
