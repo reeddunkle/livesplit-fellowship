@@ -213,11 +213,13 @@ export function processMilestoneEvent({
 }: ProcessMilestoneEventOptions): ProcessMilestoneEventResult {
   const lookup = getMilestoneRequirementLookupForEvent(event);
 
+  const initialResult: ProcessMilestoneEventResult = {
+    milestones: [],
+    state,
+  };
+
   if (lookup === undefined) {
-    return {
-      milestones: [],
-      state,
-    };
+    return initialResult;
   }
 
   const targets = getMilestoneTargets({
@@ -226,10 +228,7 @@ export function processMilestoneEvent({
   });
 
   if (targets.length === 0) {
-    return {
-      milestones: [],
-      state,
-    };
+    return initialResult;
   }
 
   const requirementKey = getMilestoneRequirementLookupKey(lookup);
@@ -244,9 +243,6 @@ export function processMilestoneEvent({
         target,
       });
     },
-    {
-      milestones: [],
-      state,
-    },
+    initialResult,
   );
 }
