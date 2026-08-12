@@ -15,7 +15,8 @@ import {
   AutosplitCommandInputSchema,
   runAutosplitCommand,
 } from "./commands/autosplit-command.ts";
-import { validateNoExtraPositionals } from "./util/util.ts";
+import { toError } from "./util/to-error.ts";
+import { validateNoExtraPositionals } from "./util/validate-no-extra-positionals.ts";
 
 type LiveSplitCLIEnvironment =
   | Fellowship
@@ -34,14 +35,6 @@ export class LiveSplitCLI extends Context.Service<
   LiveSplitCLI,
   LiveSplitCLIService
 >()("app/LiveSplitCLI") {}
-
-function toError(cause: unknown): Error {
-  return cause instanceof Error
-    ? cause
-    : new Error("An unknown LiveSplit CLI parsing error occurred.", {
-        cause,
-      });
-}
 
 type ParsedArguments = ReturnType<typeof parseArgs>;
 

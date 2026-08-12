@@ -22,7 +22,8 @@ import {
   runSplitLogCommand,
   SplitLogCommandInputSchema,
 } from "./commands/split-log-command.ts";
-import { validateNoExtraPositionals } from "./util/util.ts";
+import { toError } from "./util/to-error.ts";
+import { validateNoExtraPositionals } from "./util/validate-no-extra-positionals.ts";
 
 type CLIEnvironment =
   | FileSystem.FileSystem
@@ -37,14 +38,6 @@ export interface CLIService {
 }
 
 export class CLI extends Context.Service<CLI, CLIService>()("app/CLI") {}
-
-function toError(cause: unknown): Error {
-  return cause instanceof Error
-    ? cause
-    : new Error("An unknown CLI parsing error occurred.", {
-        cause,
-      });
-}
 
 type ParsedArguments = ReturnType<typeof parseArgs>;
 
