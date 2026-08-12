@@ -27,6 +27,10 @@ import {
   makeNodeLiveSplitTransport,
 } from "./node-live-split-transport.ts";
 
+function getCommandName(command: string): string {
+  return command.split(" ", 1)[0] ?? command;
+}
+
 const RESPONSE_TIMEOUT = "5 seconds";
 
 type LiveSplitRequestError =
@@ -151,9 +155,16 @@ export function makeLiveSplitClient({
       yield* Queue.offer(responseQueue, Result.fail(failureCause));
     }).pipe(E.forkScoped);
 
-    const send = (command: string): E.Effect<void, Socket.SocketError> => {
-      return transport.write(appendEOL(command));
-    };
+    const send = E.fn("livesplit.send")(function* (
+      command: string,
+    ): E.fn.Return<void, Socket.SocketError> {
+      yield* E.annotateCurrentSpan(
+        "livesplit.command",
+        getCommandName(command),
+      );
+
+      yield* transport.write(appendEOL(command));
+    });
 
     /*
      * Process response-producing commands sequentially.
@@ -219,23 +230,26 @@ export function makeLiveSplitClient({
       E.forkScoped,
     );
 
-    const request = (
+    const request = E.fn("livesplit.request")(function* (
       command: string,
-    ): E.Effect<string, LiveSplitRequestError> => {
-      return E.gen(function* () {
-        const responseDeferred = yield* Deferred.make<
-          string,
-          LiveSplitRequestError
-        >();
+    ): E.fn.Return<string, LiveSplitRequestError> {
+      yield* E.annotateCurrentSpan(
+        "livesplit.command",
+        getCommandName(command),
+      );
 
-        yield* Queue.offer(requestQueue, {
-          command,
-          responseDeferred,
-        });
+      const responseDeferred = yield* Deferred.make<
+        string,
+        LiveSplitRequestError
+      >();
 
-        return yield* Deferred.await(responseDeferred);
+      yield* Queue.offer(requestQueue, {
+        command,
+        responseDeferred,
       });
-    };
+
+      return yield* Deferred.await(responseDeferred);
+    });
 
     const parseSplitIndex = (
       response: string,
@@ -342,7 +356,7 @@ export function makeLiveSplitClient({
 }
 
 const makeLiveSplitClientLive = E.gen(function* () {
-  const transport = yield* makeNodeLiveSplitTransport;
+  const transport = yield* makeNodeLiveSplitTransport();
 
   return yield* makeLiveSplitClient({
     transport,

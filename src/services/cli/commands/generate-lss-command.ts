@@ -12,22 +12,22 @@ export const GenerateLSSCommandInputSchema = Schema.Struct({
 
 export type GenerateLSSCommandInput = typeof GenerateLSSCommandInputSchema.Type;
 
-export function runGenerateLSSCommand(input: GenerateLSSCommandInput) {
-  return E.gen(function* () {
-    const configuration = yield* loadMilestoneConfiguration({
-      filePath: input.configurationFilePath,
-    });
-
-    yield* generateLSSFile({
-      configuration,
-      filePath: input.outputFilePath,
-    });
-
-    yield* E.logInfo("Generated LiveSplit splits file.", {
-      configurationFilePath: input.configurationFilePath,
-      dungeon: configuration.dungeon.name,
-      milestoneCount: configuration.milestones.length,
-      outputFilePath: input.outputFilePath,
-    });
+export const runGenerateLSSCommand = E.fn("cli.generate-lss")(function* (
+  input: GenerateLSSCommandInput,
+) {
+  const configuration = yield* loadMilestoneConfiguration({
+    filePath: input.configurationFilePath,
   });
-}
+
+  yield* generateLSSFile({
+    configuration,
+    filePath: input.outputFilePath,
+  });
+
+  yield* E.logInfo("Generated LiveSplit splits file.", {
+    configurationFilePath: input.configurationFilePath,
+    dungeon: configuration.dungeon.name,
+    milestoneCount: configuration.milestones.length,
+    outputFilePath: input.outputFilePath,
+  });
+});

@@ -11,21 +11,21 @@ export const FilterLogCommandInputSchema = Schema.Struct({
 
 export type FilterLogCommandInput = typeof FilterLogCommandInputSchema.Type;
 
-export function runFilterLogCommand(input: FilterLogCommandInput) {
-  return E.gen(function* () {
-    const result = yield* filterFellowshipLogFile({
-      inputFilePath: input.inputFilePath,
-      outputFilePath: input.outputFilePath,
-    });
-
-    yield* E.logInfo(`Filtered log written to ${input.outputFilePath}.`, {
-      inputFilePath: input.inputFilePath,
-      outputFilePath: input.outputFilePath,
-      removedLineCount: result.totalLineCount - result.retainedLineCount,
-      retainedLineCount: result.retainedLineCount,
-      totalLineCount: result.totalLineCount,
-    });
-
-    return result;
+export const runFilterLogCommand = E.fn("cli.filter-log")(function* (
+  input: FilterLogCommandInput,
+) {
+  const result = yield* filterFellowshipLogFile({
+    inputFilePath: input.inputFilePath,
+    outputFilePath: input.outputFilePath,
   });
-}
+
+  yield* E.logInfo(`Filtered log written to ${input.outputFilePath}.`, {
+    inputFilePath: input.inputFilePath,
+    outputFilePath: input.outputFilePath,
+    removedLineCount: result.totalLineCount - result.retainedLineCount,
+    retainedLineCount: result.retainedLineCount,
+    totalLineCount: result.totalLineCount,
+  });
+
+  return result;
+});

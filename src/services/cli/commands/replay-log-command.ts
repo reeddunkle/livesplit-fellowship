@@ -12,26 +12,26 @@ export const ReplayLogCommandInputSchema = Schema.Struct({
 
 export type ReplayLogCommandInput = typeof ReplayLogCommandInputSchema.Type;
 
-export function runReplayLogCommand(input: ReplayLogCommandInput) {
-  return E.gen(function* () {
-    const configuration = yield* loadMilestoneConfiguration({
-      filePath: input.configurationFilePath,
-    });
-
-    yield* E.logInfo("Replaying Fellowship log.", {
-      configurationFilePath: input.configurationFilePath,
-      dungeon: configuration.dungeon.name,
-      logFilePath: input.logFilePath,
-      milestoneCount: configuration.milestones.length,
-    });
-
-    yield* replayLog({
-      configuration,
-      logFilePath: input.logFilePath,
-    });
-
-    yield* E.logInfo("Fellowship log replay completed.", {
-      logFilePath: input.logFilePath,
-    });
+export const runReplayLogCommand = E.fn("cli.replay-log")(function* (
+  input: ReplayLogCommandInput,
+) {
+  const configuration = yield* loadMilestoneConfiguration({
+    filePath: input.configurationFilePath,
   });
-}
+
+  yield* E.logInfo("Replaying Fellowship log.", {
+    configurationFilePath: input.configurationFilePath,
+    dungeon: configuration.dungeon.name,
+    logFilePath: input.logFilePath,
+    milestoneCount: configuration.milestones.length,
+  });
+
+  yield* replayLog({
+    configuration,
+    logFilePath: input.logFilePath,
+  });
+
+  yield* E.logInfo("Fellowship log replay completed.", {
+    logFilePath: input.logFilePath,
+  });
+});

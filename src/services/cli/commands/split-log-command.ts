@@ -11,18 +11,18 @@ export const SplitLogCommandInputSchema = Schema.Struct({
 
 export type SplitLogCommandInput = typeof SplitLogCommandInputSchema.Type;
 
-export function runSplitLogCommand(input: SplitLogCommandInput) {
-  return E.gen(function* () {
-    const result = yield* splitFellowshipLogFile({
-      inputFilePath: input.inputFilePath,
-      outputDirectoryPath: input.outputDirectoryPath,
-    });
-
-    yield* E.logInfo(`Split logs written to ${input.outputDirectoryPath}.`, {
-      inputFilePath: input.inputFilePath,
-      outputDirectoryPath: input.outputDirectoryPath,
-    });
-
-    return result;
+export const runSplitLogCommand = E.fn("cli.split-log")(function* (
+  input: SplitLogCommandInput,
+) {
+  const result = yield* splitFellowshipLogFile({
+    inputFilePath: input.inputFilePath,
+    outputDirectoryPath: input.outputDirectoryPath,
   });
-}
+
+  yield* E.logInfo("Split Fellowship log completed.", {
+    attemptCount: result.attemptCount,
+    totalLineCount: result.totalLineCount,
+  });
+
+  return result;
+});

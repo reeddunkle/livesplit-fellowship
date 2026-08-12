@@ -7,43 +7,47 @@ import type * as Socket from "effect/unstable/socket/Socket";
 
 export interface LiveSplitTransport {
   readonly chunks: Stream.Stream<string, Socket.SocketError>;
-
   readonly write: (data: string) => E.Effect<void, Socket.SocketError>;
 }
 
 const SOCKET_OPEN_TIMEOUT = "5 seconds";
 
-export const makeNodeLiveSplitTransport = E.gen(function* () {
-  const host = yield* Config.string("LIVE_SPLITS_HOST");
-  const port = yield* Config.port("LIVE_SPLITS_PORT");
+export const makeNodeLiveSplitTransport = E.fn("livesplit.connect")(
+  function* () {
+    const host = yield* Config.string("LIVE_SPLITS_HOST");
+    const port = yield* Config.port("LIVE_SPLITS_PORT");
 
-  const socket = yield* NodeSocket.makeNet({
-    host,
-    openTimeout: SOCKET_OPEN_TIMEOUT,
-    port,
-  });
+    yield* E.annotateCurrentSpan("livesplit.host", host);
+    yield* E.annotateCurrentSpan("livesplit.port", port);
 
-  const socketWriter = yield* socket.writer;
+    const socket = yield* NodeSocket.makeNet({
+      host,
+      openTimeout: SOCKET_OPEN_TIMEOUT,
+      port,
+    });
 
-  const chunks = Stream.callback<string, Socket.SocketError>((queue) => {
-    return socket.runString(
-      (socketChunk) => {
-        return Queue.offer(queue, socketChunk).pipe(E.asVoid);
+    const socketWriter = yield* socket.writer;
+
+    const chunks = Stream.callback<string, Socket.SocketError>((queue) => {
+      return socket.runString(
+        (socketChunk) => {
+          return Queue.offer(queue, socketChunk).pipe(E.asVoid);
+        },
+        {
+          onOpen: E.logInfo("Connected to LiveSplit.", {
+            host,
+            port,
+          }),
+        },
+      );
+    });
+
+    return {
+      chunks,
+
+      write: (data) => {
+        return socketWriter(data);
       },
-      {
-        onOpen: E.logInfo("Connected to LiveSplit.", {
-          host,
-          port,
-        }),
-      },
-    );
-  });
-
-  return {
-    chunks,
-
-    write: (data) => {
-      return socketWriter(data);
-    },
-  } satisfies LiveSplitTransport;
-});
+    } satisfies LiveSplitTransport;
+  },
+);

@@ -199,15 +199,11 @@ function splitRunAttempts(
   ];
 }
 
-export function splitFellowshipLogFile({
-  inputFilePath,
-  outputDirectoryPath,
-}: SplitFellowshipLogFileOptions): E.Effect<
-  SplitFellowshipLogFileResult,
-  SplitFellowshipLogFileError,
-  FileSystem.FileSystem | Path.Path
-> {
-  return E.gen(function* () {
+export const splitFellowshipLogFile = E.fn("fellowship.split-log-file")(
+  function* ({
+    inputFilePath,
+    outputDirectoryPath,
+  }: SplitFellowshipLogFileOptions) {
     const fileSystem = yield* FileSystem.FileSystem;
     const path = yield* Path.Path;
 
@@ -260,10 +256,38 @@ export function splitFellowshipLogFile({
       });
     }
 
+    const completeAttemptCount = outputs.filter((output) => {
+      return output.isComplete;
+    }).length;
+
+    const incompleteAttemptCount = outputs.length - completeAttemptCount;
+
+    yield* E.annotateCurrentSpan("fellowship.attempt-count", attempts.length);
+
+    yield* E.annotateCurrentSpan(
+      "fellowship.complete-attempt-count",
+      completeAttemptCount,
+    );
+
+    yield* E.annotateCurrentSpan(
+      "fellowship.incomplete-attempt-count",
+      incompleteAttemptCount,
+    );
+
+    yield* E.annotateCurrentSpan(
+      "fellowship.total-line-count",
+      inspectedLines.length,
+    );
+
+    yield* E.annotateCurrentSpan(
+      "fellowship.dungeon-count",
+      dungeonAttemptCounts.size,
+    );
+
     return {
       attemptCount: attempts.length,
       outputs,
       totalLineCount: inspectedLines.length,
     };
-  });
-}
+  },
+);

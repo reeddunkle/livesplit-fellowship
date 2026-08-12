@@ -8,18 +8,26 @@ export type GenerateLSSFileOptions = {
   readonly filePath: string;
 };
 
-export function generateLSSFile({
+export const generateLSSFile = E.fn("livesplit.generate-lss-file")(function* ({
   configuration,
   filePath,
 }: GenerateLSSFileOptions) {
-  return E.gen(function* () {
-    const liveSplitFile = yield* LiveSplitFile;
+  const liveSplitFile = yield* LiveSplitFile;
 
-    yield* liveSplitFile.writeLSSFile({
-      configuration,
-      filePath,
-    });
+  yield* E.annotateCurrentSpan(
+    "fellowship.dungeon",
+    configuration.dungeon.name,
+  );
 
-    return filePath;
+  yield* E.annotateCurrentSpan(
+    "fellowship.milestone-count",
+    configuration.milestones.length,
+  );
+
+  yield* liveSplitFile.writeLSSFile({
+    configuration,
+    filePath,
   });
-}
+
+  return filePath;
+});

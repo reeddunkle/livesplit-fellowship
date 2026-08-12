@@ -100,29 +100,41 @@ function resolveConfiguration({
   });
 }
 
-export function loadMilestoneConfiguration({
+export const loadMilestoneConfiguration = E.fn(
+  "fellowship.load-milestone-configuration",
+)(function* ({
   filePath,
-}: LoadMilestoneConfigurationOptions): E.Effect<
+}: LoadMilestoneConfigurationOptions): E.fn.Return<
   FellowshipMilestoneConfiguration,
   LoadMilestoneConfigurationError,
   FileSystem.FileSystem
 > {
-  return E.gen(function* () {
-    const fileSystem = yield* FileSystem.FileSystem;
-    const contents = yield* fileSystem.readFileString(filePath);
+  const fileSystem = yield* FileSystem.FileSystem;
+  const contents = yield* fileSystem.readFileString(filePath);
 
-    const json = yield* parseJson({
-      contents,
-      filePath,
-    });
-
-    const configurationFile = yield* Schema.decodeUnknownEffect(
-      FellowshipMilestoneConfigurationFileSchema,
-    )(json);
-
-    return yield* resolveConfiguration({
-      configurationFile,
-      filePath,
-    });
+  const json = yield* parseJson({
+    contents,
+    filePath,
   });
-}
+
+  const configurationFile = yield* Schema.decodeUnknownEffect(
+    FellowshipMilestoneConfigurationFileSchema,
+  )(json);
+
+  const configuration = yield* resolveConfiguration({
+    configurationFile,
+    filePath,
+  });
+
+  yield* E.annotateCurrentSpan(
+    "fellowship.dungeon",
+    configuration.dungeon.name,
+  );
+
+  yield* E.annotateCurrentSpan(
+    "fellowship.milestone-count",
+    configuration.milestones.length,
+  );
+
+  return configuration;
+});

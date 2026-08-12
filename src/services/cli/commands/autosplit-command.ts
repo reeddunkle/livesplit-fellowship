@@ -15,42 +15,61 @@ export const AutosplitCommandInputSchema = Schema.Struct({
 
 export type AutosplitCommandInput = typeof AutosplitCommandInputSchema.Type;
 
-export function runAutosplitCommand(input: AutosplitCommandInput) {
-  return E.gen(function* () {
-    const liveSplitClient = yield* LiveSplitClient;
-    const path = yield* Path.Path;
+const prepareAutosplit = E.fn("cli.autosplit.prepare")(function* (
+  input: AutosplitCommandInput,
+) {
+  const liveSplitClient = yield* LiveSplitClient;
+  const path = yield* Path.Path;
 
-    const configuration = yield* loadMilestoneConfiguration({
-      filePath: input.configurationFilePath,
-    });
-
-    const lssFilePath = path.resolve(
-      "./generated/live-split",
-      getLSSFileName(configuration),
-    );
-
-    const metadata = {
-      configurationFilePath: input.configurationFilePath,
-      dungeon: configuration.dungeon.name,
-      lssFilePath,
-      milestoneCount: configuration.milestones.length,
-    };
-
-    yield* E.logInfo("Preparing Fellowship LiveSplit autosplitter.", metadata);
-
-    yield* generateLSSFile({
-      configuration,
-      filePath: lssFilePath,
-    });
-
-    yield* liveSplitClient.reset();
-
-    // TODO: Load LSS into LiveServer
-
-    yield* E.logInfo("Starting Fellowship LiveSplit autosplitter.", metadata);
-
-    return yield* processLiveSplitLog({
-      configuration,
-    });
+  const configuration = yield* loadMilestoneConfiguration({
+    filePath: input.configurationFilePath,
   });
-}
+
+  const lssFilePath = path.resolve(
+    "./generated/live-split",
+    getLSSFileName(configuration),
+  );
+
+  const metadata = {
+    configurationFilePath: input.configurationFilePath,
+    dungeon: configuration.dungeon.name,
+    lssFilePath,
+    milestoneCount: configuration.milestones.length,
+  };
+
+  yield* E.annotateCurrentSpan(
+    "fellowship.dungeon",
+    configuration.dungeon.name,
+  );
+  yield* E.annotateCurrentSpan(
+    "fellowship.milestone-count",
+    configuration.milestones.length,
+  );
+
+  yield* E.logInfo("Preparing Fellowship LiveSplit autosplitter.", metadata);
+
+  yield* generateLSSFile({
+    configuration,
+    filePath: lssFilePath,
+  });
+
+  yield* liveSplitClient.reset();
+
+  // TODO: Load LSS into LiveServer
+
+  yield* E.logInfo("Starting Fellowship LiveSplit autosplitter.", metadata);
+
+  return {
+    configuration,
+  };
+});
+
+export const runAutosplitCommand = E.fn(function* (
+  input: AutosplitCommandInput,
+) {
+  const { configuration } = yield* prepareAutosplit(input);
+
+  return yield* processLiveSplitLog({
+    configuration,
+  });
+});
