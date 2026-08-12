@@ -4,7 +4,6 @@ minimumReleaseAgeExclude:
   - "@effect/language-service"
   - "@types/node"
   - "tsx"
-  - "knip"
 
 catalogs:
   biome:
