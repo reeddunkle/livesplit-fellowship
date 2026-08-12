@@ -126,26 +126,32 @@ export function processRunEvent({
     state: milestoneProcessor,
   });
 
-  const events: RunProcessingEvent[] = [];
+  const dungeonStartEvents = isDungeonStart
+    ? [
+        {
+          type: RUN_PROCESSING_EVENT.RUN_STARTED,
+        },
+      ]
+    : [];
 
-  if (isDungeonStart) {
-    events.push({
-      type: RUN_PROCESSING_EVENT.RUN_STARTED,
-    });
-  }
+  const milestoneEvents = milestoneResult.milestones.map((milestone) => ({
+    milestone,
+    type: RUN_PROCESSING_EVENT.MILESTONE_COMPLETED,
+  }));
 
-  if (hasExitedConfiguredRun) {
-    events.push({
-      type: RUN_PROCESSING_EVENT.RUN_EXITED,
-    });
-  }
+  const dungeonExitEvents = hasExitedConfiguredRun
+    ? [
+        {
+          type: RUN_PROCESSING_EVENT.RUN_EXITED,
+        },
+      ]
+    : [];
 
-  for (const milestone of milestoneResult.milestones) {
-    events.push({
-      milestone,
-      type: RUN_PROCESSING_EVENT.MILESTONE_COMPLETED,
-    });
-  }
+  const events: RunProcessingEvent[] = [
+    ...dungeonStartEvents,
+    ...milestoneEvents,
+    ...dungeonExitEvents,
+  ];
 
   return {
     events,

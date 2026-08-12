@@ -9,6 +9,7 @@ import {
 import {
   getMilestoneRequirementLookupForEvent,
   getMilestoneRequirementLookupKey,
+  type MilestoneRequirementLookup,
 } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import {
   type CompiledFellowshipMilestoneConfiguration,
@@ -32,6 +33,19 @@ export type ProcessMilestoneEventResult = {
   readonly state: MilestoneProcessorState;
 };
 
+type ProcessMilestoneTargetAccumulator = {
+  readonly milestones: ReadonlyArray<FellowshipRunMilestone>;
+  readonly state: MilestoneProcessorState;
+};
+
+type ProcessMilestoneTargetOptions = {
+  readonly configuration: CompiledFellowshipMilestoneConfiguration;
+  readonly event: FellowshipEvent;
+  readonly requirementKey: string;
+  readonly runStart: DungeonStartEvent;
+  readonly target: MilestoneRequirementTarget;
+};
+
 function getObservedRequirementCounts({
   milestoneId,
   state,
@@ -43,6 +57,21 @@ function getObservedRequirementCounts({
     HashMap.get(state.observedRequirementCounts, milestoneId),
     () => HashMap.empty<string, number>(),
   );
+}
+
+function getMilestoneTargets({
+  configuration,
+  lookup,
+}: {
+  readonly configuration: CompiledFellowshipMilestoneConfiguration;
+  readonly lookup: MilestoneRequirementLookup;
+}): ReadonlyArray<MilestoneRequirementTarget> {
+  return Option.flatMap(
+    HashMap.get(configuration.requirementsByEvent, lookup.type),
+    (requirementsById) => {
+      return HashMap.get(requirementsById, lookup.id);
+    },
+  ).pipe(Option.getOrElse(() => []));
 }
 
 function isMilestoneComplete({
@@ -89,6 +118,93 @@ function createRunMilestone({
   };
 }
 
+function processMilestoneTarget(
+  accumulator: ProcessMilestoneTargetAccumulator,
+  {
+    configuration,
+    event,
+    requirementKey,
+    runStart,
+    target,
+  }: ProcessMilestoneTargetOptions,
+): ProcessMilestoneTargetAccumulator {
+  if (HashMap.has(accumulator.state.observedMilestones, target.milestoneId)) {
+    return accumulator;
+  }
+
+  const definition = Option.getOrElse(
+    HashMap.get(configuration.milestonesById, target.milestoneId),
+    () => undefined,
+  );
+
+  if (definition === undefined) {
+    return accumulator;
+  }
+
+  const observedCounts = getObservedRequirementCounts({
+    milestoneId: target.milestoneId,
+    state: accumulator.state,
+  });
+
+  const currentCount = Option.getOrElse(
+    HashMap.get(observedCounts, requirementKey),
+    () => 0,
+  );
+
+  if (currentCount >= target.requiredCount) {
+    return accumulator;
+  }
+
+  const nextObservedCounts = HashMap.set(
+    observedCounts,
+    requirementKey,
+    currentCount + 1,
+  );
+
+  const nextState: MilestoneProcessorState = {
+    ...accumulator.state,
+    observedRequirementCounts: HashMap.set(
+      accumulator.state.observedRequirementCounts,
+      target.milestoneId,
+      nextObservedCounts,
+    ),
+  };
+
+  if (
+    !isMilestoneComplete({
+      definition,
+      observedCounts: nextObservedCounts,
+    })
+  ) {
+    return {
+      ...accumulator,
+      state: nextState,
+    };
+  }
+
+  const milestone = createRunMilestone({
+    definition,
+    event,
+    runStart,
+  });
+
+  return {
+    milestones: [...accumulator.milestones, milestone],
+    state: {
+      ...nextState,
+      observedMilestones: HashMap.set(
+        nextState.observedMilestones,
+        milestone.milestoneId,
+        milestone,
+      ),
+      observedRequirementCounts: HashMap.remove(
+        nextState.observedRequirementCounts,
+        milestone.milestoneId,
+      ),
+    },
+  };
+}
+
 export function processMilestoneEvent({
   configuration,
   event,
@@ -104,22 +220,10 @@ export function processMilestoneEvent({
     };
   }
 
-  const requirementsById = Option.getOrElse(
-    HashMap.get(configuration.requirementsByEvent, lookup.type),
-    () => undefined,
-  );
-
-  if (requirementsById === undefined) {
-    return {
-      milestones: [],
-      state,
-    };
-  }
-
-  const targets = Option.getOrElse(
-    HashMap.get(requirementsById, lookup.id),
-    () => [] as ReadonlyArray<MilestoneRequirementTarget>,
-  );
+  const targets = getMilestoneTargets({
+    configuration,
+    lookup,
+  });
 
   if (targets.length === 0) {
     return {
@@ -130,90 +234,19 @@ export function processMilestoneEvent({
 
   const requirementKey = getMilestoneRequirementLookupKey(lookup);
 
-  const milestones: FellowshipRunMilestone[] = [];
-
-  let nextState = state;
-
-  for (const target of targets) {
-    if (HashMap.has(nextState.observedMilestones, target.milestoneId)) {
-      continue;
-    }
-
-    const definition = Option.getOrElse(
-      HashMap.get(configuration.milestonesById, target.milestoneId),
-      () => undefined,
-    );
-
-    if (definition === undefined) {
-      continue;
-    }
-
-    const observedCounts = getObservedRequirementCounts({
-      milestoneId: target.milestoneId,
-      state: nextState,
-    });
-
-    const currentCount = Option.getOrElse(
-      HashMap.get(observedCounts, requirementKey),
-      () => 0,
-    );
-
-    if (currentCount >= target.requiredCount) {
-      continue;
-    }
-
-    const nextObservedCounts = HashMap.set(
-      observedCounts,
-      requirementKey,
-      currentCount + 1,
-    );
-
-    const observedRequirementCounts = HashMap.set(
-      nextState.observedRequirementCounts,
-      target.milestoneId,
-      nextObservedCounts,
-    );
-
-    nextState = {
-      ...nextState,
-      observedRequirementCounts,
-    };
-
-    if (
-      !isMilestoneComplete({
-        definition,
-        observedCounts: nextObservedCounts,
-      })
-    ) {
-      continue;
-    }
-
-    const milestone = createRunMilestone({
-      definition,
-      event,
-      runStart,
-    });
-
-    milestones.push(milestone);
-
-    nextState = {
-      ...nextState,
-
-      observedMilestones: HashMap.set(
-        nextState.observedMilestones,
-        milestone.milestoneId,
-        milestone,
-      ),
-
-      observedRequirementCounts: HashMap.remove(
-        nextState.observedRequirementCounts,
-        milestone.milestoneId,
-      ),
-    };
-  }
-
-  return {
-    milestones,
-    state: nextState,
-  };
+  return targets.reduce<ProcessMilestoneTargetAccumulator>(
+    (accumulator, target) => {
+      return processMilestoneTarget(accumulator, {
+        configuration,
+        event,
+        requirementKey,
+        runStart,
+        target,
+      });
+    },
+    {
+      milestones: [],
+      state,
+    },
+  );
 }
