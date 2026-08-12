@@ -125,7 +125,6 @@ export function compileMilestoneConfiguration(
             definition.milestoneId,
             definition,
           ),
-
           requirementsByEvent: definition.requirements.reduce(
             (requirementsByEvent, requirement) => {
               return addRequirementTarget({
@@ -140,7 +139,6 @@ export function compileMilestoneConfiguration(
       },
       {
         milestonesById: HashMap.empty<string, CompiledMilestoneDefinition>(),
-
         requirementsByEvent: HashMap.empty<
           MilestoneRequirementEventType,
           MilestoneRequirementsById
