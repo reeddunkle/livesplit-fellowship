@@ -1,6 +1,7 @@
 import { NodeFileSystem, NodePath } from "@effect/platform-node";
 import * as Layer from "effect/Layer";
 
+import { AppLoggerLive } from "@/layers/app-logger-live.ts";
 import { CLILive } from "@/services/cli/cli-service.ts";
 import { FellowshipLive } from "@/services/fellowship/fellowship-service.ts";
 import { FileMonitorLive } from "@/services/filesystem/file-monitor-service.ts";
@@ -21,6 +22,7 @@ const FellowshipWithDependencies = FellowshipLive.pipe(
  * [TODO]: Find smarter way to manage TCP connection.
  */
 export const AppLive = Layer.mergeAll(
+  AppLoggerLive,
   PlatformLive,
   FileMonitorWithPlatform,
   FellowshipWithDependencies,
