@@ -10,13 +10,24 @@ export type ReplayLogOptions = {
   readonly logFilePath: string;
 };
 
-export function replayLog({ configuration, logFilePath }: ReplayLogOptions) {
-  return E.gen(function* () {
-    const fellowship = yield* Fellowship;
+export const replayLog = E.fn("fellowship.replay-log")(function* ({
+  configuration,
+  logFilePath,
+}: ReplayLogOptions) {
+  const fellowship = yield* Fellowship;
 
-    return yield* processLiveSplitEventStream({
-      configuration,
-      events: fellowship.streamEvents(logFilePath),
-    });
+  yield* E.annotateCurrentSpan(
+    "fellowship.dungeon",
+    configuration.dungeon.name,
+  );
+
+  yield* E.annotateCurrentSpan(
+    "fellowship.milestone-count",
+    configuration.milestones.length,
+  );
+
+  return yield* processLiveSplitEventStream({
+    configuration,
+    events: fellowship.streamEvents(logFilePath),
   });
-}
+});

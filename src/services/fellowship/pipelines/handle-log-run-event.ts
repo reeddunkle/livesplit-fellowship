@@ -9,10 +9,14 @@ import {
 export function handleLogRunEvent(event: RunProcessingEvent): E.Effect<void> {
   return Match.value(event).pipe(
     Match.when({ type: RUN_PROCESSING_EVENT.RUN_STARTED }, () =>
-      E.logInfo("Run started."),
+      E.logInfo("Run started.", {
+        runEvent: RUN_PROCESSING_EVENT.RUN_STARTED,
+      }),
     ),
     Match.when({ type: RUN_PROCESSING_EVENT.RUN_EXITED }, () =>
-      E.logInfo("Run exited."),
+      E.logInfo("Run exited.", {
+        runEvent: RUN_PROCESSING_EVENT.RUN_EXITED,
+      }),
     ),
     Match.when(
       { type: RUN_PROCESSING_EVENT.MILESTONE_COMPLETED },
@@ -21,6 +25,7 @@ export function handleLogRunEvent(event: RunProcessingEvent): E.Effect<void> {
           elapsedMilliseconds: milestone.elapsedMilliseconds,
           label: milestone.label,
           milestoneId: milestone.milestoneId,
+          runEvent: RUN_PROCESSING_EVENT.MILESTONE_COMPLETED,
         }),
     ),
     Match.exhaustive,
