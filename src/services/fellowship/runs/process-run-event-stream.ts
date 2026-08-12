@@ -1,5 +1,6 @@
 import * as Stream from "effect/Stream";
 
+import { compileMilestoneConfiguration } from "@/services/fellowship/milestones/compile-milestone-configuration.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { processRunEvent } from "@/services/fellowship/runs/process-run-event.ts";
 import { createInitialRunState } from "@/services/fellowship/runs/run-processing-state.ts";
@@ -14,10 +15,12 @@ export function processRunEventStream<E>({
   configuration,
   events,
 }: ProcessRunEventStreamOptions<E>) {
+  const compiledConfiguration = compileMilestoneConfiguration(configuration);
+
   return events.pipe(
     Stream.mapAccum(createInitialRunState, (state, event) => {
       const result = processRunEvent({
-        configuration,
+        configuration: compiledConfiguration,
         event,
         state,
       });

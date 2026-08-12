@@ -1,6 +1,6 @@
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { initialMilestoneProcessorState } from "@/services/fellowship/milestones/milestone-processor-state.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { processMilestoneEvent } from "@/services/fellowship/milestones/process-milestone-event.ts";
 import { trackDungeonRunEvent } from "@/services/fellowship/runs/track-dungeon-run.ts";
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
@@ -30,7 +30,7 @@ export type RunProcessingEvent =
     };
 
 export type ProcessRunEventOptions = {
-  readonly configuration: FellowshipMilestoneConfiguration;
+  readonly configuration: CompiledFellowshipMilestoneConfiguration;
   readonly event: FellowshipEvent;
   readonly state: RunProcessingState;
 };
@@ -42,7 +42,9 @@ export type ProcessRunEventResult = {
 
 type GetRunStartForEventOptions = {
   readonly completedRunStart: DungeonStartEvent | undefined;
+
   readonly currentStart: DungeonStartEvent | undefined;
+
   readonly event: FellowshipEvent;
 };
 

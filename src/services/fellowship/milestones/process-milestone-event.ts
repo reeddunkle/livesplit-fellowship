@@ -1,22 +1,27 @@
 import * as HashMap from "effect/HashMap";
-import * as HashSet from "effect/HashSet";
-import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
-import { type MilestoneProcessorState } from "@/services/fellowship/milestones/milestone-processor-state.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import {
+  type MilestoneProcessorState,
+  type ObservedRequirementCounts,
+} from "@/services/fellowship/milestones/milestone-processor-state.ts";
+import {
+  getMilestoneRequirementLookupForEvent,
+  getMilestoneRequirementLookupKey,
+} from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
+import {
+  type CompiledFellowshipMilestoneConfiguration,
+  type CompiledMilestoneDefinition,
+  type MilestoneRequirementTarget,
+} from "@/services/fellowship/milestones/milestone-types.ts";
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
-import {
-  type FellowshipMilestoneDefinition,
-  type FellowshipMilestoneRequirement,
-} from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
 
 export type ProcessMilestoneEventOptions = {
-  readonly configuration: FellowshipMilestoneConfiguration;
+  readonly configuration: CompiledFellowshipMilestoneConfiguration;
   readonly event: FellowshipEvent;
   readonly runStart: DungeonStartEvent;
   readonly state: MilestoneProcessorState;
@@ -27,158 +32,45 @@ export type ProcessMilestoneEventResult = {
   readonly state: MilestoneProcessorState;
 };
 
-type DoesEventSatisfyRequirementOptions = {
-  readonly event: FellowshipEvent;
-  readonly requirement: FellowshipMilestoneRequirement;
-};
-
-const doesEventSatisfyRequirement = ({
-  event,
-  requirement,
-}: DoesEventSatisfyRequirementOptions): boolean => {
-  return Match.value(requirement).pipe(
-    Match.when({ type: FELLOWSHIP_EVENT.ABILITY_ACTIVATED }, (requirement) => {
-      return (
-        event.type === FELLOWSHIP_EVENT.ABILITY_ACTIVATED &&
-        event.abilityId === requirement.abilityId
-      );
-    }),
-
-    Match.when(
-      { type: FELLOWSHIP_EVENT.DUNGEON_START },
-      () => event.type === FELLOWSHIP_EVENT.DUNGEON_START,
-    ),
-
-    Match.when(
-      { type: FELLOWSHIP_EVENT.DUNGEON_END },
-      () => event.type === FELLOWSHIP_EVENT.DUNGEON_END,
-    ),
-
-    Match.when({ type: FELLOWSHIP_EVENT.ENCOUNTER_START }, (requirement) => {
-      return (
-        event.type === FELLOWSHIP_EVENT.ENCOUNTER_START &&
-        event.encounterId === requirement.encounterId
-      );
-    }),
-
-    Match.when({ type: FELLOWSHIP_EVENT.ENCOUNTER_END }, (requirement) => {
-      return (
-        event.type === FELLOWSHIP_EVENT.ENCOUNTER_END &&
-        event.encounterId === requirement.encounterId &&
-        event.succeeded
-      );
-    }),
-
-    Match.when({ type: FELLOWSHIP_EVENT.UNIT_DEATH }, (requirement) => {
-      return (
-        event.type === FELLOWSHIP_EVENT.UNIT_DEATH &&
-        event.unitTypeId === requirement.unitTypeId
-      );
-    }),
-
-    Match.exhaustive,
-  );
-};
-
-type MatchingRequirement = {
-  readonly definition: FellowshipMilestoneDefinition;
-  readonly requirementIndex: number;
-};
-
-type FindMatchingRequirementOptions = {
-  readonly configuration: FellowshipMilestoneConfiguration;
-  readonly event: FellowshipEvent;
-  readonly state: MilestoneProcessorState;
-};
-
-function findMatchingRequirement({
-  configuration,
-  event,
+function getObservedRequirementCounts({
+  milestoneId,
   state,
-}: FindMatchingRequirementOptions): MatchingRequirement | undefined {
-  for (const definition of configuration.milestones) {
-    if (HashMap.has(state.observedMilestones, definition.milestoneId)) {
-      continue;
-    }
-
-    const satisfiedIndexes = Option.getOrElse(
-      HashMap.get(state.satisfiedRequirementIndexes, definition.milestoneId),
-      () => HashSet.empty<number>(),
-    );
-
-    const requirementIndex = definition.requirements.findIndex(
-      (requirement, index) => {
-        return (
-          !HashSet.has(satisfiedIndexes, index) &&
-          doesEventSatisfyRequirement({
-            event,
-            requirement,
-          })
-        );
-      },
-    );
-
-    if (requirementIndex !== -1) {
-      return {
-        definition,
-        requirementIndex,
-      };
-    }
-  }
-
-  return undefined;
+}: {
+  readonly milestoneId: string;
+  readonly state: MilestoneProcessorState;
+}): ObservedRequirementCounts {
+  return Option.getOrElse(
+    HashMap.get(state.observedRequirementCounts, milestoneId),
+    () => HashMap.empty<string, number>(),
+  );
 }
 
-export function processMilestoneEvent({
-  configuration,
+function isMilestoneComplete({
+  definition,
+  observedCounts,
+}: {
+  readonly definition: CompiledMilestoneDefinition;
+  readonly observedCounts: ObservedRequirementCounts;
+}): boolean {
+  return definition.requirements.every((requirement) => {
+    const observedCount = Option.getOrElse(
+      HashMap.get(observedCounts, requirement.key),
+      () => 0,
+    );
+
+    return observedCount >= requirement.requiredCount;
+  });
+}
+
+function createRunMilestone({
+  definition,
   event,
   runStart,
-  state,
-}: ProcessMilestoneEventOptions): ProcessMilestoneEventResult {
-  const matchingRequirement = findMatchingRequirement({
-    configuration,
-    event,
-    state,
-  });
-
-  if (matchingRequirement === undefined) {
-    return {
-      milestones: [],
-      state,
-    };
-  }
-
-  const { definition, requirementIndex } = matchingRequirement;
-
-  const currentSatisfiedIndexes = Option.getOrElse(
-    HashMap.get(state.satisfiedRequirementIndexes, definition.milestoneId),
-    () => HashSet.empty<number>(),
-  );
-
-  const satisfiedIndexes = HashSet.add(
-    currentSatisfiedIndexes,
-    requirementIndex,
-  );
-
-  const satisfiedRequirementIndexes = HashMap.set(
-    state.satisfiedRequirementIndexes,
-    definition.milestoneId,
-    satisfiedIndexes,
-  );
-
-  const isMilestoneComplete =
-    HashSet.size(satisfiedIndexes) === definition.requirements.length;
-
-  if (!isMilestoneComplete) {
-    return {
-      milestones: [],
-      state: {
-        ...state,
-        satisfiedRequirementIndexes,
-      },
-    };
-  }
-
+}: {
+  readonly definition: CompiledMilestoneDefinition;
+  readonly event: FellowshipEvent;
+  readonly runStart: DungeonStartEvent;
+}): FellowshipRunMilestone {
   const timestamp =
     event.type === FELLOWSHIP_EVENT.DUNGEON_START
       ? event.startedAt
@@ -189,26 +81,139 @@ export function processMilestoneEvent({
       ? 0
       : getElapsedMilliseconds(runStart.startedAt, event.timestamp);
 
-  const milestone = {
+  return {
     elapsedMilliseconds,
     label: definition.label,
     milestoneId: definition.milestoneId,
     timestamp,
-  } satisfies FellowshipRunMilestone;
+  };
+}
 
-  return {
-    milestones: [milestone],
-    state: {
-      ...state,
+export function processMilestoneEvent({
+  configuration,
+  event,
+  runStart,
+  state,
+}: ProcessMilestoneEventOptions): ProcessMilestoneEventResult {
+  const lookup = getMilestoneRequirementLookupForEvent(event);
+
+  if (lookup === undefined) {
+    return {
+      milestones: [],
+      state,
+    };
+  }
+
+  const requirementsById = Option.getOrElse(
+    HashMap.get(configuration.requirementsByEvent, lookup.type),
+    () => undefined,
+  );
+
+  if (requirementsById === undefined) {
+    return {
+      milestones: [],
+      state,
+    };
+  }
+
+  const targets = Option.getOrElse(
+    HashMap.get(requirementsById, lookup.id),
+    () => [] as ReadonlyArray<MilestoneRequirementTarget>,
+  );
+
+  if (targets.length === 0) {
+    return {
+      milestones: [],
+      state,
+    };
+  }
+
+  const requirementKey = getMilestoneRequirementLookupKey(lookup);
+
+  const milestones: FellowshipRunMilestone[] = [];
+
+  let nextState = state;
+
+  for (const target of targets) {
+    if (HashMap.has(nextState.observedMilestones, target.milestoneId)) {
+      continue;
+    }
+
+    const definition = Option.getOrElse(
+      HashMap.get(configuration.milestonesById, target.milestoneId),
+      () => undefined,
+    );
+
+    if (definition === undefined) {
+      continue;
+    }
+
+    const observedCounts = getObservedRequirementCounts({
+      milestoneId: target.milestoneId,
+      state: nextState,
+    });
+
+    const currentCount = Option.getOrElse(
+      HashMap.get(observedCounts, requirementKey),
+      () => 0,
+    );
+
+    if (currentCount >= target.requiredCount) {
+      continue;
+    }
+
+    const nextObservedCounts = HashMap.set(
+      observedCounts,
+      requirementKey,
+      currentCount + 1,
+    );
+
+    const observedRequirementCounts = HashMap.set(
+      nextState.observedRequirementCounts,
+      target.milestoneId,
+      nextObservedCounts,
+    );
+
+    nextState = {
+      ...nextState,
+      observedRequirementCounts,
+    };
+
+    if (
+      !isMilestoneComplete({
+        definition,
+        observedCounts: nextObservedCounts,
+      })
+    ) {
+      continue;
+    }
+
+    const milestone = createRunMilestone({
+      definition,
+      event,
+      runStart,
+    });
+
+    milestones.push(milestone);
+
+    nextState = {
+      ...nextState,
+
       observedMilestones: HashMap.set(
-        state.observedMilestones,
+        nextState.observedMilestones,
         milestone.milestoneId,
         milestone,
       ),
-      satisfiedRequirementIndexes: HashMap.remove(
-        satisfiedRequirementIndexes,
+
+      observedRequirementCounts: HashMap.remove(
+        nextState.observedRequirementCounts,
         milestone.milestoneId,
       ),
-    },
+    };
+  }
+
+  return {
+    milestones,
+    state: nextState,
   };
 }
