@@ -74,7 +74,6 @@ export function processRunEvent({
       },
     });
 
-  // Order matters here
   const hasExitedConfiguredRun =
     isConfiguredRunActive &&
     isDungeonExitEvent({
@@ -86,7 +85,6 @@ export function processRunEvent({
     event,
     state: state.runTracker,
   });
-  // Order matters above
 
   const isDungeonStart = event.type === FELLOWSHIP_EVENT.DUNGEON_START;
 
