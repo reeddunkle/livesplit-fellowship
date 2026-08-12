@@ -3,14 +3,14 @@ import { type RawFellowshipDungeonRun } from "@/services/fellowship/types.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
+import { isDungeonExitEvent } from "../utilities/is-dungeon-exit-event.ts";
+
 export type DungeonRunTrackerState = {
-  readonly completedRuns: ReadonlyArray<RawFellowshipDungeonRun>;
   readonly currentEvents: ReadonlyArray<FellowshipEvent>;
   readonly currentStart: DungeonStartEvent | undefined;
 };
 
 export const initialDungeonRunTrackerState = {
-  completedRuns: [],
   currentEvents: [],
   currentStart: undefined,
 } satisfies DungeonRunTrackerState;
@@ -20,19 +20,18 @@ export type DungeonRunTrackerResult = {
   readonly state: DungeonRunTrackerState;
 };
 
-type TrackDungeonRunEvent = {
+export type TrackDungeonRunEventOptions = {
   readonly event: FellowshipEvent;
   readonly state: DungeonRunTrackerState;
 };
 
 export function trackDungeonRunEvent({
-  state,
   event,
-}: TrackDungeonRunEvent): DungeonRunTrackerResult {
+  state,
+}: TrackDungeonRunEventOptions): DungeonRunTrackerResult {
   if (event.type === FELLOWSHIP_EVENT.DUNGEON_START) {
     return {
       state: {
-        completedRuns: state.completedRuns,
         currentEvents: [event],
         currentStart: event,
       },
@@ -43,14 +42,14 @@ export function trackDungeonRunEvent({
     return { state };
   }
 
-  const hasExitedCurrentDungeon =
-    event.type === FELLOWSHIP_EVENT.ZONE_CHANGE &&
-    event.dungeonId !== state.currentStart.dungeonId;
-
-  if (hasExitedCurrentDungeon) {
+  if (
+    isDungeonExitEvent({
+      event,
+      runStart: state.currentStart,
+    })
+  ) {
     return {
       state: {
-        completedRuns: state.completedRuns,
         currentEvents: [],
         currentStart: undefined,
       },
@@ -59,7 +58,11 @@ export function trackDungeonRunEvent({
 
   const currentEvents = [...state.currentEvents, event];
 
-  if (event.type !== FELLOWSHIP_EVENT.DUNGEON_END) {
+  const hasCompletedCurrentDungeon =
+    event.type === FELLOWSHIP_EVENT.DUNGEON_END &&
+    event.dungeonId === state.currentStart.dungeonId;
+
+  if (!hasCompletedCurrentDungeon) {
     return {
       state: {
         ...state,
@@ -77,7 +80,6 @@ export function trackDungeonRunEvent({
   return {
     completedRun,
     state: {
-      completedRuns: [...state.completedRuns, completedRun],
       currentEvents: [],
       currentStart: undefined,
     },

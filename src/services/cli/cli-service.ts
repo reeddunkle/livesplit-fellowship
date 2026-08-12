@@ -18,10 +18,6 @@ import {
   runGenerateLSSCommand,
 } from "./commands/generate-lss-command.ts";
 import {
-  LiveLogCommandInputSchema,
-  runLiveLogCommand,
-} from "./commands/live-log-command.ts";
-import {
   runSplitLogCommand,
   SplitLogCommandInputSchema,
 } from "./commands/split-log-command.ts";
@@ -77,16 +73,6 @@ function parseArguments(
         strict: true,
       });
     },
-  });
-}
-
-function parseLiveLogInput({ positionals, values }: ParsedArguments) {
-  return E.gen(function* () {
-    yield* validateNoExtraPositionals(positionals);
-
-    return yield* Schema.decodeUnknownEffect(LiveLogCommandInputSchema)({
-      configurationFilePath: values.configuration,
-    });
   });
 }
 
@@ -149,12 +135,6 @@ function makeCLILive(): CLIService {
             const input = yield* parseGenerateLSSInput(parsedArguments);
 
             return yield* runGenerateLSSCommand(input);
-          }
-
-          case "live-log": {
-            const input = yield* parseLiveLogInput(parsedArguments);
-
-            return yield* runLiveLogCommand(input);
           }
 
           default: {

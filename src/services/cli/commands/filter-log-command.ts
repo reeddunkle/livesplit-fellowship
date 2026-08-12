@@ -1,7 +1,7 @@
 import * as E from "effect/Effect";
 import * as Schema from "effect/Schema";
 
-import { filterFellowshipLogFile } from "@/services/fellowship/pipelines/filter-fellowship-log-file.ts";
+import { filterFellowshipLogFile } from "@/services/fellowship/utilities/filter-fellowship-log-file.ts";
 import { NonEmptyStringSchema } from "@/validation/common.ts";
 
 export const FilterLogCommandInputSchema = Schema.Struct({

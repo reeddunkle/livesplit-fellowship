@@ -2,10 +2,10 @@ import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-eve
 import { initialMilestoneProcessorState } from "@/services/fellowship/milestones/milestone-processor-state.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { processMilestoneEvent } from "@/services/fellowship/milestones/process-milestone-event.ts";
-import { doesDungeonRunMatchConfiguration } from "@/services/fellowship/runs/does-dungeon-run-match-configuration.ts";
-import { isDungeonExitEvent } from "@/services/fellowship/runs/is-dungeon-exit-event.ts";
 import { trackDungeonRunEvent } from "@/services/fellowship/runs/track-dungeon-run.ts";
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
+import { doesDungeonRunMatchConfiguration } from "@/services/fellowship/utilities/does-dungeon-run-match-configuration.ts";
+import { isDungeonExitEvent } from "@/services/fellowship/utilities/is-dungeon-exit-event.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 

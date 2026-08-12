@@ -11,6 +11,8 @@ import { parseFellowshipEventStream } from "@/services/fellowship/parsing/parse-
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
+import { isDungeonExitEvent } from "./is-dungeon-exit-event.ts";
+
 export type SplitFellowshipLogFileOptions = {
   readonly inputFilePath: string;
   readonly outputDirectoryPath: string;
@@ -144,8 +146,10 @@ function splitRunAttempts(
       }
 
       if (
-        event.type === FELLOWSHIP_EVENT.ZONE_CHANGE &&
-        event.dungeonId !== state.currentAttempt.start.dungeonId
+        isDungeonExitEvent({
+          event,
+          runStart: state.currentAttempt.start,
+        })
       ) {
         return {
           attempts: [

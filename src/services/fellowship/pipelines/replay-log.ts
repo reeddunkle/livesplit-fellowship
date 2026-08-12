@@ -3,7 +3,7 @@ import * as E from "effect/Effect";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 
-import { processLiveSplitEventStream } from "./process-live-split-log.ts";
+import { processLiveSplitEventStream } from "./process-live-split-event-stream.ts";
 
 export type ReplayLogOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;

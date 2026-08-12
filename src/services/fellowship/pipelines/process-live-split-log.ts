@@ -1,127 +1,13 @@
 import * as E from "effect/Effect";
-import * as Stream from "effect/Stream";
 
-import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
-import { doesDungeonRunMatchConfiguration } from "@/services/fellowship/runs/does-dungeon-run-match-configuration.ts";
-import { isDungeonExitEvent } from "@/services/fellowship/runs/is-dungeon-exit-event.ts";
-import { processRunEvent } from "@/services/fellowship/runs/process-run-event.ts";
-import {
-  createInitialRunState,
-  type RunProcessingState,
-} from "@/services/fellowship/runs/run-processing-state.ts";
-import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
-import { LiveSplitClient } from "@/services/live-split/client/live-split-client-service.ts";
+
+import { processLiveSplitEventStream } from "./process-live-split-event-stream.ts";
 
 export type ProcessLiveSplitLogOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
 };
-
-export type ProcessLiveSplitEventStreamOptions<E> = {
-  readonly configuration: FellowshipMilestoneConfiguration;
-  readonly events: Stream.Stream<FellowshipEvent, E>;
-};
-
-type ProcessLiveSplitEventOptions = {
-  readonly configuration: FellowshipMilestoneConfiguration;
-  readonly event: FellowshipEvent;
-  readonly liveSplitClient: LiveSplitClient["Service"];
-  readonly state: RunProcessingState;
-};
-
-function processLiveSplitEvent({
-  configuration,
-  event,
-  liveSplitClient,
-  state,
-}: ProcessLiveSplitEventOptions) {
-  return E.gen(function* () {
-    const currentStart = state.runTracker.currentStart;
-
-    const isConfiguredRunActive =
-      currentStart !== undefined &&
-      doesDungeonRunMatchConfiguration({
-        configuration,
-        run: {
-          start: currentStart,
-        },
-      });
-
-    const hasExitedConfiguredRun =
-      isConfiguredRunActive &&
-      isDungeonExitEvent({
-        event,
-        runStart: currentStart,
-      });
-
-    if (hasExitedConfiguredRun) {
-      yield* liveSplitClient.pause();
-
-      yield* E.logInfo("Paused LiveSplit after leaving dungeon.", {
-        dungeonId: currentStart.dungeonId,
-        dungeonName: currentStart.dungeonName,
-      });
-    }
-
-    if (event.type === FELLOWSHIP_EVENT.DUNGEON_START) {
-      const matchesConfiguration = doesDungeonRunMatchConfiguration({
-        configuration,
-        run: {
-          start: event,
-        },
-      });
-
-      if (matchesConfiguration) {
-        yield* liveSplitClient.reset();
-        yield* liveSplitClient.startTimer();
-      }
-    }
-
-    const result = processRunEvent({
-      configuration,
-      event,
-      state,
-    });
-
-    if (result.milestones.length > 0) {
-      yield* E.logInfo("LiveSplit milestones emitted.", {
-        eventType: event.type,
-        milestones: result.milestones.map((milestone) => {
-          return {
-            label: milestone.label,
-            milestoneId: milestone.milestoneId,
-          };
-        }),
-      });
-    }
-
-    return [result.state, result.milestones] as const;
-  });
-}
-
-export function processLiveSplitEventStream<E>({
-  configuration,
-  events,
-}: ProcessLiveSplitEventStreamOptions<E>) {
-  return E.gen(function* () {
-    const liveSplitClient = yield* LiveSplitClient;
-
-    return yield* events.pipe(
-      Stream.mapAccumEffect(createInitialRunState, (state, event) => {
-        return processLiveSplitEvent({
-          configuration,
-          event,
-          liveSplitClient,
-          state,
-        });
-      }),
-      Stream.runForEach(() => {
-        return liveSplitClient.split();
-      }),
-    );
-  });
-}
 
 export function processLiveSplitLog({
   configuration,
