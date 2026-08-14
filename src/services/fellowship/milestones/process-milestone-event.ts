@@ -5,10 +5,11 @@ import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-eve
 import {
   type MilestoneProcessorState,
   type ObservedRequirementCounts,
+  type ObservedRequirementCountsById,
 } from "@/services/fellowship/milestones/milestone-processor-state.ts";
 import {
   getMilestoneRequirementLookupForEvent,
-  getMilestoneRequirementLookupKey,
+  type MilestoneRequirementId,
   type MilestoneRequirementLookup,
 } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import {
@@ -41,7 +42,7 @@ type ProcessMilestoneTargetAccumulator = {
 type ProcessMilestoneTargetOptions = {
   readonly configuration: CompiledFellowshipMilestoneConfiguration;
   readonly event: FellowshipEvent;
-  readonly requirementKey: string;
+  readonly lookup: MilestoneRequirementLookup;
   readonly runStart: DungeonStartEvent;
   readonly target: MilestoneRequirementTarget;
 };
@@ -55,7 +56,7 @@ function getObservedRequirementCounts({
 }): ObservedRequirementCounts {
   return Option.getOrElse(
     HashMap.get(state.observedRequirementCounts, milestoneId),
-    () => HashMap.empty<string, number>(),
+    () => HashMap.empty(),
   );
 }
 
@@ -74,6 +75,39 @@ function getMilestoneTargets({
   ).pipe(Option.getOrElse(() => []));
 }
 
+function getObservedRequirementCount({
+  id,
+  observedCounts,
+  type,
+}: {
+  readonly id: MilestoneRequirementId;
+  readonly observedCounts: ObservedRequirementCounts;
+  readonly type: MilestoneRequirementLookup["type"];
+}): number {
+  return Option.flatMap(HashMap.get(observedCounts, type), (countsById) => {
+    return HashMap.get(countsById, id);
+  }).pipe(Option.getOrElse(() => 0));
+}
+
+function setObservedRequirementCount({
+  count,
+  lookup,
+  observedCounts,
+}: {
+  readonly count: number;
+  readonly lookup: MilestoneRequirementLookup;
+  readonly observedCounts: ObservedRequirementCounts;
+}): ObservedRequirementCounts {
+  const countsById: ObservedRequirementCountsById = Option.getOrElse(
+    HashMap.get(observedCounts, lookup.type),
+    () => HashMap.empty(),
+  );
+
+  const nextCountsById = HashMap.set(countsById, lookup.id, count);
+
+  return HashMap.set(observedCounts, lookup.type, nextCountsById);
+}
+
 function isMilestoneComplete({
   definition,
   observedCounts,
@@ -82,10 +116,11 @@ function isMilestoneComplete({
   readonly observedCounts: ObservedRequirementCounts;
 }): boolean {
   return definition.requirements.every((requirement) => {
-    const observedCount = Option.getOrElse(
-      HashMap.get(observedCounts, requirement.key),
-      () => 0,
-    );
+    const observedCount = getObservedRequirementCount({
+      id: requirement.id,
+      observedCounts,
+      type: requirement.type,
+    });
 
     return observedCount >= requirement.requiredCount;
   });
@@ -123,7 +158,7 @@ function processMilestoneTarget(
   {
     configuration,
     event,
-    requirementKey,
+    lookup,
     runStart,
     target,
   }: ProcessMilestoneTargetOptions,
@@ -146,20 +181,21 @@ function processMilestoneTarget(
     state: accumulator.state,
   });
 
-  const currentCount = Option.getOrElse(
-    HashMap.get(observedCounts, requirementKey),
-    () => 0,
-  );
+  const currentCount = getObservedRequirementCount({
+    id: lookup.id,
+    observedCounts,
+    type: lookup.type,
+  });
 
   if (currentCount >= target.requiredCount) {
     return accumulator;
   }
 
-  const nextObservedCounts = HashMap.set(
+  const nextObservedCounts = setObservedRequirementCount({
+    count: currentCount + 1,
+    lookup,
     observedCounts,
-    requirementKey,
-    currentCount + 1,
-  );
+  });
 
   const nextState: MilestoneProcessorState = {
     ...accumulator.state,
@@ -222,8 +258,6 @@ export function processMilestoneEvent({
     return initialResult;
   }
 
-  const requirementKey = getMilestoneRequirementLookupKey(lookup);
-
   const targets = getMilestoneTargets({
     configuration,
     lookup,
@@ -234,7 +268,7 @@ export function processMilestoneEvent({
       return processMilestoneTarget(accumulator, {
         configuration,
         event,
-        requirementKey,
+        lookup,
         runStart,
         target,
       });

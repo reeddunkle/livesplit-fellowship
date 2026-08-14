@@ -19,13 +19,6 @@ type GetMilestoneRequirementLookupOptions = {
   readonly requirement: FellowshipMilestoneRequirement;
 };
 
-export function getMilestoneRequirementLookupKey({
-  id,
-  type,
-}: MilestoneRequirementLookup): string {
-  return `${type}:${id}`;
-}
-
 export function getMilestoneRequirementLookup({
   dungeonId,
   requirement,

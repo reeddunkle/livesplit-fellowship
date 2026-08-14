@@ -3,7 +3,6 @@ import * as Option from "effect/Option";
 
 import {
   getMilestoneRequirementLookup,
-  getMilestoneRequirementLookupKey,
   type MilestoneRequirementEventType,
   type MilestoneRequirementId,
   type MilestoneRequirementLookup,
@@ -23,45 +22,74 @@ type RequirementCount = {
   readonly requiredCount: number;
 };
 
+type RequirementCountsById = HashMap.HashMap<
+  MilestoneRequirementId,
+  RequirementCount
+>;
+
+type RequirementCountsByEvent = HashMap.HashMap<
+  MilestoneRequirementEventType,
+  RequirementCountsById
+>;
+
 type CompiledMilestoneConfigurationIndexes = {
   readonly milestonesById: HashMap.HashMap<string, CompiledMilestoneDefinition>;
   readonly requirementsByEvent: RequirementsByEvent;
 };
+
+function addRequirementCount({
+  countsByEvent,
+  lookup,
+}: {
+  readonly countsByEvent: RequirementCountsByEvent;
+  readonly lookup: MilestoneRequirementLookup;
+}): RequirementCountsByEvent {
+  const countsById = Option.getOrElse(
+    HashMap.get(countsByEvent, lookup.type),
+    () => HashMap.empty<MilestoneRequirementId, RequirementCount>(),
+  );
+
+  const requiredCount = Option.match(HashMap.get(countsById, lookup.id), {
+    onNone: () => 1,
+    onSome: ({ requiredCount }) => requiredCount + 1,
+  });
+
+  const nextCountsById = HashMap.set(countsById, lookup.id, {
+    lookup,
+    requiredCount,
+  });
+
+  return HashMap.set(countsByEvent, lookup.type, nextCountsById);
+}
 
 function compileMilestoneRequirements(
   configuration: FellowshipMilestoneConfiguration,
 ): ReadonlyArray<CompiledMilestoneDefinition> {
   return configuration.milestones.map((definition) => {
     const requirementCounts = definition.requirements.reduce(
-      (counts, requirement) => {
+      (countsByEvent, requirement) => {
         const lookup = getMilestoneRequirementLookup({
           dungeonId: configuration.dungeon.dungeonId,
           requirement,
         });
 
-        const key = getMilestoneRequirementLookupKey(lookup);
-
-        const requiredCount = Option.match(HashMap.get(counts, key), {
-          onNone: () => 1,
-          onSome: ({ requiredCount }) => requiredCount + 1,
-        });
-
-        return HashMap.set(counts, key, {
+        return addRequirementCount({
+          countsByEvent,
           lookup,
-          requiredCount,
         });
       },
-      HashMap.empty<string, RequirementCount>(),
+      HashMap.empty<MilestoneRequirementEventType, RequirementCountsById>(),
     );
 
-    const requirements = Array.from(requirementCounts).map(
-      ([key, requirement]) => {
-        return {
-          id: requirement.lookup.id,
-          key,
-          requiredCount: requirement.requiredCount,
-          type: requirement.lookup.type,
-        } satisfies CompiledMilestoneRequirement;
+    const requirements = Array.from(requirementCounts).flatMap(
+      ([, countsById]) => {
+        return Array.from(countsById).map(([, requirement]) => {
+          return {
+            id: requirement.lookup.id,
+            requiredCount: requirement.requiredCount,
+            type: requirement.lookup.type,
+          } satisfies CompiledMilestoneRequirement;
+        });
       },
     );
 

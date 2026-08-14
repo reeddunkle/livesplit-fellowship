@@ -14,7 +14,6 @@ export type FellowshipMilestoneConfiguration = {
 
 export type CompiledMilestoneRequirement = {
   readonly id: MilestoneRequirementId;
-  readonly key: string;
   readonly requiredCount: number;
   readonly type: MilestoneRequirementEventType;
 };

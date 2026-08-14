@@ -1,8 +1,20 @@
 import * as HashMap from "effect/HashMap";
 
+import {
+  type MilestoneRequirementEventType,
+  type MilestoneRequirementId,
+} from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 
-export type ObservedRequirementCounts = HashMap.HashMap<string, number>;
+export type ObservedRequirementCountsById = HashMap.HashMap<
+  MilestoneRequirementId,
+  number
+>;
+
+export type ObservedRequirementCounts = HashMap.HashMap<
+  MilestoneRequirementEventType,
+  ObservedRequirementCountsById
+>;
 
 export type MilestoneProcessorState = {
   readonly observedMilestones: HashMap.HashMap<string, FellowshipRunMilestone>;
