@@ -8,16 +8,15 @@ import {
 } from "@/services/fellowship/validation/common.ts";
 import {
   BooleanFlagSchema,
-  IntegerFromStringSchema,
   JsonStringArraySchema,
 } from "@/validation/common.ts";
 
 const EncounterEndLogLineSchema = Schema.Tuple([
-  Schema.DateTimeUtcFromString,
-  Schema.Literal(FELLOWSHIP_EVENT.ENCOUNTER_END),
-  IntegerFromStringSchema,
-  JsonStringArraySchema,
-  BooleanFlagSchema,
+  Schema.DateTimeUtcFromString, // timestamp
+  Schema.Literal(FELLOWSHIP_EVENT.ENCOUNTER_END), // type
+  Schema.String, // encounterId
+  JsonStringArraySchema, // encounterNames
+  BooleanFlagSchema, // succeeded
 ]);
 
 const EncounterEndEventSchema = Schema.Struct({

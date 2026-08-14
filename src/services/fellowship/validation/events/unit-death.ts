@@ -3,29 +3,26 @@ import * as Schema from "effect/Schema";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { TimestampSchema } from "@/services/fellowship/validation/common.ts";
-import {
-  IntegerFromStringSchema,
-  JsonStringSchema,
-} from "@/validation/common.ts";
+import { JsonStringSchema } from "@/validation/common.ts";
 
 const UnitDeathLogLineSchema = Schema.Tuple([
-  Schema.DateTimeUtcFromString,
-  Schema.Literal(FELLOWSHIP_EVENT.UNIT_DEATH),
-  Schema.String,
-  JsonStringSchema,
-  Schema.String,
-  JsonStringSchema,
-  IntegerFromStringSchema,
-  JsonStringSchema,
-  IntegerFromStringSchema,
-  Schema.NumberFromString,
+  Schema.DateTimeUtcFromString, // timestamp
+  Schema.Literal(FELLOWSHIP_EVENT.UNIT_DEATH), // type
+  Schema.String, // unitId
+  JsonStringSchema, // unitName
+  Schema.String, // sourcePlayerId
+  JsonStringSchema, // sourcePlayerName
+  Schema.String, // abilityId
+  JsonStringSchema, // abilityName
+  Schema.String, // relatedAbilityId
+  Schema.NumberFromString, // dungeonProgress
 ]);
 
 const UnitDeathEventSchema = Schema.Struct({
-  abilityId: Schema.Number,
+  abilityId: Schema.String,
   abilityName: Schema.String,
   dungeonProgress: Schema.Number,
-  relatedAbilityId: Schema.Number,
+  relatedAbilityId: Schema.String,
   sourcePlayerId: Schema.String,
   sourcePlayerName: Schema.String,
   timestamp: TimestampSchema,
@@ -33,21 +30,21 @@ const UnitDeathEventSchema = Schema.Struct({
   unitId: Schema.String,
   unitInstanceId: Schema.String,
   unitName: Schema.String,
-  unitTypeId: Schema.Number,
+  unitTypeId: Schema.String,
 });
 
 function parseUnitId(unitId: string): {
   readonly unitInstanceId: string;
-  readonly unitTypeId: number;
+  readonly unitTypeId: string;
 } {
   const segments = unitId.split("-");
-  const unitTypeId = Number(segments.at(-1));
+  const unitTypeId = segments.at(-1);
   const unitInstanceId = segments.at(-2);
 
-  if (unitInstanceId === undefined || !Number.isInteger(unitTypeId)) {
+  if (unitInstanceId === undefined || unitTypeId === undefined) {
     return {
       unitInstanceId: unitId,
-      unitTypeId: 0,
+      unitTypeId: "0",
     };
   }
 

@@ -12,21 +12,20 @@ import {
 import {
   BooleanFlagSchema,
   EmptyStringSchema,
-  IntegerFromStringSchema,
   JsonIntegerArraySchema,
   JsonStringSchema,
 } from "@/validation/common.ts";
 
 const DungeonStartLogLineSchema = Schema.Tuple([
-  Schema.DateTimeUtcFromString,
-  Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_START),
-  JsonStringSchema,
-  IntegerFromStringSchema,
-  IntegerFromStringSchema,
-  JsonIntegerArraySchema,
-  BooleanFlagSchema,
-  Schema.DateTimeUtcFromString,
-  EmptyStringSchema,
+  Schema.DateTimeUtcFromString, // timestamp
+  Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_START), // type
+  JsonStringSchema, // dungeonName
+  Schema.String, // dungeonId
+  Schema.String, // instanceId
+  JsonIntegerArraySchema, // affixIds
+  BooleanFlagSchema, // unmappedFlag
+  Schema.DateTimeUtcFromString, // startedAt
+  EmptyStringSchema, // unmappedEmptyString
 ]);
 
 const DungeonStartEventSchema = Schema.Struct({
@@ -54,7 +53,7 @@ export const DungeonStartEventFromLogSchema = DungeonStartLogLineSchema.pipe(
         startedAt,
       ]) => {
         return {
-          affixIds,
+          affixIds: affixIds.map(String),
           dungeonId,
           dungeonName,
           instanceId,
@@ -72,7 +71,7 @@ export const DungeonStartEventFromLogSchema = DungeonStartLogLineSchema.pipe(
         event.dungeonName,
         event.dungeonId,
         event.instanceId,
-        event.affixIds,
+        event.affixIds.map(Number),
         event.unmappedFlag,
         event.startedAt,
         "",

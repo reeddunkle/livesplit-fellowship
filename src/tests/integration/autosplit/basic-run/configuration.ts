@@ -9,7 +9,7 @@ export const configuration = {
       milestoneId: "boss:pull",
       requirements: [
         {
-          encounterId: 28,
+          encounterId: "28",
           type: "ENCOUNTER_START",
         },
       ],
@@ -19,7 +19,7 @@ export const configuration = {
       milestoneId: "boss:kill",
       requirements: [
         {
-          encounterId: 28,
+          encounterId: "28",
           type: "ENCOUNTER_END",
         },
       ],

@@ -7,7 +7,7 @@
       "requirements": [
         {
           "type": "UNIT_DEATH",
-          "unitTypeId": 97
+          "unitTypeId": "97"
         }
       ]
     },
@@ -17,7 +17,7 @@
       "requirements": [
         {
           "type": "UNIT_DEATH",
-          "unitTypeId": 97
+          "unitTypeId": "97"
         }
       ]
     },
@@ -27,7 +27,7 @@
       "requirements": [
         {
           "type": "UNIT_DEATH",
-          "unitTypeId": 97
+          "unitTypeId": "97"
         }
       ]
     },
@@ -36,7 +36,7 @@
       "milestoneId": "boss:pull",
       "requirements": [
         {
-          "encounterId": 28,
+          "encounterId": "28",
           "type": "ENCOUNTER_START"
         }
       ]
@@ -47,7 +47,7 @@
       "targetElapsedTime": "00:11:57",
       "requirements": [
         {
-          "encounterId": 28,
+          "encounterId": "28",
           "type": "ENCOUNTER_END"
         }
       ]

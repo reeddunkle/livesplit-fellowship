@@ -4,18 +4,18 @@
     {
       "label": "Ghorn Defeated",
       "milestoneId": "ghorn:defeated",
-      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 280 }]
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": "280" }]
     },
     {
       "label": "Boss Pull",
       "milestoneId": "boss:pull",
-      "requirements": [{ "encounterId": 31, "type": "ENCOUNTER_START" }]
+      "requirements": [{ "encounterId": "31", "type": "ENCOUNTER_START" }]
     },
     {
       "label": "Boss Defeated",
       "milestoneId": "boss:defeated",
       "targetElapsedTime": "00:12:24",
-      "requirements": [{ "encounterId": 31, "type": "ENCOUNTER_END" }]
+      "requirements": [{ "encounterId": "31", "type": "ENCOUNTER_END" }]
     }
   ]
 }

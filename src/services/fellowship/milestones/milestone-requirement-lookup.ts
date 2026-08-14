@@ -7,7 +7,7 @@ import { type FellowshipMilestoneRequirement } from "@/services/fellowship/valid
 export type MilestoneRequirementEventType =
   FellowshipMilestoneRequirement["type"];
 
-export type MilestoneRequirementId = string | number;
+export type MilestoneRequirementId = string;
 
 export type MilestoneRequirementLookup = {
   readonly id: MilestoneRequirementId;
@@ -15,7 +15,7 @@ export type MilestoneRequirementLookup = {
 };
 
 type GetMilestoneRequirementLookupOptions = {
-  readonly dungeonId: number;
+  readonly dungeonId: string;
   readonly requirement: FellowshipMilestoneRequirement;
 };
 

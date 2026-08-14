@@ -17,18 +17,18 @@ import {
 } from "@/validation/common.ts";
 
 const DungeonEndLogLineSchema = Schema.Tuple([
-  Schema.DateTimeUtcFromString,
-  Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_END),
-  JsonStringSchema,
-  IntegerFromStringSchema,
-  IntegerFromStringSchema,
-  JsonIntegerArraySchema,
-  BooleanFlagSchema,
-  IntegerFromStringSchema,
-  Schema.NumberFromString,
-  BooleanFlagSchema,
-  BooleanFlagSchema,
-  BooleanFlagSchema,
+  Schema.DateTimeUtcFromString, // timestamp
+  Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_END), // type
+  JsonStringSchema, // dungeonName
+  Schema.String, // dungeonId
+  Schema.String, // instanceId
+  JsonIntegerArraySchema, // affixIds
+  BooleanFlagSchema, // succeeded
+  IntegerFromStringSchema, // numericField1
+  Schema.NumberFromString, // numericField2
+  BooleanFlagSchema, // flag1
+  BooleanFlagSchema, // flag2
+  BooleanFlagSchema, // flag3
 ]);
 
 const DungeonEndUnmappedSchema = Schema.Struct({
@@ -68,7 +68,7 @@ export const DungeonEndEventFromLogSchema = DungeonEndLogLineSchema.pipe(
         flag3,
       ]) => {
         return {
-          affixIds,
+          affixIds: affixIds.map(String),
           dungeonId,
           dungeonName,
           instanceId,
@@ -92,7 +92,7 @@ export const DungeonEndEventFromLogSchema = DungeonEndLogLineSchema.pipe(
         event.dungeonName,
         event.dungeonId,
         event.instanceId,
-        event.affixIds,
+        event.affixIds.map(Number),
         event.succeeded,
         event.unmapped.numericField1,
         event.unmapped.numericField2,

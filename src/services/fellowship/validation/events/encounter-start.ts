@@ -6,16 +6,13 @@ import {
   EncounterIdSchema,
   TimestampSchema,
 } from "@/services/fellowship/validation/common.ts";
-import {
-  IntegerFromStringSchema,
-  JsonStringArraySchema,
-} from "@/validation/common.ts";
+import { JsonStringArraySchema } from "@/validation/common.ts";
 
 const EncounterStartLogLineSchema = Schema.Tuple([
-  Schema.DateTimeUtcFromString,
-  Schema.Literal(FELLOWSHIP_EVENT.ENCOUNTER_START),
-  IntegerFromStringSchema,
-  JsonStringArraySchema,
+  Schema.DateTimeUtcFromString, // timestamp
+  Schema.Literal(FELLOWSHIP_EVENT.ENCOUNTER_START), // type
+  Schema.String, // encounterId
+  JsonStringArraySchema, // encounterNames
 ]);
 
 const EncounterStartEventSchema = Schema.Struct({

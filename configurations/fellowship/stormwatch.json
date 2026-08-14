@@ -7,7 +7,7 @@
       "requirements": [
         {
           "type": "UNIT_DEATH",
-          "unitTypeId": 281
+          "unitTypeId": "281"
         }
       ]
     },
@@ -26,7 +26,7 @@
       "milestoneId": "boss:pull",
       "requirements": [
         {
-          "encounterId": 26,
+          "encounterId": "26",
           "type": "ENCOUNTER_START"
         }
       ]
@@ -37,7 +37,7 @@
       "targetElapsedTime": "00:14:08",
       "requirements": [
         {
-          "encounterId": 26,
+          "encounterId": "26",
           "type": "ENCOUNTER_END"
         }
       ]

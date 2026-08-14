@@ -3,24 +3,21 @@ import * as Schema from "effect/Schema";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { TimestampSchema } from "@/services/fellowship/validation/common.ts";
-import {
-  IntegerFromStringSchema,
-  JsonStringSchema,
-} from "@/validation/common.ts";
+import { JsonStringSchema } from "@/validation/common.ts";
 
 const MapChangeLogLineSchema = Schema.Tuple([
-  Schema.DateTimeUtcFromString,
-  Schema.Literal(FELLOWSHIP_EVENT.MAP_CHANGE),
-  IntegerFromStringSchema,
-  JsonStringSchema,
-  Schema.NumberFromString,
-  Schema.NumberFromString,
-  Schema.NumberFromString,
-  Schema.NumberFromString,
+  Schema.DateTimeUtcFromString, // timestamp
+  Schema.Literal(FELLOWSHIP_EVENT.MAP_CHANGE), // type
+  Schema.String, // mapId
+  JsonStringSchema, // mapName
+  Schema.NumberFromString, // numericField1
+  Schema.NumberFromString, // numericField2
+  Schema.NumberFromString, // numericField3
+  Schema.NumberFromString, // numericField4
 ]);
 
 const MapChangeEventSchema = Schema.Struct({
-  mapId: Schema.Int,
+  mapId: Schema.String,
   mapName: Schema.String,
   timestamp: TimestampSchema,
   type: Schema.Literal(FELLOWSHIP_EVENT.MAP_CHANGE),

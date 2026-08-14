@@ -1,10 +1,7 @@
 import * as Schema from "effect/Schema";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
-import {
-  NonEmptyStringSchema,
-  PositiveIntegerSchema,
-} from "@/validation/common.ts";
+import { NonEmptyStringSchema } from "@/validation/common.ts";
 
 const FellowshipDungeonKeySchema = Schema.Union([
   Schema.Literal("CITHRELS_FALL"),
@@ -38,18 +35,18 @@ const DungeonEndMilestoneRequirementSchema = Schema.Struct({
 });
 
 const EncounterStartMilestoneRequirementSchema = Schema.Struct({
-  encounterId: PositiveIntegerSchema,
+  encounterId: NonEmptyStringSchema,
   type: Schema.Literal(FELLOWSHIP_EVENT.ENCOUNTER_START),
 });
 
 const EncounterEndMilestoneRequirementSchema = Schema.Struct({
-  encounterId: PositiveIntegerSchema,
+  encounterId: NonEmptyStringSchema,
   type: Schema.Literal(FELLOWSHIP_EVENT.ENCOUNTER_END),
 });
 
 const UnitDeathMilestoneRequirementSchema = Schema.Struct({
   type: Schema.Literal(FELLOWSHIP_EVENT.UNIT_DEATH),
-  unitTypeId: PositiveIntegerSchema,
+  unitTypeId: NonEmptyStringSchema,
 });
 
 const FellowshipMilestoneRequirementSchema = Schema.Union([

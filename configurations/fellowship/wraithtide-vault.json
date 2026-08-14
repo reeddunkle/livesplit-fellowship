@@ -4,32 +4,32 @@
     {
       "label": "Katrine Pull",
       "milestoneId": "katrine:pull",
-      "requirements": [{ "encounterId": 15, "type": "ENCOUNTER_START" }]
+      "requirements": [{ "encounterId": "15", "type": "ENCOUNTER_START" }]
     },
     {
       "label": "Katrine Defeated",
       "milestoneId": "katrine:defeated",
-      "requirements": [{ "encounterId": 15, "type": "ENCOUNTER_END" }]
+      "requirements": [{ "encounterId": "15", "type": "ENCOUNTER_END" }]
     },
     {
       "label": "Bael'Aurum Pull",
       "milestoneId": "bael:pull",
-      "requirements": [{ "encounterId": 14, "type": "ENCOUNTER_START" }]
+      "requirements": [{ "encounterId": "14", "type": "ENCOUNTER_START" }]
     },
     {
       "label": "Bael'Aurum Defeated",
       "milestoneId": "bael:defeated",
-      "requirements": [{ "encounterId": 14, "type": "ENCOUNTER_END" }]
+      "requirements": [{ "encounterId": "14", "type": "ENCOUNTER_END" }]
     },
     {
       "label": "First Mate Marrow Pull",
       "milestoneId": "marrow:pull",
-      "requirements": [{ "encounterId": 13, "type": "ENCOUNTER_START" }]
+      "requirements": [{ "encounterId": "13", "type": "ENCOUNTER_START" }]
     },
     {
       "label": "First Mate Marrow Defeated",
       "milestoneId": "marrow:defeated",
-      "requirements": [{ "encounterId": 13, "type": "ENCOUNTER_END" }]
+      "requirements": [{ "encounterId": "13", "type": "ENCOUNTER_END" }]
     }
   ]
 }

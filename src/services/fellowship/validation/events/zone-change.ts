@@ -8,19 +8,15 @@ import {
   InstanceIdSchema,
   TimestampSchema,
 } from "@/services/fellowship/validation/common.ts";
-import {
-  EmptyStringSchema,
-  IntegerFromStringSchema,
-  JsonStringSchema,
-} from "@/validation/common.ts";
+import { EmptyStringSchema, JsonStringSchema } from "@/validation/common.ts";
 
 const ZoneChangeLogLineSchema = Schema.Tuple([
-  Schema.DateTimeUtcFromString,
-  Schema.Literal(FELLOWSHIP_EVENT.ZONE_CHANGE),
-  JsonStringSchema,
-  IntegerFromStringSchema,
-  IntegerFromStringSchema,
-  EmptyStringSchema,
+  Schema.DateTimeUtcFromString, // timestamp
+  Schema.Literal(FELLOWSHIP_EVENT.ZONE_CHANGE), // type
+  JsonStringSchema, // dungeonName
+  Schema.String, // dungeonId
+  Schema.String, // instanceId
+  EmptyStringSchema, // unmappedEmptyString
 ]);
 
 const ZoneChangeEventSchema = Schema.Struct({

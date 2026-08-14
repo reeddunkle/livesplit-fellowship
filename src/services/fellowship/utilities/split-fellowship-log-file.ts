@@ -4,7 +4,6 @@ import * as FileSystem from "effect/FileSystem";
 import * as Path from "effect/Path";
 import * as Stream from "effect/Stream";
 
-import { type FellowshipLogParseError } from "@/errors/fellowship-log-parse-error.ts";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { parseFellowshipEventStream } from "@/services/fellowship/parsing/parse-fellowship-event-stream.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
@@ -18,8 +17,8 @@ export type SplitFellowshipLogFileOptions = {
 };
 
 type SplitFellowshipLogFileOutput = {
-  readonly dungeonId: number;
-  readonly dungeonName: string;
+  readonly dungeonId: DungeonStartEvent["dungeonId"];
+  readonly dungeonName: DungeonStartEvent["dungeonName"];
   readonly filePath: string;
   readonly isComplete: boolean;
   readonly retainedLineCount: number;
@@ -41,9 +40,12 @@ type MutableDungeonRunAttempt = {
   readonly start: DungeonStartEvent;
 };
 
-function inspectLogLine(
-  line: string,
-): E.Effect<InspectedLogLine, FellowshipLogParseError> {
+type SplitRunAttemptsState = {
+  readonly attempts: DungeonRunAttempt[];
+  readonly currentAttempt: MutableDungeonRunAttempt | undefined;
+};
+
+function inspectLogLine(line: string): E.Effect<InspectedLogLine> {
   return parseFellowshipEventStream(Stream.make(line)).pipe(
     Stream.runCollect,
     E.map((events) => {
@@ -90,11 +92,6 @@ function completeAttempt({
     start: attempt.start,
   };
 }
-
-type SplitRunAttemptsState = {
-  readonly attempts: DungeonRunAttempt[];
-  readonly currentAttempt: MutableDungeonRunAttempt | undefined;
-};
 
 function splitRunAttempts(
   inspectedLines: ReadonlyArray<InspectedLogLine>,
@@ -211,7 +208,10 @@ export const splitFellowshipLogFile = E.fn("fellowship.split-log-file")(
       recursive: true,
     });
 
-    const dungeonAttemptCounts = new Map<number, number>();
+    const dungeonAttemptCounts = new Map<
+      DungeonStartEvent["dungeonId"],
+      number
+    >();
 
     const outputs: SplitFellowshipLogFileOutput[] = [];
 
