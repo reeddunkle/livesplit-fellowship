@@ -9,6 +9,8 @@ import { LiveSplitFileLive } from "@/services/live-split/files/live-split-file-s
 
 const PlatformLive = Layer.mergeAll(NodeFileSystem.layer, NodePath.layer);
 
+const AppLoggerWithPlatform = AppLoggerLive.pipe(Layer.provide(PlatformLive));
+
 const FileMonitorWithPlatform = FileMonitorLive.pipe(
   Layer.provide(PlatformLive),
 );
@@ -22,7 +24,7 @@ const FellowshipWithDependencies = FellowshipLive.pipe(
  * [TODO]: Find smarter way to manage TCP connection.
  */
 export const AppLive = Layer.mergeAll(
-  AppLoggerLive,
+  AppLoggerWithPlatform,
   PlatformLive,
   FileMonitorWithPlatform,
   FellowshipWithDependencies,
