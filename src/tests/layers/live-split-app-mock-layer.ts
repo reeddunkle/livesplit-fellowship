@@ -1,7 +1,7 @@
 import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 
-import { AppLive } from "@/layers/app-layer.ts";
+import { AppServicesLive } from "@/layers/app-layer.ts";
 import { LiveSplitCLILive } from "@/services/cli/live-split-cli-service.ts";
 import { makeLiveSplitTestHarness } from "@/tests/common/live-split-test-harness.ts";
 import { NoopLoggerLayer } from "@/tests/layers/noop-logger-layer.ts";
@@ -11,7 +11,7 @@ export function makeLiveSplitAppMock() {
     const harness = yield* makeLiveSplitTestHarness();
 
     const layer = Layer.mergeAll(
-      AppLive,
+      AppServicesLive,
       harness.clientLayer,
       LiveSplitCLILive,
       NoopLoggerLayer,

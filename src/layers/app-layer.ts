@@ -7,7 +7,10 @@ import { FellowshipLive } from "@/services/fellowship/fellowship-service.ts";
 import { FileMonitorLive } from "@/services/filesystem/file-monitor-service.ts";
 import { LiveSplitFileLive } from "@/services/live-split/files/live-split-file-service.ts";
 
-const PlatformLive = Layer.mergeAll(NodeFileSystem.layer, NodePath.layer);
+export const PlatformLive = Layer.mergeAll(
+  NodeFileSystem.layer,
+  NodePath.layer,
+);
 
 const AppLoggerWithPlatform = AppLoggerLive.pipe(Layer.provide(PlatformLive));
 
@@ -19,15 +22,16 @@ const FellowshipWithDependencies = FellowshipLive.pipe(
   Layer.provide(FileMonitorWithPlatform),
 );
 
-/*
- * This layer intentionally excludes LiveSplitClientLive for now.
- * [TODO]: Find smarter way to manage TCP connection.
- */
-export const AppLive = Layer.mergeAll(
-  AppLoggerWithPlatform,
+export const AppServicesLive = Layer.mergeAll(
   PlatformLive,
   FileMonitorWithPlatform,
   FellowshipWithDependencies,
   LiveSplitFileLive,
   CLILive,
 );
+
+/*
+ * This layer intentionally excludes LiveSplitClientLive for now.
+ * [TODO]: Find smarter way to manage TCP connection.
+ */
+export const AppLive = Layer.mergeAll(AppLoggerWithPlatform, AppServicesLive);
