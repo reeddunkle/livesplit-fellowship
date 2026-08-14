@@ -9,8 +9,6 @@ export const NonEmptyStringSchema = Schema.String.check(Schema.isMinLength(1));
 
 export const EmptyStringSchema = Schema.Literal("");
 
-export const PositiveIntegerSchema = Schema.Int.check(Schema.isGreaterThan(0));
-
 export const IntegerFromStringSchema = Schema.NumberFromString.pipe(
   Schema.decodeTo(Schema.Int),
 );
