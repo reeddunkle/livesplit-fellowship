@@ -9,26 +9,26 @@ import {
 } from "@/validation/common.ts";
 
 const AbilityActivatedLogLineSchema = Schema.Tuple([
-  Schema.DateTimeUtcFromString,
-  Schema.Literal(FELLOWSHIP_EVENT.ABILITY_ACTIVATED),
-  Schema.String,
-  JsonStringSchema,
-  IntegerFromStringSchema,
-  JsonStringSchema,
-  IntegerFromStringSchema,
-  Schema.String,
-  JsonStringSchema,
-  IntegerFromStringSchema,
-  IntegerFromStringSchema,
-  IntegerFromStringSchema,
-  Schema.NumberFromString,
-  Schema.NumberFromString,
-  Schema.NumberFromString,
-  Schema.String,
+  Schema.DateTimeUtcFromString, // timestamp
+  Schema.Literal(FELLOWSHIP_EVENT.ABILITY_ACTIVATED), // type
+  Schema.String, // sourceId
+  JsonStringSchema, // sourceName
+  Schema.String, // abilityId
+  JsonStringSchema, // abilityName
+  IntegerFromStringSchema, // hasTarget
+  Schema.String, // targetId
+  JsonStringSchema, // targetName
+  IntegerFromStringSchema, // currentHealth
+  IntegerFromStringSchema, // maximumHealth
+  IntegerFromStringSchema, // resourceValue
+  Schema.NumberFromString, // positionX
+  Schema.NumberFromString, // positionY
+  Schema.NumberFromString, // positionZ
+  Schema.String, // unmappedArrayData
 ]);
 
 const AbilityActivatedEventSchema = Schema.Struct({
-  abilityId: Schema.Number,
+  abilityId: Schema.String,
   abilityName: Schema.String,
   hasTarget: Schema.Boolean,
   sourceId: Schema.String,

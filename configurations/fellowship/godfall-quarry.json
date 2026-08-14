@@ -7,15 +7,6 @@
       "requirements": [{ "unitTypeId": 274, "type": "UNIT_DEATH" }]
     },
     {
-      "label": "Third Enforcer Killed",
-      "milestoneId": "enforcers:killed",
-      "requirements": [
-        { "unitTypeId": 247, "type": "UNIT_DEATH" },
-        { "unitTypeId": 247, "type": "UNIT_DEATH" },
-        { "unitTypeId": 247, "type": "UNIT_DEATH" }
-      ]
-    },
-    {
       "label": "Boss Pull",
       "milestoneId": "boss:pulled",
       "requirements": [{ "encounterId": 34, "type": "ENCOUNTER_START" }]

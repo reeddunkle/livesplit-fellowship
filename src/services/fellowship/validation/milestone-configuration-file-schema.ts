@@ -25,7 +25,7 @@ const FellowshipDungeonKeySchema = Schema.Union([
 ]);
 
 const AbilityActivatedMilestoneRequirementSchema = Schema.Struct({
-  abilityId: PositiveIntegerSchema,
+  abilityId: NonEmptyStringSchema,
   type: Schema.Literal(FELLOWSHIP_EVENT.ABILITY_ACTIVATED),
 });
 

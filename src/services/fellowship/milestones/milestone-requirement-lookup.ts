@@ -7,8 +7,10 @@ import { type FellowshipMilestoneRequirement } from "@/services/fellowship/valid
 export type MilestoneRequirementEventType =
   FellowshipMilestoneRequirement["type"];
 
+export type MilestoneRequirementId = string | number;
+
 export type MilestoneRequirementLookup = {
-  readonly id: number;
+  readonly id: MilestoneRequirementId;
   readonly type: MilestoneRequirementEventType;
 };
 

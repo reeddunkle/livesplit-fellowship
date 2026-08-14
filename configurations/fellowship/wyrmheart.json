@@ -1,21 +1,23 @@
 {
-  "dungeonKey": "URRAK_MARKETS",
+  "dungeonKey": "WYRMHEART",
   "milestones": [
     {
-      "label": "Pull 1",
-      "milestoneId": "pull:1",
-      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 331 }]
+      "label": "Spellbound Golem",
+      "milestoneId": "golem:killed:1",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 160 }]
+    },
+
+    {
+      "label": "Coldheart Assassin",
+      "milestoneId": "assassin:2",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 157 }]
     },
     {
-      "label": "Pull 2",
-      "milestoneId": "pull:2",
-      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 331 }]
+      "label": "Ghorn Defeated",
+      "milestoneId": "ghorn:defeated",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 280 }]
     },
-    {
-      "label": "Pull 3",
-      "milestoneId": "pull:3",
-      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 331 }]
-    },
+
     {
       "label": "Boss Pull",
       "milestoneId": "boss:pulled",

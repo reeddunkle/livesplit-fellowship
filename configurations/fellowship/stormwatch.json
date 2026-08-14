@@ -16,7 +16,7 @@
       "milestoneId": "boss:mid-encounter:completed",
       "requirements": [
         {
-          "abilityId": 634,
+          "abilityId": "634",
           "type": "ABILITY_ACTIVATED"
         }
       ]
