@@ -5,6 +5,7 @@ import {
   getMilestoneRequirementLookup,
   getMilestoneRequirementLookupKey,
   type MilestoneRequirementEventType,
+  type MilestoneRequirementId,
   type MilestoneRequirementLookup,
 } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import {
@@ -82,7 +83,11 @@ function addRequirementTarget({
 }): RequirementsByEvent {
   const requirementsById = Option.getOrElse(
     HashMap.get(requirementsByEvent, requirement.type),
-    () => HashMap.empty<number, ReadonlyArray<MilestoneRequirementTarget>>(),
+    () =>
+      HashMap.empty<
+        MilestoneRequirementId,
+        ReadonlyArray<MilestoneRequirementTarget>
+      >(),
   );
 
   const targets = Option.getOrElse(

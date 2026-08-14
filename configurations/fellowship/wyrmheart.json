@@ -9,7 +9,7 @@
 
     {
       "label": "Coldheart Assassin",
-      "milestoneId": "assassin:2",
+      "milestoneId": "assassin:killed:1",
       "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": 157 }]
     },
     {
