@@ -2,9 +2,27 @@
   "dungeonKey": "EMPYREAN_SANDS",
   "milestones": [
     {
-      "label": "Ghorn Defeated",
-      "milestoneId": "ghorn:defeated",
-      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": "280" }]
+      "label": "2x Acolyte of Sinnari Killed",
+      "milestoneId": "sinnari:defeated:2",
+      "requirements": [
+        { "type": "UNIT_DEATH", "unitTypeId": "173" },
+        { "type": "UNIT_DEATH", "unitTypeId": "173" }
+      ]
+    },
+    {
+      "label": "4x Acolyte of Sinnari Killed",
+      "milestoneId": "sinnari:defeated:4",
+      "requirements": [
+        { "type": "UNIT_DEATH", "unitTypeId": "173" },
+        { "type": "UNIT_DEATH", "unitTypeId": "173" },
+        { "type": "UNIT_DEATH", "unitTypeId": "173" },
+        { "type": "UNIT_DEATH", "unitTypeId": "173" }
+      ]
+    },
+    {
+      "label": "Large Chicken",
+      "milestoneId": "chicken:defeated",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": "278" }]
     },
     {
       "label": "Boss Pull",

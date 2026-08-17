@@ -2,33 +2,45 @@
   "dungeonKey": "WRAITHTIDE_VAULT",
   "milestones": [
     {
+      "label": "Ghorn Defeated",
+      "milestoneId": "ghorn:defeated",
+      "targetElapsedTime": "00:02:39",
+      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": "280" }]
+    },
+    {
       "label": "Katrine Pull",
       "milestoneId": "katrine:pull",
+      "targetElapsedTime": "00:06:35",
       "requirements": [{ "encounterId": "15", "type": "ENCOUNTER_START" }]
     },
     {
       "label": "Katrine Defeated",
       "milestoneId": "katrine:defeated",
+      "targetElapsedTime": "00:11:30",
       "requirements": [{ "encounterId": "15", "type": "ENCOUNTER_END" }]
     },
     {
       "label": "Bael'Aurum Pull",
       "milestoneId": "bael:pull",
+      "targetElapsedTime": "00:16:05",
       "requirements": [{ "encounterId": "14", "type": "ENCOUNTER_START" }]
     },
     {
       "label": "Bael'Aurum Defeated",
       "milestoneId": "bael:defeated",
+      "targetElapsedTime": "00:20:03",
       "requirements": [{ "encounterId": "14", "type": "ENCOUNTER_END" }]
     },
     {
       "label": "First Mate Marrow Pull",
       "milestoneId": "marrow:pull",
+      "targetElapsedTime": "00:25:33",
       "requirements": [{ "encounterId": "13", "type": "ENCOUNTER_START" }]
     },
     {
       "label": "First Mate Marrow Defeated",
       "milestoneId": "marrow:defeated",
+      "targetElapsedTime": "00:30:31",
       "requirements": [{ "encounterId": "13", "type": "ENCOUNTER_END" }]
     }
   ]
