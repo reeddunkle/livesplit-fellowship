@@ -13,8 +13,12 @@ import {
 import { parseFellowshipEventStream } from "./parsing/parse-fellowship-event-stream.ts";
 import { type FellowshipEvent } from "./validation/fellowship-event-schema.ts";
 
-const LIVE_LOG_POLL_INTERVAL = "250 millis";
+const LIVE_LOG_POLL_INTERVAL = "33.33 millis"; // 30 Hz
 const FELLOWSHIP_LOG_FILE_EXTENSION = ".txt";
+
+const isFellowshipLogFile = (fileName: string): boolean => {
+  return fileName.toLowerCase().endsWith(FELLOWSHIP_LOG_FILE_EXTENSION);
+};
 
 type FellowshipReadError =
   | FileMonitorError
@@ -45,10 +49,6 @@ const fellowshipLogDirectoryConfig = Config.string("FELLOWSHIP_LOG_DIRECTORY");
 
 const makeFellowshipLive = E.gen(function* () {
   const fileMonitor = yield* FileMonitor;
-
-  const isFellowshipLogFile = (fileName: string): boolean => {
-    return fileName.toLowerCase().endsWith(FELLOWSHIP_LOG_FILE_EXTENSION);
-  };
 
   const streamEvents = (
     filePath: string,
