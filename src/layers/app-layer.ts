@@ -1,7 +1,6 @@
 import { NodeFileSystem, NodePath } from "@effect/platform-node";
 import * as Layer from "effect/Layer";
 
-import { CLILive } from "@/cli/main.ts";
 import { AppLoggerLive } from "@/layers/app-logger-live.ts";
 import { FellowshipLive } from "@/services/fellowship/fellowship-service.ts";
 import { FileMonitorLive } from "@/services/filesystem/file-monitor-service.ts";
@@ -24,7 +23,6 @@ export const AppServicesLive = Layer.mergeAll(
   FileMonitorWithPlatform,
   FellowshipWithDependencies,
   LiveSplitFileLive,
-  CLILive,
 );
 
 // This layer intentionally excludes optional external integrations.

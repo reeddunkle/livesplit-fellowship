@@ -2,7 +2,7 @@ import path from "node:path";
 import * as E from "effect/Effect";
 import { describe, expect, test } from "vitest";
 
-import { replayLog } from "@/services/fellowship/pipelines/replay-log.ts";
+import { replayLog } from "@/application/run-processing/replay-log.ts";
 import {
   appendEOL,
   LiveSplitSendCommand,
