@@ -28,7 +28,7 @@ const RunApiEventSchema = Schema.Union([
   MilestoneCompletedApiEventSchema,
 ]);
 
-const RunApiMessageSchema = Schema.Struct({
+export const RunApiMessageSchema = Schema.Struct({
   event: RunApiEventSchema,
   version: Schema.Literal(1),
 });

@@ -1,0 +1,23 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  padding: 2rem;
+}
+
+main {
+  margin: 0 auto;
+  max-width: 60rem;
+}
+
+#connection-status {
+  font-weight: 600;
+}
+
+#events {
+  display: grid;
+  gap: 0.5rem;
+}

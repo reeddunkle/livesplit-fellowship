@@ -1,19 +1,25 @@
 {
   "name": "livesplit-fellowship",
   "version": "1.0.0",
+  "main": "dist/electron/electron/main.js",
   "type": "module",
   "scripts": {
     "check": "run-s lint test typecheck knip",
     "cli": "tsx src/cli/cli.ts",
     "cli:api": "tsx src/cli/api-cli.ts",
     "cli:livesplit": "tsx src/cli/live-split-cli.ts",
+    "electron:build:main": "tsc -p tsconfig.electron.json",
+    "electron:build:renderer": "vite build --config vite.electron.config.ts",
+    "electron:build": "run-s electron:build:main electron:build:renderer",
+    "electron:start": "pnpm electron:build && electron .",
     "lint": "biome check",
     "lint:fix": "biome check --write",
     "knip": "knip",
     "test:replay-log-file": "tsx src/scripts/replay-log-file.ts",
     "test:watch": "vitest",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "typecheck:renderer": "tsc -p src/electron/renderer/tsconfig.json"
   },
   "packageManager": "pnpm@11.22.0",
   "dependencies": {
@@ -25,10 +31,12 @@
     "@biomejs/biome": "catalog:biome",
     "@effect/language-service": "catalog:effect",
     "@types/node": "catalog:node",
+    "electron": "catalog:electron",
     "knip": "catalog:tooling",
     "npm-run-all2": "catalog:tooling",
     "tsx": "catalog:typescript",
     "typescript": "catalog:typescript",
+    "vite": "catalog:vite",
     "vitest": "catalog:testing"
   }
 }

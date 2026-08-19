@@ -12,6 +12,8 @@ catalogs:
     "@effect/language-service": "0.87.1"
     "@effect/platform-node": "4.0.0-beta.102"
     "effect": "4.0.0-beta.102"
+  electron:
+    "electron": "^43.4.0"
   node:
     "@types/node": ^26.1.2
   tooling:
@@ -24,6 +26,8 @@ catalogs:
   typescript:
     "tsx": ^4.23.5
     "typescript": ^7.0.2
+  vite:
+    "vite": "^8.2.1"
 
 allowBuilds:
   esbuild: true
