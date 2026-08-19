@@ -4,17 +4,17 @@ export const RUN_API_EVENT = {
   RUN_STARTED: "RUN_STARTED",
 } as const;
 
-export type RunStartedApiEvent = {
+type RunStartedApiEvent = {
   readonly timestampMilliseconds: number;
   readonly type: typeof RUN_API_EVENT.RUN_STARTED;
 };
 
-export type RunExitedApiEvent = {
+type RunExitedApiEvent = {
   readonly timestampMilliseconds: number;
   readonly type: typeof RUN_API_EVENT.RUN_EXITED;
 };
 
-export type MilestoneCompletedApiEvent = {
+type MilestoneCompletedApiEvent = {
   readonly milestone: {
     readonly elapsedMilliseconds: number;
     readonly label: string;
@@ -24,7 +24,7 @@ export type MilestoneCompletedApiEvent = {
   readonly type: typeof RUN_API_EVENT.MILESTONE_COMPLETED;
 };
 
-export type RunApiEvent =
+type RunApiEvent =
   | RunStartedApiEvent
   | RunExitedApiEvent
   | MilestoneCompletedApiEvent;

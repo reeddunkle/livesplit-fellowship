@@ -6,9 +6,7 @@ import * as Ref from "effect/Ref";
 import type * as Scope from "effect/Scope";
 import type * as Socket from "effect/unstable/socket/Socket";
 
-export type PushEventWriter = (
-  message: string,
-) => E.Effect<void, Socket.SocketError>;
+type PushEventWriter = (message: string) => E.Effect<void, Socket.SocketError>;
 
 export interface PushEventServerService {
   readonly clientCount: E.Effect<number>;
