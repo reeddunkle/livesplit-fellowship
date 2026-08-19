@@ -5,6 +5,7 @@
   "scripts": {
     "check": "run-s lint test typecheck knip",
     "cli": "tsx src/cli/cli.ts",
+    "cli:api": "tsx src/cli/api-cli.ts",
     "cli:livesplit": "tsx src/cli/live-split-cli.ts",
     "lint": "biome check",
     "lint:fix": "biome check --write",
