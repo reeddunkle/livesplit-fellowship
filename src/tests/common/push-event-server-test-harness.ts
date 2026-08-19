@@ -5,9 +5,12 @@ import { type PushEventServerService } from "@/services/api/push-event-server-se
 
 export function makePushEventServerTestHarness() {
   return E.gen(function* () {
+    const clientCount = yield* Ref.make(0);
     const messages = yield* Ref.make<ReadonlyArray<string>>([]);
 
     const pushEventServer: PushEventServerService = {
+      clientCount: Ref.get(clientCount),
+
       publish: (message) => {
         return Ref.update(messages, (messages) => {
           return [...messages, message];
@@ -15,7 +18,16 @@ export function makePushEventServerTestHarness() {
       },
 
       registerClient: () => {
-        return E.void;
+        return E.acquireRelease(
+          Ref.update(clientCount, (count) => {
+            return count + 1;
+          }),
+          () => {
+            return Ref.update(clientCount, (count) => {
+              return count - 1;
+            });
+          },
+        );
       },
     };
 
