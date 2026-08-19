@@ -6,7 +6,8 @@ import {
   type RunProcessingEvent,
 } from "@/services/fellowship/runs/process-run-event.ts";
 
-import { RUN_API_EVENT, type RunApiMessage } from "./run-api-event.ts";
+import { RUN_API_EVENT } from "./run-api-event.ts";
+import { type RunApiMessage } from "./validation/run-api-message-schema.ts";
 
 export function handleApiRunEvent({
   event,

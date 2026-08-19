@@ -3,33 +3,3 @@ export const RUN_API_EVENT = {
   RUN_EXITED: "RUN_EXITED",
   RUN_STARTED: "RUN_STARTED",
 } as const;
-
-type RunStartedApiEvent = {
-  readonly timestampMilliseconds: number;
-  readonly type: typeof RUN_API_EVENT.RUN_STARTED;
-};
-
-type RunExitedApiEvent = {
-  readonly timestampMilliseconds: number;
-  readonly type: typeof RUN_API_EVENT.RUN_EXITED;
-};
-
-type MilestoneCompletedApiEvent = {
-  readonly milestone: {
-    readonly elapsedMilliseconds: number;
-    readonly label: string;
-    readonly milestoneId: string;
-    readonly timestampMilliseconds: number;
-  };
-  readonly type: typeof RUN_API_EVENT.MILESTONE_COMPLETED;
-};
-
-type RunApiEvent =
-  | RunStartedApiEvent
-  | RunExitedApiEvent
-  | MilestoneCompletedApiEvent;
-
-export type RunApiMessage = {
-  readonly event: RunApiEvent;
-  readonly version: 1;
-};
