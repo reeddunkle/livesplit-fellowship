@@ -2,6 +2,32 @@
   "dungeonKey": "EVERDAWN_GROVE",
   "milestones": [
     {
+      "label": "Desecrator 1 Killed",
+      "milestoneId": "desecrator:killed:1",
+      "requirements": [{ "unitTypeId": "42", "type": "UNIT_DEATH" }]
+    },
+    {
+      "label": "Desecrator 2 Killed",
+      "milestoneId": "desecrator:killed:2",
+      "requirements": [
+        { "unitTypeId": "42", "type": "UNIT_DEATH" },
+        { "unitTypeId": "42", "type": "UNIT_DEATH" }
+      ]
+    },
+    {
+      "label": "Shadowlord 1 Killed",
+      "milestoneId": "shadowlord:killed:1",
+      "requirements": [{ "unitTypeId": "274", "type": "UNIT_DEATH" }]
+    },
+    {
+      "label": "Shadowlord 2 Killed",
+      "milestoneId": "shadowlord:killed:2",
+      "requirements": [
+        { "unitTypeId": "274", "type": "UNIT_DEATH" },
+        { "unitTypeId": "274", "type": "UNIT_DEATH" }
+      ]
+    },
+    {
       "label": "Boss Pull",
       "milestoneId": "boss:pulled",
       "requirements": [{ "encounterId": "30", "type": "ENCOUNTER_START" }]
