@@ -2,6 +2,7 @@ import * as E from "effect/Effect";
 import { describe, expect, test } from "vitest";
 
 import { makeLiveSplitTestHarness } from "@/tests/common/live-split-test-harness.ts";
+import { runTest } from "@/tests/common/run-test.ts";
 
 import { appendEOL, LiveSplitRequestCommand } from "./live-split-command.ts";
 
@@ -23,7 +24,7 @@ describe("LiveSplitClient", () => {
       }),
     );
 
-    await E.runPromise(program);
+    await runTest(program);
   });
 
   test("assembles a response split across multiple chunks", async () => {
@@ -43,7 +44,7 @@ describe("LiveSplitClient", () => {
       }),
     );
 
-    await E.runPromise(program);
+    await runTest(program);
   });
 
   test("handles multiple responses in one chunk", async () => {
@@ -73,7 +74,7 @@ describe("LiveSplitClient", () => {
       }),
     );
 
-    await E.runPromise(program);
+    await runTest(program);
   });
 
   test("serializes concurrent response-producing requests", async () => {
@@ -115,6 +116,6 @@ describe("LiveSplitClient", () => {
       }),
     );
 
-    await E.runPromise(program);
+    await runTest(program);
   });
 });

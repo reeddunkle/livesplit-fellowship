@@ -7,6 +7,7 @@ import {
   type RunProcessingEvent,
 } from "@/services/fellowship/runs/process-run-event.ts";
 import { makePushEventServerTestHarness } from "@/tests/common/push-event-server-test-harness.ts";
+import { runTest } from "@/tests/common/run-test.ts";
 
 import { handleApiRunEvent } from "./handle-api-run-event.ts";
 
@@ -38,7 +39,7 @@ describe("handleApiRunEvent", () => {
       ]);
     });
 
-    await E.runPromise(program);
+    await runTest(program);
   });
 
   test("publishes a completed milestone", async () => {
@@ -78,7 +79,7 @@ describe("handleApiRunEvent", () => {
       ]);
     });
 
-    await E.runPromise(program);
+    await runTest(program);
   });
 
   test("publishes a run exited event", async () => {
@@ -108,6 +109,6 @@ describe("handleApiRunEvent", () => {
       ]);
     });
 
-    await E.runPromise(program);
+    await runTest(program);
   });
 });

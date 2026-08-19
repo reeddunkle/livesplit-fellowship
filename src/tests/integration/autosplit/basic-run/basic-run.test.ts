@@ -8,6 +8,7 @@ import {
   LiveSplitSendCommand,
 } from "@/services/live-split/client/live-split-command.ts";
 import { dungeonStartCommands } from "@/tests/common/live-split-test-commands.ts";
+import { runTest } from "@/tests/common/run-test.ts";
 import { makeLiveSplitAppMock } from "@/tests/layers/live-split-app-mock-layer.ts";
 
 import { configuration } from "./configuration.ts";
@@ -38,6 +39,6 @@ describe("replayLog", () => {
       }),
     );
 
-    await E.runPromise(program);
+    await runTest(program);
   });
 });

@@ -10,6 +10,7 @@ import {
   PushEventServerLive,
   type PushEventServerService,
 } from "@/services/api/push-event-server-service.ts";
+import { runTest } from "@/tests/common/run-test.ts";
 
 const TEST_TIMEOUT = "1 second";
 
@@ -173,6 +174,6 @@ describe("PushEventServer WebSocket integration", () => {
       }).pipe(E.provide(ApiServerTest)),
     );
 
-    await E.runPromise(program);
+    await runTest(program);
   });
 });

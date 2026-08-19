@@ -4,6 +4,7 @@ import { describe, expect, test } from "vitest";
 
 import { processApiEventStream } from "@/application/run-processing/process-api-event-stream.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
+import { runTest } from "@/tests/common/run-test.ts";
 import { makeApiAppMock } from "@/tests/layers/api-app-mock-layer.ts";
 
 import { configuration } from "./configuration.ts";
@@ -59,6 +60,6 @@ describe("processApiEventStream", () => {
       }),
     );
 
-    await E.runPromise(program);
+    await runTest(program);
   });
 });
