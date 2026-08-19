@@ -2,8 +2,8 @@ import * as E from "effect/Effect";
 import * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 
+import { processLiveSplitLog } from "@/application/run-processing/process-live-split-log.ts";
 import { loadMilestoneConfiguration } from "@/services/fellowship/milestones/load-milestone-configuration.ts";
-import { processLiveSplitLog } from "@/services/fellowship/pipelines/process-live-split-log.ts";
 import { LiveSplitClient } from "@/services/live-split/client/live-split-client-service.ts";
 import { generateLSSFile } from "@/services/live-split/files/lss/generate-lss-file.ts";
 import { getLSSFileName } from "@/services/live-split/files/lss/get-lss-file-name.ts";

@@ -33,7 +33,7 @@ const DungeonStartEventSchema = Schema.Struct({
   dungeonId: DungeonIdSchema,
   dungeonName: DungeonNameSchema,
   instanceId: InstanceIdSchema,
-  startedAt: Schema.DateTimeUtc,
+  startedAt: TimestampSchema,
   timestamp: TimestampSchema,
   type: Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_START),
   unmappedFlag: Schema.Boolean,

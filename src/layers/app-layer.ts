@@ -1,8 +1,8 @@
 import { NodeFileSystem, NodePath } from "@effect/platform-node";
 import * as Layer from "effect/Layer";
 
+import { CLILive } from "@/cli/main.ts";
 import { AppLoggerLive } from "@/layers/app-logger-live.ts";
-import { CLILive } from "@/services/cli/cli-service.ts";
 import { FellowshipLive } from "@/services/fellowship/fellowship-service.ts";
 import { FileMonitorLive } from "@/services/filesystem/file-monitor-service.ts";
 import { LiveSplitFileLive } from "@/services/live-split/files/live-split-file-service.ts";
@@ -27,8 +27,5 @@ export const AppServicesLive = Layer.mergeAll(
   CLILive,
 );
 
-/*
- * This layer intentionally excludes LiveSplitClientLive for now.
- * [TODO]: Find smarter way to manage TCP connection.
- */
+// This layer intentionally excludes optional external integrations.
 export const AppLive = Layer.mergeAll(AppLoggerWithPlatform, AppServicesLive);

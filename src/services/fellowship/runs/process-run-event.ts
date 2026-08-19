@@ -1,3 +1,5 @@
+import type * as DateTime from "effect/DateTime";
+
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { initialMilestoneProcessorState } from "@/services/fellowship/milestones/milestone-processor-state.ts";
 import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
@@ -19,9 +21,11 @@ export const RUN_PROCESSING_EVENT = {
 
 export type RunProcessingEvent =
   | {
+      readonly timestamp: DateTime.Utc;
       readonly type: typeof RUN_PROCESSING_EVENT.RUN_STARTED;
     }
   | {
+      readonly timestamp: DateTime.Utc;
       readonly type: typeof RUN_PROCESSING_EVENT.RUN_EXITED;
     }
   | {
@@ -71,6 +75,12 @@ function doesRunStartMatchConfiguration({
       start: runStart,
     },
   });
+}
+
+function getEventTimestamp(event: FellowshipEvent): DateTime.Utc {
+  return event.type === FELLOWSHIP_EVENT.DUNGEON_START
+    ? event.startedAt
+    : event.timestamp;
 }
 
 export function processRunEvent({
@@ -134,9 +144,12 @@ export function processRunEvent({
     state: milestoneProcessor,
   });
 
+  const timestamp = getEventTimestamp(event);
+
   const dungeonStartEvents: ReadonlyArray<RunProcessingEvent> = isDungeonStart
     ? [
         {
+          timestamp,
           type: RUN_PROCESSING_EVENT.RUN_STARTED,
         },
       ]
@@ -154,6 +167,7 @@ export function processRunEvent({
     hasExitedConfiguredRun
       ? [
           {
+            timestamp,
             type: RUN_PROCESSING_EVENT.RUN_EXITED,
           },
         ]

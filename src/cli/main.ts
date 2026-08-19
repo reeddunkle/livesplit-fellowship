@@ -1,8 +1,6 @@
 import { parseArgs } from "node:util";
-import * as Context from "effect/Context";
 import * as E from "effect/Effect";
 import type * as FileSystem from "effect/FileSystem";
-import * as Layer from "effect/Layer";
 import * as Match from "effect/Match";
 import type * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
@@ -30,14 +28,6 @@ type CLIEnvironment =
   | Fellowship
   | Path.Path
   | LiveSplitFile;
-
-export interface CLIService {
-  readonly run: (
-    args: ReadonlyArray<string>,
-  ) => E.Effect<void, unknown, CLIEnvironment>;
-}
-
-export class CLI extends Context.Service<CLI, CLIService>()("app/CLI") {}
 
 type ParsedArguments = ReturnType<typeof parseArgs>;
 
@@ -103,44 +93,38 @@ function parseGenerateLSSInput({ positionals, values }: ParsedArguments) {
   });
 }
 
-function makeCLILive(): CLIService {
-  return {
-    run: (args): E.Effect<void, unknown, CLIEnvironment> => {
-      return E.gen(function* () {
-        const parsedArguments = yield* parseArguments(args);
-        const [commandName] = parsedArguments.positionals;
+export function runCLI(
+  args: ReadonlyArray<string>,
+): E.Effect<void, unknown, CLIEnvironment> {
+  return E.gen(function* () {
+    const parsedArguments = yield* parseArguments(args);
+    const [commandName] = parsedArguments.positionals;
 
-        return yield* Match.value(commandName).pipe(
-          Match.when("filter-log", () =>
-            E.gen(function* () {
-              const input = yield* parseFilterLogInput(parsedArguments);
+    return yield* Match.value(commandName).pipe(
+      Match.when("filter-log", () =>
+        E.gen(function* () {
+          const input = yield* parseFilterLogInput(parsedArguments);
 
-              yield* runFilterLogCommand(input);
-            }),
-          ),
-          Match.when("split-log", () =>
-            E.gen(function* () {
-              const input = yield* parseSplitLogInput(parsedArguments);
+          yield* runFilterLogCommand(input);
+        }),
+      ),
+      Match.when("split-log", () =>
+        E.gen(function* () {
+          const input = yield* parseSplitLogInput(parsedArguments);
 
-              yield* runSplitLogCommand(input);
-            }),
-          ),
-          Match.when("generate-lss", () =>
-            E.gen(function* () {
-              const input = yield* parseGenerateLSSInput(parsedArguments);
+          yield* runSplitLogCommand(input);
+        }),
+      ),
+      Match.when("generate-lss", () =>
+        E.gen(function* () {
+          const input = yield* parseGenerateLSSInput(parsedArguments);
 
-              yield* runGenerateLSSCommand(input);
-            }),
-          ),
-          Match.orElse((unknownCommand) =>
-            E.fail(
-              new Error(`Unknown command: ${unknownCommand ?? "(missing)"}`),
-            ),
-          ),
-        );
-      });
-    },
-  };
+          yield* runGenerateLSSCommand(input);
+        }),
+      ),
+      Match.orElse((unknownCommand) =>
+        E.fail(new Error(`Unknown command: ${unknownCommand ?? "(missing)"}`)),
+      ),
+    );
+  });
 }
-
-export const CLILive = Layer.succeed(CLI, makeCLILive());
