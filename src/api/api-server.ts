@@ -5,9 +5,17 @@ import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { PushEventServer } from "@/services/api/push-event-server-service.ts";
 
+const EVENTS_PATH = "/events";
+
 const handleRequest = E.gen(function* () {
   const request = yield* HttpServerRequest.HttpServerRequest;
   const pushEventServer = yield* PushEventServer;
+
+  if (request.url !== EVENTS_PATH) {
+    return HttpServerResponse.text("Not Found", {
+      status: 404,
+    });
+  }
 
   yield* E.logDebug("WebSocket upgrade requested.", {
     method: request.method,

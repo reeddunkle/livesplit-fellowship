@@ -127,9 +127,9 @@ describe("PushEventServer WebSocket integration", () => {
 
         const address = HttpServer.formatAddress(httpServer.address);
 
-        const websocketUrl = address
+        const websocketUrl = `${address
           .replace(/^http:/, "ws:")
-          .replace("0.0.0.0", "127.0.0.1");
+          .replace("0.0.0.0", "127.0.0.1")}/events`;
 
         const websocket = yield* E.acquireRelease(
           E.sync(() => {
