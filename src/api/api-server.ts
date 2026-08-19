@@ -9,13 +9,25 @@ const handleRequest = E.gen(function* () {
   const request = yield* HttpServerRequest.HttpServerRequest;
   const pushEventServer = yield* PushEventServer;
 
-  const socket = yield* request.upgrade;
+  yield* E.scoped(
+    E.gen(function* () {
+      const socket = yield* request.upgrade;
+      const writer = yield* socket.writer;
 
-  yield* pushEventServer.registerClient(socket);
+      yield* pushEventServer.registerClient((message) => {
+        return writer(message);
+      });
 
-  yield* socket.runRaw(() => {
-    return E.void;
-  });
+      yield* socket.runRaw(
+        () => {
+          return E.void;
+        },
+        {
+          onOpen: E.logInfo("Socket runRaw open"),
+        },
+      );
+    }),
+  );
 
   return HttpServerResponse.empty();
 });

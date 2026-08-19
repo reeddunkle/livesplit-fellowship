@@ -1,0 +1,178 @@
+import { NodeHttpServer } from "@effect/platform-node";
+import * as E from "effect/Effect";
+import * as Layer from "effect/Layer";
+import * as HttpServer from "effect/unstable/http/HttpServer";
+import { describe, expect, test } from "vitest";
+
+import { ApiServer } from "@/api/api-server.ts";
+import {
+  PushEventServer,
+  PushEventServerLive,
+  type PushEventServerService,
+} from "@/services/api/push-event-server-service.ts";
+
+const TEST_TIMEOUT = "1 second";
+
+const ApiServerTest = ApiServer.pipe(
+  Layer.provideMerge(PushEventServerLive),
+  Layer.provideMerge(NodeHttpServer.layerTest),
+);
+
+function waitForWebSocketOpen(websocket: WebSocket): E.Effect<void, Error> {
+  return E.callback<void, Error>((resume) => {
+    const handleOpen = () => {
+      resume(E.void);
+    };
+
+    const handleError = () => {
+      resume(E.fail(new Error("WebSocket failed to open.")));
+    };
+
+    websocket.addEventListener("open", handleOpen, {
+      once: true,
+    });
+
+    websocket.addEventListener("error", handleError, {
+      once: true,
+    });
+
+    return E.sync(() => {
+      websocket.removeEventListener("open", handleOpen);
+      websocket.removeEventListener("error", handleError);
+    });
+  });
+}
+
+function createWebSocketMessagePromise(websocket: WebSocket): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const handleMessage = (event: MessageEvent) => {
+      cleanup();
+      resolve(String(event.data));
+    };
+
+    const handleError = () => {
+      cleanup();
+      reject(new Error("WebSocket failed while receiving a message."));
+    };
+
+    const cleanup = () => {
+      websocket.removeEventListener("message", handleMessage);
+      websocket.removeEventListener("error", handleError);
+    };
+
+    websocket.addEventListener("message", handleMessage);
+    websocket.addEventListener("error", handleError);
+  });
+}
+
+function waitForWebSocketMessage(
+  messagePromise: Promise<string>,
+): E.Effect<string, Error> {
+  return E.tryPromise({
+    catch: (cause) => {
+      return cause instanceof Error
+        ? cause
+        : new Error("Failed while waiting for WebSocket message.");
+    },
+    try: () => {
+      return messagePromise;
+    },
+  });
+}
+
+function closeWebSocket(websocket: WebSocket): E.Effect<void> {
+  return E.callback<void>((resume) => {
+    if (websocket.readyState === WebSocket.CLOSED) {
+      resume(E.void);
+      return;
+    }
+
+    const handleClose = () => {
+      resume(E.void);
+    };
+
+    websocket.addEventListener("close", handleClose, {
+      once: true,
+    });
+
+    websocket.close();
+
+    return E.sync(() => {
+      websocket.removeEventListener("close", handleClose);
+    });
+  });
+}
+
+function waitForClientCount({
+  clientCount,
+  pushEventServer,
+}: {
+  readonly clientCount: number;
+  readonly pushEventServer: PushEventServerService;
+}): E.Effect<void> {
+  return E.gen(function* () {
+    while ((yield* pushEventServer.clientCount) !== clientCount) {
+      yield* E.sleep("1 millis");
+    }
+  });
+}
+
+describe("PushEventServer WebSocket integration", () => {
+  test("registers, publishes to, and unregisters a WebSocket client", async () => {
+    const program = E.scoped(
+      E.gen(function* () {
+        const pushEventServer = yield* PushEventServer;
+        const httpServer = yield* HttpServer.HttpServer;
+
+        const address = HttpServer.formatAddress(httpServer.address);
+
+        const websocketUrl = address
+          .replace(/^http:/, "ws:")
+          .replace("0.0.0.0", "127.0.0.1");
+
+        const websocket = yield* E.acquireRelease(
+          E.sync(() => {
+            return new WebSocket(websocketUrl);
+          }),
+          closeWebSocket,
+        );
+
+        yield* waitForWebSocketOpen(websocket).pipe(E.timeout(TEST_TIMEOUT));
+
+        yield* waitForClientCount({
+          clientCount: 1,
+          pushEventServer,
+        }).pipe(E.timeout(TEST_TIMEOUT));
+
+        expect(yield* pushEventServer.clientCount).toBe(1);
+
+        /*
+         * Register the native message listener before publishing so the
+         * response cannot arrive before the listener is installed.
+         */
+        const messagePromise = yield* E.sync(() => {
+          return createWebSocketMessagePromise(websocket);
+        });
+
+        yield* pushEventServer.publish("hello").pipe(E.timeout(TEST_TIMEOUT));
+
+        const message = yield* waitForWebSocketMessage(messagePromise).pipe(
+          E.timeout(TEST_TIMEOUT),
+        );
+
+        expect(message).toBe("hello");
+
+        yield* closeWebSocket(websocket).pipe(E.timeout(TEST_TIMEOUT));
+
+        yield* waitForClientCount({
+          clientCount: 0,
+          pushEventServer,
+        }).pipe(E.timeout(TEST_TIMEOUT));
+
+        expect(yield* pushEventServer.clientCount).toBe(0);
+      }).pipe(E.provide(ApiServerTest)),
+    );
+
+    await E.runPromise(program);
+  });
+});
