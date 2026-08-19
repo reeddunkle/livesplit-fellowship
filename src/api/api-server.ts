@@ -9,6 +9,11 @@ const handleRequest = E.gen(function* () {
   const request = yield* HttpServerRequest.HttpServerRequest;
   const pushEventServer = yield* PushEventServer;
 
+  yield* E.logDebug("WebSocket upgrade requested.", {
+    method: request.method,
+    url: request.url,
+  });
+
   yield* E.scoped(
     E.gen(function* () {
       const socket = yield* request.upgrade;
@@ -18,15 +23,35 @@ const handleRequest = E.gen(function* () {
         return writer(message);
       });
 
+      const clientCount = yield* pushEventServer.clientCount;
+
+      yield* E.logInfo("WebSocket client connected.", {
+        clientCount,
+        url: request.url,
+      });
+
       yield* socket.runRaw(
         () => {
           return E.void;
         },
         {
-          onOpen: E.logInfo("Socket runRaw open"),
+          onOpen: E.logDebug("WebSocket socket opened.", {
+            url: request.url,
+          }),
         },
       );
-    }),
+    }).pipe(
+      E.ensuring(
+        E.gen(function* () {
+          const clientCount = yield* pushEventServer.clientCount;
+
+          yield* E.logInfo("WebSocket client disconnected.", {
+            clientCount,
+            url: request.url,
+          });
+        }),
+      ),
+    ),
   );
 
   return HttpServerResponse.empty();
