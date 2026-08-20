@@ -9,7 +9,7 @@ import {
 import { makePushEventServerTestHarness } from "@/tests/common/push-event-server-test-harness.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
-import { handleApiRunEvent } from "./handle-api-run-event.ts";
+import { handleApiRunEvent } from "./publish-run-api-state.ts";
 
 describe("handleApiRunEvent", () => {
   test("publishes a run started event", async () => {

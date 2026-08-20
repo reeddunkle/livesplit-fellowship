@@ -1,36 +1,47 @@
 import * as Schema from "effect/Schema";
 
-import { RUN_API_EVENT } from "@/api/run-api-event.ts";
+import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
-const RunStartedApiEventSchema = Schema.Struct({
+const RunApiRequirementObservationSchema = Schema.Struct({
   timestampMilliseconds: Schema.Number,
-  type: Schema.Literal(RUN_API_EVENT.RUN_STARTED),
 });
 
-const RunExitedApiEventSchema = Schema.Struct({
-  timestampMilliseconds: Schema.Number,
-  type: Schema.Literal(RUN_API_EVENT.RUN_EXITED),
+const RunApiRequirementSchema = Schema.Struct({
+  id: Schema.String,
+  observations: Schema.Array(RunApiRequirementObservationSchema),
+  requiredCount: Schema.Number,
+  type: MilestoneRequirementEventTypeSchema,
 });
 
-const MilestoneCompletedApiEventSchema = Schema.Struct({
-  milestone: Schema.Struct({
-    elapsedMilliseconds: Schema.Number,
-    label: Schema.String,
-    milestoneId: Schema.String,
-    timestampMilliseconds: Schema.Number,
-  }),
-  type: Schema.Literal(RUN_API_EVENT.MILESTONE_COMPLETED),
+const RunApiMilestoneSchema = Schema.Struct({
+  completedAtMilliseconds: Schema.UndefinedOr(Schema.Number),
+  elapsedMilliseconds: Schema.UndefinedOr(Schema.Number),
+  label: Schema.String,
+  milestoneId: Schema.String,
+  requirements: Schema.Array(RunApiRequirementSchema),
 });
 
-const RunApiEventSchema = Schema.Union([
-  RunStartedApiEventSchema,
-  RunExitedApiEventSchema,
-  MilestoneCompletedApiEventSchema,
-]);
+const RunApiStateSchema = Schema.Struct({
+  milestones: Schema.Array(RunApiMilestoneSchema),
+  run: Schema.NullOr(
+    Schema.Struct({
+      startedAtMilliseconds: Schema.Number,
+    }),
+  ),
+});
 
 export const RunApiMessageSchema = Schema.Struct({
-  event: RunApiEventSchema,
+  state: RunApiStateSchema,
   version: Schema.Literal(1),
 });
+
+// type RunApiRequirementObservation =
+//   typeof RunApiRequirementObservationSchema.Type;
+
+// type RunApiRequirement = typeof RunApiRequirementSchema.Type;
+
+// type RunApiMilestone = typeof RunApiMilestoneSchema.Type;
+
+// type RunApiState = typeof RunApiStateSchema.Type;
 
 export type RunApiMessage = typeof RunApiMessageSchema.Type;

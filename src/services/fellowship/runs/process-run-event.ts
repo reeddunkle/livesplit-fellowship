@@ -41,6 +41,7 @@ export type ProcessRunEventOptions = {
 
 export type ProcessRunEventResult = {
   readonly events: ReadonlyArray<RunProcessingEvent>;
+  readonly isStateUpdated: boolean;
   readonly state: RunProcessingState;
 };
 
@@ -130,6 +131,7 @@ export function processRunEvent({
   ) {
     return {
       events: [],
+      isStateUpdated: false,
       state: {
         milestoneProcessor,
         runTracker: trackerResult.state,
@@ -173,8 +175,14 @@ export function processRunEvent({
         ]
       : [];
 
+  const isStateUpdated =
+    isDungeonStart ||
+    milestoneResult.isRequirementsUpdated ||
+    hasExitedConfiguredRun;
+
   return {
     events: [...dungeonStartEvents, ...milestoneEvents, ...dungeonExitEvents],
+    isStateUpdated,
     state: {
       milestoneProcessor: milestoneResult.state,
       runTracker: trackerResult.state,

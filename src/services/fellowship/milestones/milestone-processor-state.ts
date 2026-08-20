@@ -1,30 +1,34 @@
+import type * as DateTime from "effect/DateTime";
 import * as HashMap from "effect/HashMap";
 
-import {
-  type MilestoneRequirementEventType,
-  type MilestoneRequirementId,
-} from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
+import { type MilestoneRequirementId } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
+import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
-export type ObservedRequirementCountsById = HashMap.HashMap<
+type RequirementObservation = {
+  readonly timestamp: DateTime.Utc;
+};
+
+export type ObservedRequirement = {
+  readonly observations: ReadonlyArray<RequirementObservation>;
+};
+
+export type ObservedRequirementsById = HashMap.HashMap<
   MilestoneRequirementId,
-  number
+  ObservedRequirement
 >;
 
-export type ObservedRequirementCounts = HashMap.HashMap<
+export type ObservedRequirements = HashMap.HashMap<
   MilestoneRequirementEventType,
-  ObservedRequirementCountsById
+  ObservedRequirementsById
 >;
 
 export type MilestoneProcessorState = {
   readonly observedMilestones: HashMap.HashMap<string, FellowshipRunMilestone>;
-  readonly observedRequirementCounts: HashMap.HashMap<
-    string,
-    ObservedRequirementCounts
-  >;
+  readonly observedRequirements: HashMap.HashMap<string, ObservedRequirements>;
 };
 
 export const initialMilestoneProcessorState: MilestoneProcessorState = {
   observedMilestones: HashMap.empty(),
-  observedRequirementCounts: HashMap.empty(),
+  observedRequirements: HashMap.empty(),
 };

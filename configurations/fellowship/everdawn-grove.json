@@ -7,11 +7,29 @@
       "requirements": [{ "unitTypeId": "42", "type": "UNIT_DEATH" }]
     },
     {
+      "label": "Butcher 1 Killed",
+      "milestoneId": "butcher:killed:1",
+      "requirements": [{ "unitTypeId": "41", "type": "UNIT_DEATH" }]
+    },
+    {
       "label": "Desecrator 2 Killed",
       "milestoneId": "desecrator:killed:2",
       "requirements": [
         { "unitTypeId": "42", "type": "UNIT_DEATH" },
         { "unitTypeId": "42", "type": "UNIT_DEATH" }
+      ]
+    },
+    {
+      "label": "Seer 1 Killed",
+      "milestoneId": "seer:killed:1",
+      "requirements": [{ "unitTypeId": "40", "type": "UNIT_DEATH" }]
+    },
+    {
+      "label": "Butcher 2 Killed",
+      "milestoneId": "butcher:killed:2",
+      "requirements": [
+        { "unitTypeId": "41", "type": "UNIT_DEATH" },
+        { "unitTypeId": "41", "type": "UNIT_DEATH" }
       ]
     },
     {

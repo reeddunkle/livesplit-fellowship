@@ -3,9 +3,7 @@ import * as Match from "effect/Match";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
-
-export type MilestoneRequirementEventType =
-  FellowshipMilestoneRequirement["type"];
+import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
 export type MilestoneRequirementId = string;
 

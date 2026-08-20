@@ -3,7 +3,6 @@ import * as Option from "effect/Option";
 
 import {
   getMilestoneRequirementLookup,
-  type MilestoneRequirementEventType,
   type MilestoneRequirementId,
   type MilestoneRequirementLookup,
 } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
@@ -16,6 +15,7 @@ import {
   type MilestoneRequirementTarget,
   type RequirementsByEvent,
 } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
 type RequirementCount = {
   readonly lookup: MilestoneRequirementLookup;
