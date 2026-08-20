@@ -69,6 +69,8 @@ function decodeMessage(
 export function makeApiEventStreamForUrl(
   url: string,
 ): Stream.Stream<ApiClientEvent, ApiClientError> {
+  console.log("Connecting to API:", url);
+
   return Stream.callback<ApiClientEvent, ApiClientError>((queue) => {
     return E.gen(function* () {
       yield* offerConnectionState(queue, API_CONNECTION_STATE.CONNECTING);

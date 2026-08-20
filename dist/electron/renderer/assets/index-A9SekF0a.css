@@ -1,0 +1,1 @@
+:root{--lightningcss-light: ;--lightningcss-dark:initial;color-scheme:dark;font-family:system-ui,sans-serif}body{margin:0;padding:2rem}main{max-width:60rem;margin:0 auto}#connection-status{font-weight:600}#events{gap:.5rem;display:grid}

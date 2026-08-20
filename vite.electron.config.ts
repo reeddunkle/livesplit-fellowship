@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 const projectRoot = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
+  base: "./",
   build: {
     emptyOutDir: false,
     outDir: "../../../dist/electron/renderer",

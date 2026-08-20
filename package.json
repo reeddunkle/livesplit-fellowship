@@ -1,7 +1,7 @@
 {
   "name": "livesplit-fellowship",
   "version": "1.0.0",
-  "main": "dist/electron/electron/main.js",
+  "main": "dist/electron/main.js",
   "type": "module",
   "scripts": {
     "check": "run-s lint test typecheck knip",

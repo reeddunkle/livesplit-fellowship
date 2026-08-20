@@ -2,8 +2,11 @@ import * as E from "effect/Effect";
 import * as Stream from "effect/Stream";
 
 import { type RunApiState } from "@/api/validation/run-api-message-schema.ts";
+import {
+  API_CONNECTION_STATE,
+  makeApiEventStream,
+} from "@/electron/renderer/api-client.ts";
 
-import { makeApiEventStream } from "./api-client.ts";
 import "./styles.css";
 
 const connectionStatusElement =
@@ -40,15 +43,12 @@ function renderState(state: RunApiState): void {
 
     const requirementProgress = milestone.requirements
       .map((requirement) => {
-        return (
-          `${requirement.type}:${requirement.id} ` +
-          `${requirement.observations.length}/${requirement.requiredCount}`
-        );
+        return `${requirement.type}:${requirement.id} ${requirement.observations.length}/${requirement.requiredCount}`;
       })
       .join(", ");
 
     const elapsedTime =
-      milestone.elapsedMilliseconds === undefined
+      milestone.elapsedMilliseconds === null
         ? "pending"
         : formatMilliseconds(milestone.elapsedMilliseconds);
 
@@ -61,23 +61,29 @@ function renderState(state: RunApiState): void {
 }
 
 const program = makeApiEventStream().pipe(
-  Stream.runForEach((message) => {
-    return E.sync(() => {
-      requiredConnectionStatusElement.textContent = "Connected";
+  Stream.runForEach((event) => {
+    switch (event.type) {
+      case "CONNECTION_STATE_CHANGED": {
+        requiredConnectionStatusElement.textContent = event.state;
 
-      renderState(message.state);
-    });
+        return E.void;
+      }
+
+      case "MESSAGE_RECEIVED": {
+        renderState(event.message.state);
+
+        return E.void;
+      }
+    }
+  }),
+  E.catch((error) => {
+    console.error(error);
+
+    requiredConnectionStatusElement.textContent =
+      API_CONNECTION_STATE.DISCONNECTED;
+
+    return E.void;
   }),
 );
 
-void E.runPromise(
-  program.pipe(
-    E.catch((cause) => {
-      return E.sync(() => {
-        requiredConnectionStatusElement.textContent = "Disconnected";
-
-        console.error(cause);
-      });
-    }),
-  ),
-);
+E.runFork(program);
