@@ -11,7 +11,7 @@ const handleRequest = E.gen(function* () {
   const request = yield* HttpServerRequest.HttpServerRequest;
   const pushEventServer = yield* PushEventServer;
 
-  if (request.url !== EVENTS_PATH) {
+  if (request.method !== "GET" || request.url !== EVENTS_PATH) {
     return HttpServerResponse.text("Not Found", {
       status: 404,
     });

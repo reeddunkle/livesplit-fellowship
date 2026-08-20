@@ -2,92 +2,108 @@ import * as E from "effect/Effect";
 import * as Queue from "effect/Queue";
 import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
+import * as Socket from "effect/unstable/socket/Socket";
 
 import {
   type RunApiMessage,
   RunApiMessageSchema,
 } from "@/api/validation/run-api-message-schema.ts";
+import { ApiClientMessageDecodeError } from "@/errors/api-client-error";
 
 const API_EVENTS_URL = `ws://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}/events`;
 
-export function makeApiEventStream(): Stream.Stream<RunApiMessage, unknown> {
-  return Stream.callback<RunApiMessage, unknown>((queue) => {
-    return E.acquireRelease(
-      E.callback<WebSocket, Error>((resume) => {
-        const websocket = new WebSocket(API_EVENTS_URL);
+export const API_CONNECTION_STATE = {
+  CONNECTED: "CONNECTED",
+  CONNECTING: "CONNECTING",
+  DISCONNECTED: "DISCONNECTED",
+} as const;
 
-        const handleOpen = () => {
-          resume(E.succeed(websocket));
-        };
+export type ApiConnectionState =
+  (typeof API_CONNECTION_STATE)[keyof typeof API_CONNECTION_STATE];
 
-        const handleError = () => {
-          resume(
-            E.fail(
-              new Error(
-                `Failed to connect to Fellowship API at ${API_EVENTS_URL}.`,
-              ),
-            ),
-          );
-        };
+export type ApiClientEvent =
+  | {
+      readonly state: ApiConnectionState;
+      readonly type: "CONNECTION_STATE_CHANGED";
+    }
+  | {
+      readonly message: RunApiMessage;
+      readonly type: "MESSAGE_RECEIVED";
+    };
 
-        websocket.addEventListener("open", handleOpen, {
-          once: true,
-        });
+export type ApiClientError = ApiClientMessageDecodeError | Socket.SocketError;
 
-        websocket.addEventListener("error", handleError, {
-          once: true,
-        });
+function offerConnectionState(
+  queue: Queue.Enqueue<ApiClientEvent>,
+  state: ApiConnectionState,
+) {
+  return Queue.offer(queue, {
+    state,
+    type: "CONNECTION_STATE_CHANGED",
+  });
+}
 
-        return E.sync(() => {
-          websocket.removeEventListener("open", handleOpen);
-          websocket.removeEventListener("error", handleError);
-        });
-      }),
-      (websocket) => {
-        return E.sync(() => {
-          websocket.close();
+function decodeMessage(
+  message: string,
+): E.Effect<RunApiMessage, ApiClientMessageDecodeError> {
+  return E.gen(function* () {
+    const parsed = yield* E.try({
+      catch: (cause) => {
+        return new ApiClientMessageDecodeError({
+          cause,
         });
       },
-    ).pipe(
-      E.flatMap((websocket) => {
-        return E.callback<void>((resume) => {
-          const handleMessage = (event: MessageEvent) => {
-            void E.runPromise(
-              E.gen(function* () {
-                const parsed = yield* E.try({
-                  catch: (cause) => {
-                    return cause;
-                  },
-                  try: () => {
-                    return JSON.parse(String(event.data)) as unknown;
-                  },
-                });
+      try: () => {
+        return JSON.parse(message) as unknown;
+      },
+    });
 
-                const message =
-                  yield* Schema.decodeUnknownEffect(RunApiMessageSchema)(
-                    parsed,
-                  );
-
-                yield* Queue.offer(queue, message);
-              }),
-            );
-          };
-
-          const handleClose = () => {
-            resume(E.void);
-          };
-
-          websocket.addEventListener("message", handleMessage);
-          websocket.addEventListener("close", handleClose, {
-            once: true,
-          });
-
-          return E.sync(() => {
-            websocket.removeEventListener("message", handleMessage);
-            websocket.removeEventListener("close", handleClose);
-          });
+    return yield* Schema.decodeUnknownEffect(RunApiMessageSchema)(parsed).pipe(
+      E.mapError((cause) => {
+        return new ApiClientMessageDecodeError({
+          cause,
         });
       }),
     );
+  });
+}
+
+export function makeApiEventStream(): Stream.Stream<
+  ApiClientEvent,
+  ApiClientError
+> {
+  return Stream.callback<ApiClientEvent, ApiClientError>((queue) => {
+    return E.gen(function* () {
+      yield* offerConnectionState(queue, API_CONNECTION_STATE.CONNECTING);
+
+      const socket = yield* Socket.makeWebSocket(API_EVENTS_URL, {
+        closeCodeIsError: (code) => {
+          return code !== 1000;
+        },
+        openTimeout: "5 seconds",
+      });
+
+      yield* socket
+        .runString(
+          (data) => {
+            return E.gen(function* () {
+              const message = yield* decodeMessage(data);
+
+              yield* Queue.offer(queue, {
+                message,
+                type: "MESSAGE_RECEIVED",
+              });
+            });
+          },
+          {
+            onOpen: offerConnectionState(queue, API_CONNECTION_STATE.CONNECTED),
+          },
+        )
+        .pipe(
+          E.ensuring(
+            offerConnectionState(queue, API_CONNECTION_STATE.DISCONNECTED),
+          ),
+        );
+    }).pipe(E.provide(Socket.layerWebSocketConstructorGlobal));
   });
 }
