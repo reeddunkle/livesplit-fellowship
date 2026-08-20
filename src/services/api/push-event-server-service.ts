@@ -6,7 +6,9 @@ import * as Ref from "effect/Ref";
 import type * as Scope from "effect/Scope";
 import type * as Socket from "effect/unstable/socket/Socket";
 
-type PushEventWriter = (message: string) => E.Effect<void, Socket.SocketError>;
+export type PushEventWriter = (
+  message: string,
+) => E.Effect<void, Socket.SocketError>;
 
 export interface PushEventServerService {
   readonly clientCount: E.Effect<number>;
@@ -16,6 +18,10 @@ export interface PushEventServerService {
   readonly registerClient: (
     writer: PushEventWriter,
   ) => E.Effect<void, never, Scope.Scope>;
+
+  readonly sendLatestToClient: (
+    writer: PushEventWriter,
+  ) => E.Effect<void, Socket.SocketError>;
 }
 
 export class PushEventServer extends Context.Service<
@@ -25,6 +31,7 @@ export class PushEventServer extends Context.Service<
 
 const makePushEventServerLive = E.gen(function* () {
   const clients = yield* Ref.make(HashSet.empty<PushEventWriter>());
+  const latestMessage = yield* Ref.make<string | undefined>(undefined);
 
   const clientCount = Ref.get(clients).pipe(
     E.map((clients) => {
@@ -47,8 +54,24 @@ const makePushEventServerLive = E.gen(function* () {
     );
   };
 
+  const sendLatestToClient = (
+    writer: PushEventWriter,
+  ): E.Effect<void, Socket.SocketError> => {
+    return E.gen(function* () {
+      const message = yield* Ref.get(latestMessage);
+
+      if (message === undefined) {
+        return;
+      }
+
+      yield* writer(message);
+    });
+  };
+
   const publish = (message: string): E.Effect<void, Socket.SocketError> => {
     return E.gen(function* () {
+      yield* Ref.set(latestMessage, message);
+
       const connectedClients = yield* Ref.get(clients);
 
       yield* E.forEach(
@@ -68,6 +91,7 @@ const makePushEventServerLive = E.gen(function* () {
     clientCount,
     publish,
     registerClient,
+    sendLatestToClient,
   } satisfies PushEventServerService;
 });
 

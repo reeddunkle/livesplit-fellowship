@@ -1,19 +1,27 @@
 import * as E from "effect/Effect";
 import * as Ref from "effect/Ref";
 
-import { type PushEventServerService } from "@/services/api/push-event-server-service.ts";
+import {
+  type PushEventServerService,
+  type PushEventWriter,
+} from "@/services/api/push-event-server-service.ts";
 
 export function makePushEventServerTestHarness() {
   return E.gen(function* () {
     const clientCount = yield* Ref.make(0);
+    const latestMessage = yield* Ref.make<string | undefined>(undefined);
     const messages = yield* Ref.make<ReadonlyArray<string>>([]);
 
     const pushEventServer: PushEventServerService = {
       clientCount: Ref.get(clientCount),
 
       publish: (message) => {
-        return Ref.update(messages, (messages) => {
-          return [...messages, message];
+        return E.gen(function* () {
+          yield* Ref.set(latestMessage, message);
+
+          yield* Ref.update(messages, (messages) => {
+            return [...messages, message];
+          });
         });
       },
 
@@ -28,6 +36,18 @@ export function makePushEventServerTestHarness() {
             });
           },
         );
+      },
+
+      sendLatestToClient: (writer: PushEventWriter) => {
+        return E.gen(function* () {
+          const message = yield* Ref.get(latestMessage);
+
+          if (message === undefined) {
+            return;
+          }
+
+          yield* writer(message);
+        });
       },
     };
 

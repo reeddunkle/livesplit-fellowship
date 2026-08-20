@@ -42,6 +42,6 @@ export const RunApiMessageSchema = Schema.Struct({
 
 // type RunApiMilestone = typeof RunApiMilestoneSchema.Type;
 
-// type RunApiState = typeof RunApiStateSchema.Type;
+export type RunApiState = typeof RunApiStateSchema.Type;
 
 export type RunApiMessage = typeof RunApiMessageSchema.Type;

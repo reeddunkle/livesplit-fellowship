@@ -27,9 +27,11 @@ const handleRequest = E.gen(function* () {
       const socket = yield* request.upgrade;
       const writer = yield* socket.writer;
 
-      yield* pushEventServer.registerClient((message) => {
+      const writeMessage = (message: string) => {
         return writer(message);
-      });
+      };
+
+      yield* pushEventServer.registerClient(writeMessage);
 
       const clientCount = yield* pushEventServer.clientCount;
 
@@ -43,22 +45,36 @@ const handleRequest = E.gen(function* () {
           return E.void;
         },
         {
-          onOpen: E.logDebug("WebSocket socket opened.", {
-            url: request.url,
+          onOpen: E.gen(function* () {
+            yield* E.logDebug("WebSocket socket opened.", {
+              url: request.url,
+            });
+
+            yield* pushEventServer.sendLatestToClient(writeMessage).pipe(
+              E.catch((error) => {
+                return E.logWarning(
+                  "Failed to send latest API state to client.",
+                  {
+                    error,
+                    url: request.url,
+                  },
+                );
+              }),
+            );
           }),
         },
       );
-    }).pipe(
-      E.ensuring(
-        E.gen(function* () {
-          const clientCount = yield* pushEventServer.clientCount;
+    }),
+  ).pipe(
+    E.ensuring(
+      E.gen(function* () {
+        const clientCount = yield* pushEventServer.clientCount;
 
-          yield* E.logInfo("WebSocket client disconnected.", {
-            clientCount,
-            url: request.url,
-          });
-        }),
-      ),
+        yield* E.logInfo("WebSocket client disconnected.", {
+          clientCount,
+          url: request.url,
+        });
+      }),
     ),
   );
 

@@ -8,7 +8,7 @@ import {
   RunApiMessageSchema,
 } from "@/api/validation/run-api-message-schema.ts";
 
-const API_EVENTS_URL = "ws://127.0.0.1:47891/events";
+const API_EVENTS_URL = `ws://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}/events`;
 
 export function makeApiEventStream(): Stream.Stream<RunApiMessage, unknown> {
   return Stream.callback<RunApiMessage, unknown>((queue) => {

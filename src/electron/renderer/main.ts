@@ -1,7 +1,7 @@
 import * as E from "effect/Effect";
 import * as Stream from "effect/Stream";
 
-import { RUN_API_EVENT } from "@/api/run-api-event.ts";
+import { type RunApiState } from "@/api/validation/run-api-message-schema.ts";
 
 import { makeApiEventStream } from "./api-client.ts";
 import "./styles.css";
@@ -15,51 +15,66 @@ if (connectionStatusElement === null || eventsElement === null) {
   throw new Error("Required renderer elements are missing.");
 }
 
+const requiredConnectionStatusElement = connectionStatusElement;
 const requiredEventsElement = eventsElement;
 
-function appendEvent(text: string): void {
-  const element = document.createElement("li");
-
-  element.textContent = text;
-
-  requiredEventsElement.append(element);
+function formatMilliseconds(milliseconds: number): string {
+  return `${(milliseconds / 1_000).toFixed(3)}s`;
 }
 
-const program = E.gen(function* () {
-  connectionStatusElement.textContent = "Connected";
+function renderState(state: RunApiState): void {
+  requiredEventsElement.replaceChildren();
 
-  yield* makeApiEventStream().pipe(
-    Stream.runForEach((message) => {
-      return E.sync(() => {
-        switch (message.event.type) {
-          case RUN_API_EVENT.RUN_STARTED: {
-            appendEvent("Run started");
-            break;
-          }
+  if (state.run === null) {
+    const element = document.createElement("li");
 
-          case RUN_API_EVENT.MILESTONE_COMPLETED: {
-            appendEvent(
-              `${message.event.milestone.label}: ` +
-                `${message.event.milestone.elapsedMilliseconds} ms`,
-            );
-            break;
-          }
+    element.textContent = "No active run.";
 
-          case RUN_API_EVENT.RUN_EXITED: {
-            appendEvent("Run exited");
-            break;
-          }
-        }
-      });
-    }),
-  );
-});
+    requiredEventsElement.append(element);
+
+    return;
+  }
+
+  state.milestones.forEach((milestone) => {
+    const element = document.createElement("li");
+
+    const requirementProgress = milestone.requirements
+      .map((requirement) => {
+        return (
+          `${requirement.type}:${requirement.id} ` +
+          `${requirement.observations.length}/${requirement.requiredCount}`
+        );
+      })
+      .join(", ");
+
+    const elapsedTime =
+      milestone.elapsedMilliseconds === undefined
+        ? "pending"
+        : formatMilliseconds(milestone.elapsedMilliseconds);
+
+    element.textContent =
+      `${milestone.label}: ${elapsedTime}` +
+      (requirementProgress.length > 0 ? ` (${requirementProgress})` : "");
+
+    requiredEventsElement.append(element);
+  });
+}
+
+const program = makeApiEventStream().pipe(
+  Stream.runForEach((message) => {
+    return E.sync(() => {
+      requiredConnectionStatusElement.textContent = "Connected";
+
+      renderState(message.state);
+    });
+  }),
+);
 
 void E.runPromise(
   program.pipe(
     E.catch((cause) => {
       return E.sync(() => {
-        connectionStatusElement.textContent = "Disconnected";
+        requiredConnectionStatusElement.textContent = "Disconnected";
 
         console.error(cause);
       });
