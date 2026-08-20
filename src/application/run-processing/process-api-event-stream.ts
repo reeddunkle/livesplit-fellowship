@@ -1,7 +1,7 @@
 import * as E from "effect/Effect";
 import * as Stream from "effect/Stream";
 
-import { handleApiRunEvent } from "@/api/publish-run-api-state.ts";
+import { publishRunApiState } from "@/api/publish-run-api-state.ts";
 import { PushEventServer } from "@/services/api/push-event-server-service.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { processRunEventStream } from "@/services/fellowship/runs/process-run-event-stream.ts";
@@ -25,19 +25,30 @@ export function processApiEventStream<Error>({
       configuration,
       events,
     }).pipe(
-      Stream.runForEach((event) => {
-        return E.all(
-          [
-            handleLogRunEvent(event),
-            handleApiRunEvent({
-              event,
-              pushEventServer,
-            }),
-          ],
+      Stream.runForEach((result) => {
+        const logEvents = E.forEach(
+          result.events,
+          (event) => {
+            return handleLogRunEvent(event);
+          },
           {
             concurrency: "unbounded",
+            discard: true,
           },
-        ).pipe(E.asVoid);
+        );
+
+        const publishState = result.isStateUpdated
+          ? publishRunApiState({
+              configuration: result.configuration,
+              pushEventServer,
+              state: result.state,
+            })
+          : E.void;
+
+        return E.all([logEvents, publishState], {
+          concurrency: "unbounded",
+          discard: true,
+        });
       }),
     );
   });

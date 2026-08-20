@@ -10,7 +10,7 @@ import { makeApiAppMock } from "@/tests/layers/api-app-mock-layer.ts";
 import { configuration } from "./configuration.ts";
 
 describe("processApiEventStream", () => {
-  test("publishes API events for completed milestones", async () => {
+  test("publishes API state updates for the run", async () => {
     const program = E.scoped(
       E.gen(function* () {
         const { harness, layer } = yield* makeApiAppMock();
@@ -28,35 +28,37 @@ describe("processApiEventStream", () => {
 
         const messages = yield* harness.getParsedMessages();
 
-        expect(messages).toHaveLength(configuration.milestones.length + 1);
+        expect(messages.length).toBeGreaterThan(0);
 
         expect(messages[0]).toMatchObject({
-          event: {
-            type: "RUN_STARTED",
+          state: {
+            run: {
+              startedAtMilliseconds: expect.any(Number),
+            },
           },
           version: 1,
         });
 
-        const milestoneMessages = messages.slice(1);
+        const finalMessage = messages.at(-1);
 
-        expect(milestoneMessages).toHaveLength(configuration.milestones.length);
+        expect(finalMessage).toBeDefined();
 
-        expect(milestoneMessages).toEqual(
-          expect.arrayContaining(
-            configuration.milestones.map((milestone) => {
-              return expect.objectContaining({
-                event: expect.objectContaining({
-                  milestone: expect.objectContaining({
-                    label: milestone.label,
-                    milestoneId: milestone.milestoneId,
-                  }),
-                  type: "MILESTONE_COMPLETED",
-                }),
-                version: 1,
-              });
-            }),
-          ),
-        );
+        expect(finalMessage).toMatchObject({
+          state: {
+            milestones: expect.arrayContaining(
+              configuration.milestones.map((milestone) => {
+                return expect.objectContaining({
+                  completedAtMilliseconds: expect.any(Number),
+                  elapsedMilliseconds: expect.any(Number),
+                  label: milestone.label,
+                  milestoneId: milestone.milestoneId,
+                  requirements: expect.any(Array),
+                });
+              }),
+            ),
+          },
+          version: 1,
+        });
       }),
     );
 

@@ -9,15 +9,15 @@ import { LiveSplitClient } from "@/services/live-split/client/live-split-client-
 import { handleLiveSplitRunEvent } from "./handle-live-split-run-event.ts";
 import { handleLogRunEvent } from "./handle-log-run-event.ts";
 
-export type ProcessLiveSplitEventStreamOptions<E> = {
+export type ProcessLiveSplitEventStreamOptions<Error> = {
   readonly configuration: FellowshipMilestoneConfiguration;
-  readonly events: Stream.Stream<FellowshipEvent, E>;
+  readonly events: Stream.Stream<FellowshipEvent, Error>;
 };
 
-export function processLiveSplitEventStream<E>({
+export function processLiveSplitEventStream<Error>({
   configuration,
   events,
-}: ProcessLiveSplitEventStreamOptions<E>) {
+}: ProcessLiveSplitEventStreamOptions<Error>) {
   return E.gen(function* () {
     const liveSplitClient = yield* LiveSplitClient;
 
@@ -25,19 +25,29 @@ export function processLiveSplitEventStream<E>({
       configuration,
       events,
     }).pipe(
-      Stream.runForEach((event) => {
-        return E.all(
-          [
-            handleLogRunEvent(event),
-            handleLiveSplitRunEvent({
-              event,
-              liveSplitClient,
-            }),
-          ],
+      Stream.runForEach((result) => {
+        return E.forEach(
+          result.events,
+          (event) => {
+            return E.all(
+              [
+                handleLogRunEvent(event),
+                handleLiveSplitRunEvent({
+                  event,
+                  liveSplitClient,
+                }),
+              ],
+              {
+                concurrency: "unbounded",
+                discard: true,
+              },
+            );
+          },
           {
             concurrency: "unbounded",
+            discard: true,
           },
-        ).pipe(E.asVoid);
+        );
       }),
     );
   });

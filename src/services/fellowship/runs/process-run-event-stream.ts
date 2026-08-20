@@ -2,19 +2,26 @@ import * as Stream from "effect/Stream";
 
 import { compileMilestoneConfiguration } from "@/services/fellowship/milestones/compile-milestone-configuration.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
-import { processRunEvent } from "@/services/fellowship/runs/process-run-event.ts";
+import {
+  type ProcessRunEventResult,
+  processRunEvent,
+} from "@/services/fellowship/runs/process-run-event.ts";
 import { createInitialRunState } from "@/services/fellowship/runs/run-processing-state.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
-export type ProcessRunEventStreamOptions<E> = {
+export type ProcessRunEventStreamOptions<Error> = {
   readonly configuration: FellowshipMilestoneConfiguration;
-  readonly events: Stream.Stream<FellowshipEvent, E>;
+  readonly events: Stream.Stream<FellowshipEvent, Error>;
 };
 
-export function processRunEventStream<E>({
+export type ProcessRunEventStreamResult = ProcessRunEventResult & {
+  readonly configuration: ReturnType<typeof compileMilestoneConfiguration>;
+};
+
+export function processRunEventStream<Error>({
   configuration,
   events,
-}: ProcessRunEventStreamOptions<E>) {
+}: ProcessRunEventStreamOptions<Error>) {
   const compiledConfiguration = compileMilestoneConfiguration(configuration);
 
   return events.pipe(
@@ -25,7 +32,12 @@ export function processRunEventStream<E>({
         state,
       });
 
-      return [result.state, result.events] as const;
+      const streamResult = {
+        ...result,
+        configuration: compiledConfiguration,
+      } satisfies ProcessRunEventStreamResult;
+
+      return [result.state, [streamResult]];
     }),
   );
 }
