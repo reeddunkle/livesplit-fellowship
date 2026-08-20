@@ -93,6 +93,8 @@ describe("publishRunApiState", () => {
           state: {
             milestones: [
               {
+                completedAtMilliseconds: null,
+                elapsedMilliseconds: null,
                 label: "Desecrator 1 Killed",
                 milestoneId: "desecrator:killed:1",
                 requirements: [
@@ -225,6 +227,8 @@ describe("publishRunApiState", () => {
           state: {
             milestones: [
               {
+                completedAtMilliseconds: null,
+                elapsedMilliseconds: null,
                 label: "Desecrator 1 Killed",
                 milestoneId: "desecrator:killed:1",
                 requirements: [

@@ -2,43 +2,20 @@ import * as HashMap from "effect/HashMap";
 import * as Option from "effect/Option";
 
 import {
+  type RunApiMilestone,
+  type RunApiRequirement,
+  type RunApiState,
+} from "@/api/validation/run-api-message-schema.ts";
+import {
   type ObservedRequirement,
   type ObservedRequirements,
 } from "@/services/fellowship/milestones/milestone-processor-state.ts";
-import { type MilestoneRequirementId } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import {
   type CompiledFellowshipMilestoneConfiguration,
   type CompiledMilestoneDefinition,
   type CompiledMilestoneRequirement,
 } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type RunProcessingState } from "@/services/fellowship/runs/run-processing-state.ts";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
-
-type RunApiRequirementObservation = {
-  readonly timestampMilliseconds: number;
-};
-
-type RunApiRequirement = {
-  readonly id: MilestoneRequirementId;
-  readonly observations: ReadonlyArray<RunApiRequirementObservation>;
-  readonly requiredCount: number;
-  readonly type: MilestoneRequirementEventType;
-};
-
-type RunApiMilestone = {
-  readonly completedAtMilliseconds: number | undefined;
-  readonly elapsedMilliseconds: number | undefined;
-  readonly label: string;
-  readonly milestoneId: string;
-  readonly requirements: ReadonlyArray<RunApiRequirement>;
-};
-
-type RunApiState = {
-  readonly milestones: ReadonlyArray<RunApiMilestone>;
-  readonly run: {
-    readonly startedAtMilliseconds: number;
-  } | null;
-};
 
 export type CreateRunApiStateOptions = {
   readonly configuration: CompiledFellowshipMilestoneConfiguration;
@@ -120,8 +97,9 @@ function createRunApiMilestone({
   );
 
   return {
-    completedAtMilliseconds: observedMilestone?.timestamp.epochMilliseconds,
-    elapsedMilliseconds: observedMilestone?.elapsedMilliseconds,
+    completedAtMilliseconds:
+      observedMilestone?.timestamp.epochMilliseconds ?? null,
+    elapsedMilliseconds: observedMilestone?.elapsedMilliseconds ?? null,
     label: definition.label,
     milestoneId: definition.milestoneId,
     requirements: definition.requirements.map((requirement) => {

@@ -14,8 +14,8 @@ const RunApiRequirementSchema = Schema.Struct({
 });
 
 const RunApiMilestoneSchema = Schema.Struct({
-  completedAtMilliseconds: Schema.UndefinedOr(Schema.Number),
-  elapsedMilliseconds: Schema.UndefinedOr(Schema.Number),
+  completedAtMilliseconds: Schema.NullOr(Schema.Number),
+  elapsedMilliseconds: Schema.NullOr(Schema.Number),
   label: Schema.String,
   milestoneId: Schema.String,
   requirements: Schema.Array(RunApiRequirementSchema),
@@ -35,12 +35,9 @@ export const RunApiMessageSchema = Schema.Struct({
   version: Schema.Literal(1),
 });
 
-// type RunApiRequirementObservation =
-//   typeof RunApiRequirementObservationSchema.Type;
+export type RunApiMilestone = typeof RunApiMilestoneSchema.Type;
 
-// type RunApiRequirement = typeof RunApiRequirementSchema.Type;
-
-// type RunApiMilestone = typeof RunApiMilestoneSchema.Type;
+export type RunApiRequirement = typeof RunApiRequirementSchema.Type;
 
 export type RunApiState = typeof RunApiStateSchema.Type;
 

@@ -8,9 +8,7 @@ import {
   type RunApiMessage,
   RunApiMessageSchema,
 } from "@/api/validation/run-api-message-schema.ts";
-import { ApiClientMessageDecodeError } from "@/errors/api-client-error";
-
-const API_EVENTS_URL = `ws://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}/events`;
+import { ApiClientMessageDecodeError } from "@/errors/api-client-error.ts";
 
 export const API_CONNECTION_STATE = {
   CONNECTED: "CONNECTED",
@@ -68,15 +66,14 @@ function decodeMessage(
   });
 }
 
-export function makeApiEventStream(): Stream.Stream<
-  ApiClientEvent,
-  ApiClientError
-> {
+export function makeApiEventStreamForUrl(
+  url: string,
+): Stream.Stream<ApiClientEvent, ApiClientError> {
   return Stream.callback<ApiClientEvent, ApiClientError>((queue) => {
     return E.gen(function* () {
       yield* offerConnectionState(queue, API_CONNECTION_STATE.CONNECTING);
 
-      const socket = yield* Socket.makeWebSocket(API_EVENTS_URL, {
+      const socket = yield* Socket.makeWebSocket(url, {
         closeCodeIsError: (code) => {
           return code !== 1000;
         },
@@ -103,7 +100,26 @@ export function makeApiEventStream(): Stream.Stream<
           E.ensuring(
             offerConnectionState(queue, API_CONNECTION_STATE.DISCONNECTED),
           ),
+          E.tap(() => {
+            return E.sync(() => {
+              Queue.endUnsafe(queue);
+            });
+          }),
+          E.catchCause((cause) => {
+            return E.sync(() => {
+              Queue.failCauseUnsafe(queue, cause);
+            });
+          }),
         );
     }).pipe(E.provide(Socket.layerWebSocketConstructorGlobal));
   });
+}
+
+export function makeApiEventStream(): Stream.Stream<
+  ApiClientEvent,
+  ApiClientError
+> {
+  const url = `ws://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}/events`;
+
+  return makeApiEventStreamForUrl(url);
 }
