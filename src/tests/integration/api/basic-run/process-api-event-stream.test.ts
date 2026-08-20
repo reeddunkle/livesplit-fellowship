@@ -43,6 +43,10 @@ describe("processApiEventStream", () => {
 
         expect(finalMessage).toBeDefined();
 
+        if (finalMessage === undefined) {
+          return;
+        }
+
         expect(finalMessage).toMatchObject({
           state: {
             milestones: expect.arrayContaining(
@@ -59,6 +63,125 @@ describe("processApiEventStream", () => {
           },
           version: 1,
         });
+
+        const desecrator1 = finalMessage.state.milestones.find((milestone) => {
+          return milestone.milestoneId === "desecrator:killed:1";
+        });
+
+        expect(desecrator1).toBeDefined();
+
+        expect(desecrator1?.requirements).toEqual([
+          expect.objectContaining({
+            id: "42",
+            observations: [
+              expect.objectContaining({
+                timestampMilliseconds: expect.any(Number),
+              }),
+            ],
+            requiredCount: 1,
+            type: "UNIT_DEATH",
+          }),
+        ]);
+
+        const desecrator2 = finalMessage.state.milestones.find((milestone) => {
+          return milestone.milestoneId === "desecrator:killed:2";
+        });
+
+        expect(desecrator2).toBeDefined();
+
+        expect(desecrator2?.requirements).toEqual([
+          expect.objectContaining({
+            id: "42",
+            observations: [
+              expect.objectContaining({
+                timestampMilliseconds: expect.any(Number),
+              }),
+              expect.objectContaining({
+                timestampMilliseconds: expect.any(Number),
+              }),
+            ],
+            requiredCount: 2,
+            type: "UNIT_DEATH",
+          }),
+        ]);
+
+        const butcher2 = finalMessage.state.milestones.find((milestone) => {
+          return milestone.milestoneId === "butcher:killed:2";
+        });
+
+        expect(butcher2).toBeDefined();
+
+        expect(butcher2?.requirements).toEqual([
+          expect.objectContaining({
+            id: "41",
+            observations: [
+              expect.objectContaining({
+                timestampMilliseconds: expect.any(Number),
+              }),
+              expect.objectContaining({
+                timestampMilliseconds: expect.any(Number),
+              }),
+            ],
+            requiredCount: 2,
+            type: "UNIT_DEATH",
+          }),
+        ]);
+
+        const shadowlord2 = finalMessage.state.milestones.find((milestone) => {
+          return milestone.milestoneId === "shadowlord:killed:2";
+        });
+
+        expect(shadowlord2).toBeDefined();
+
+        expect(shadowlord2?.requirements).toEqual([
+          expect.objectContaining({
+            id: "274",
+            observations: [
+              expect.objectContaining({
+                timestampMilliseconds: expect.any(Number),
+              }),
+              expect.objectContaining({
+                timestampMilliseconds: expect.any(Number),
+              }),
+            ],
+            requiredCount: 2,
+            type: "UNIT_DEATH",
+          }),
+        ]);
+
+        const bossPull = finalMessage.state.milestones.find((milestone) => {
+          return milestone.milestoneId === "boss:pulled";
+        });
+
+        expect(bossPull?.requirements).toEqual([
+          expect.objectContaining({
+            id: "30",
+            observations: [
+              expect.objectContaining({
+                timestampMilliseconds: expect.any(Number),
+              }),
+            ],
+            requiredCount: 1,
+            type: "ENCOUNTER_START",
+          }),
+        ]);
+
+        const bossKill = finalMessage.state.milestones.find((milestone) => {
+          return milestone.milestoneId === "boss:defeated";
+        });
+
+        expect(bossKill?.requirements).toEqual([
+          expect.objectContaining({
+            id: "30",
+            observations: [
+              expect.objectContaining({
+                timestampMilliseconds: expect.any(Number),
+              }),
+            ],
+            requiredCount: 1,
+            type: "ENCOUNTER_END",
+          }),
+        ]);
       }),
     );
 

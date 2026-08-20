@@ -14,7 +14,7 @@ import { makeLiveSplitAppMock } from "@/tests/layers/live-split-app-mock-layer.t
 import { configuration } from "./configuration.ts";
 
 describe("replayLog", () => {
-  test("sends LiveSplit commands for completed milestones", async () => {
+  test("sends LiveSplit commands for the configured run", async () => {
     const program = E.scoped(
       E.gen(function* () {
         const { harness, layer } = yield* makeLiveSplitAppMock();
@@ -28,14 +28,30 @@ describe("replayLog", () => {
 
         const commands = yield* harness.getCommands();
 
+        const splitCommand = appendEOL(LiveSplitSendCommand.split);
+
         const configuredMilestoneCommands = configuration.milestones.map(() => {
-          return appendEOL(LiveSplitSendCommand.split);
+          return splitCommand;
         });
 
         expect(commands).toEqual([
           ...dungeonStartCommands,
           ...configuredMilestoneCommands,
         ]);
+
+        expect(commands.slice(0, dungeonStartCommands.length)).toEqual(
+          dungeonStartCommands,
+        );
+
+        expect(
+          commands.filter((command) => {
+            return command === splitCommand;
+          }),
+        ).toHaveLength(configuration.milestones.length);
+
+        expect(commands).toHaveLength(
+          dungeonStartCommands.length + configuration.milestones.length,
+        );
       }),
     );
 
