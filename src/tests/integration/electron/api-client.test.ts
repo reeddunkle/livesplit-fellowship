@@ -196,4 +196,50 @@ describe("Electron API client", () => {
 
     await runTest(program);
   });
+
+  test("retries after a WebSocket connection failure", async () => {
+    const program = E.scoped(
+      E.gen(function* () {
+        const httpServer = yield* HttpServer.HttpServer;
+
+        const websocketUrl = getWebSocketUrl(httpServer.address);
+        const invalidWebsocketUrl = websocketUrl.replace("/events", "/invalid");
+
+        const clientEvents = yield* makeApiEventStreamForUrl(
+          invalidWebsocketUrl,
+          {
+            reconnectDelay: "10 millis",
+          },
+        ).pipe(
+          Stream.take(4),
+          Stream.runCollect,
+          E.map((events) => {
+            return Array.from(events);
+          }),
+          E.timeout(TEST_TIMEOUT),
+        );
+
+        expect(clientEvents).toEqual([
+          {
+            state: API_CONNECTION_STATE.CONNECTING,
+            type: "CONNECTION_STATE_CHANGED",
+          },
+          {
+            state: API_CONNECTION_STATE.DISCONNECTED,
+            type: "CONNECTION_STATE_CHANGED",
+          },
+          {
+            state: API_CONNECTION_STATE.CONNECTING,
+            type: "CONNECTION_STATE_CHANGED",
+          },
+          {
+            state: API_CONNECTION_STATE.DISCONNECTED,
+            type: "CONNECTION_STATE_CHANGED",
+          },
+        ]);
+      }).pipe(E.provide(ApiServerTest)),
+    );
+
+    await runTest(program);
+  });
 });

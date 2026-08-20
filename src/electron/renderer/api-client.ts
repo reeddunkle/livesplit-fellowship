@@ -1,5 +1,7 @@
+import type * as Duration from "effect/Duration";
 import * as E from "effect/Effect";
 import * as Queue from "effect/Queue";
+import * as Schedule from "effect/Schedule";
 import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 import * as Socket from "effect/unstable/socket/Socket";
@@ -30,6 +32,12 @@ export type ApiClientEvent =
     };
 
 export type ApiClientError = ApiClientMessageDecodeError | Socket.SocketError;
+
+export type MakeApiEventStreamOptions = {
+  readonly reconnectDelay?: Duration.Input;
+};
+
+const DEFAULT_RECONNECT_DELAY = "1 second";
 
 function offerConnectionState(
   queue: Queue.Enqueue<ApiClientEvent>,
@@ -68,11 +76,12 @@ function decodeMessage(
 
 export function makeApiEventStreamForUrl(
   url: string,
+  options: MakeApiEventStreamOptions = {},
 ): Stream.Stream<ApiClientEvent, ApiClientError> {
-  console.log("Connecting to API:", url);
+  const reconnectDelay = options.reconnectDelay ?? DEFAULT_RECONNECT_DELAY;
 
   return Stream.callback<ApiClientEvent, ApiClientError>((queue) => {
-    return E.gen(function* () {
+    const connect = E.gen(function* () {
       yield* offerConnectionState(queue, API_CONNECTION_STATE.CONNECTING);
 
       const socket = yield* Socket.makeWebSocket(url, {
@@ -82,38 +91,58 @@ export function makeApiEventStreamForUrl(
         openTimeout: "5 seconds",
       });
 
-      yield* socket
-        .runString(
-          (data) => {
-            return E.gen(function* () {
-              const message = yield* decodeMessage(data);
+      yield* socket.runString(
+        (data) => {
+          return E.gen(function* () {
+            const message = yield* decodeMessage(data);
 
-              yield* Queue.offer(queue, {
-                message,
-                type: "MESSAGE_RECEIVED",
-              });
+            yield* Queue.offer(queue, {
+              message,
+              type: "MESSAGE_RECEIVED",
             });
-          },
-          {
-            onOpen: offerConnectionState(queue, API_CONNECTION_STATE.CONNECTED),
-          },
-        )
-        .pipe(
-          E.ensuring(
-            offerConnectionState(queue, API_CONNECTION_STATE.DISCONNECTED),
-          ),
-          E.tap(() => {
-            return E.sync(() => {
-              Queue.endUnsafe(queue);
-            });
-          }),
-          E.catchCause((cause) => {
-            return E.sync(() => {
-              Queue.failCauseUnsafe(queue, cause);
-            });
-          }),
-        );
-    }).pipe(E.provide(Socket.layerWebSocketConstructorGlobal));
+          });
+        },
+        {
+          onOpen: offerConnectionState(queue, API_CONNECTION_STATE.CONNECTED),
+        },
+      );
+    }).pipe(
+      E.ensuring(
+        offerConnectionState(queue, API_CONNECTION_STATE.DISCONNECTED),
+      ),
+    );
+
+    return connect.pipe(
+      /*
+       * Retry socket failures indefinitely. Message decoding failures indicate
+       * a protocol/schema problem and should fail the stream instead.
+       */
+      E.retry({
+        schedule: Schedule.spaced(reconnectDelay),
+        while: (error) => {
+          return !(error instanceof ApiClientMessageDecodeError);
+        },
+      }),
+
+      /*
+       * A socket can also close successfully, such as with WebSocket close
+       * code 1000. Reconnect after normal completion as well.
+       */
+      E.repeat(Schedule.spaced(reconnectDelay)),
+
+      /*
+       * Stream.callback communicates failure through its queue. At this point
+       * the only expected recoverable-error exclusion is a message decode
+       * failure.
+       */
+      E.catchCause((cause) => {
+        return E.sync(() => {
+          Queue.failCauseUnsafe(queue, cause);
+        });
+      }),
+
+      E.provide(Socket.layerWebSocketConstructorGlobal),
+    );
   });
 }
 
