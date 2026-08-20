@@ -14,7 +14,7 @@ export type ProcessRunEventStreamOptions<Error> = {
   readonly events: Stream.Stream<FellowshipEvent, Error>;
 };
 
-export type ProcessRunEventStreamResult = ProcessRunEventResult & {
+type ProcessRunEventStreamResult = ProcessRunEventResult & {
   readonly configuration: ReturnType<typeof compileMilestoneConfiguration>;
 };
 
