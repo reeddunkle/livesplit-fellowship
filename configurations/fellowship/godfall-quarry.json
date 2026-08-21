@@ -3,19 +3,36 @@
   "milestones": [
     {
       "label": "Shadowlord 1 Killed",
-      "milestoneId": "shadowlord:killed:1",
-      "requirements": [{ "unitTypeId": "274", "type": "UNIT_DEATH" }]
+      "requirements": [
+        {
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "UNIT_DEATH",
+          "unitTypeId": "274"
+        }
+      ]
     },
     {
       "label": "Boss Pull",
-      "milestoneId": "boss:pulled",
-      "requirements": [{ "encounterId": "34", "type": "ENCOUNTER_START" }]
+      "requirements": [
+        {
+          "encounterId": "34",
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "ENCOUNTER_START"
+        }
+      ]
     },
     {
       "label": "Boss Kill",
-      "milestoneId": "boss:defeated",
-      "targetElapsedTime": "00:12:18",
-      "requirements": [{ "encounterId": "34", "type": "ENCOUNTER_END" }]
+      "requirements": [
+        {
+          "encounterId": "34",
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "ENCOUNTER_END"
+        }
+      ]
     }
   ]
 }

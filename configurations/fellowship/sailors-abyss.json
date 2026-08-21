@@ -3,9 +3,10 @@
   "milestones": [
     {
       "label": "First Hollowed Corsair Defeated",
-      "milestoneId": "corsair:defeated:1",
       "requirements": [
         {
+          "requiredCount": 1,
+          "startOccurrence": 1,
           "type": "UNIT_DEATH",
           "unitTypeId": "97"
         }
@@ -13,9 +14,10 @@
     },
     {
       "label": "Second Hollowed Corsair Defeated",
-      "milestoneId": "corsair:defeated:2",
       "requirements": [
         {
+          "requiredCount": 1,
+          "startOccurrence": 2,
           "type": "UNIT_DEATH",
           "unitTypeId": "97"
         }
@@ -23,9 +25,10 @@
     },
     {
       "label": "Third Hollowed Corsair Defeated",
-      "milestoneId": "corsair:defeated:3",
       "requirements": [
         {
+          "requiredCount": 1,
+          "startOccurrence": 3,
           "type": "UNIT_DEATH",
           "unitTypeId": "97"
         }
@@ -33,21 +36,22 @@
     },
     {
       "label": "Boss Pull",
-      "milestoneId": "boss:pull",
       "requirements": [
         {
           "encounterId": "28",
+          "requiredCount": 1,
+          "startOccurrence": 1,
           "type": "ENCOUNTER_START"
         }
       ]
     },
     {
       "label": "Boss Defeated",
-      "milestoneId": "boss:defeated",
-      "targetElapsedTime": "00:11:57",
       "requirements": [
         {
           "encounterId": "28",
+          "requiredCount": 1,
+          "startOccurrence": 1,
           "type": "ENCOUNTER_END"
         }
       ]

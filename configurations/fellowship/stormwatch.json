@@ -3,9 +3,10 @@
   "milestones": [
     {
       "label": "Eira Defeated",
-      "milestoneId": "eira:defeated",
       "requirements": [
         {
+          "requiredCount": 1,
+          "startOccurrence": 1,
           "type": "UNIT_DEATH",
           "unitTypeId": "281"
         }
@@ -13,31 +14,33 @@
     },
     {
       "label": "Boss Mid Encounter Completed",
-      "milestoneId": "boss:mid-encounter:completed",
       "requirements": [
         {
           "abilityId": "634",
+          "requiredCount": 1,
+          "startOccurrence": 1,
           "type": "ABILITY_ACTIVATED"
         }
       ]
     },
     {
       "label": "Boss Pull",
-      "milestoneId": "boss:pull",
       "requirements": [
         {
           "encounterId": "26",
+          "requiredCount": 1,
+          "startOccurrence": 1,
           "type": "ENCOUNTER_START"
         }
       ]
     },
     {
       "label": "Boss Kill",
-      "milestoneId": "boss:kill",
-      "targetElapsedTime": "00:14:08",
       "requirements": [
         {
           "encounterId": "26",
+          "requiredCount": 1,
+          "startOccurrence": 1,
           "type": "ENCOUNTER_END"
         }
       ]

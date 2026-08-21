@@ -3,14 +3,25 @@
   "milestones": [
     {
       "label": "Vexira Pull",
-      "milestoneId": "vexira:pulled",
-      "requirements": [{ "encounterId": "33", "type": "ENCOUNTER_START" }]
+      "requirements": [
+        {
+          "encounterId": "33",
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "ENCOUNTER_START"
+        }
+      ]
     },
     {
       "label": "Vexira Kill",
-      "milestoneId": "vexira:defeated",
-      "targetElapsedTime": "00:13:32",
-      "requirements": [{ "encounterId": "33", "type": "ENCOUNTER_END" }]
+      "requirements": [
+        {
+          "encounterId": "33",
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "ENCOUNTER_END"
+        }
+      ]
     }
   ]
 }

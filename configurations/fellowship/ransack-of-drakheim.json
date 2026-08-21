@@ -3,33 +3,69 @@
   "milestones": [
     {
       "label": "Fodir Pull",
-      "milestoneId": "fodir:pull",
-      "requirements": [{ "encounterId": "20", "type": "ENCOUNTER_START" }]
+      "requirements": [
+        {
+          "encounterId": "20",
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "ENCOUNTER_START"
+        }
+      ]
     },
     {
       "label": "Fodir Defeated",
-      "milestoneId": "fodir:defeated",
-      "requirements": [{ "encounterId": "20", "type": "ENCOUNTER_END" }]
+      "requirements": [
+        {
+          "encounterId": "20",
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "ENCOUNTER_END"
+        }
+      ]
     },
     {
       "label": "Auga Pull",
-      "milestoneId": "auga:pull",
-      "requirements": [{ "encounterId": "22", "type": "ENCOUNTER_START" }]
+      "requirements": [
+        {
+          "encounterId": "22",
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "ENCOUNTER_START"
+        }
+      ]
     },
     {
       "label": "Auga Defeated",
-      "milestoneId": "auga:defeated",
-      "requirements": [{ "encounterId": "22", "type": "ENCOUNTER_END" }]
+      "requirements": [
+        {
+          "encounterId": "22",
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "ENCOUNTER_END"
+        }
+      ]
     },
     {
       "label": "Chilgar Pull",
-      "milestoneId": "chilgar:pull",
-      "requirements": [{ "encounterId": "21", "type": "ENCOUNTER_START" }]
+      "requirements": [
+        {
+          "encounterId": "21",
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "ENCOUNTER_START"
+        }
+      ]
     },
     {
       "label": "Chilgar Defeated",
-      "milestoneId": "chilgar:defeated",
-      "requirements": [{ "encounterId": "21", "type": "ENCOUNTER_END" }]
+      "requirements": [
+        {
+          "encounterId": "21",
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "ENCOUNTER_END"
+        }
+      ]
     }
   ]
 }
