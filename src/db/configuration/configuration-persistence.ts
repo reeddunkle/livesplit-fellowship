@@ -16,9 +16,9 @@ import { isNonEmptyArray } from "@/util/is-non-empty-array.ts";
 
 import { type PersistedConfiguration } from "./configuration-store.ts";
 
-export type ConfigurationInsert = typeof ConfigurationModel.insert.Type;
-export type MilestoneInsert = typeof MilestoneModel.insert.Type;
-export type RequirementInsert = typeof RequirementModel.insert.Type;
+type ConfigurationInsert = typeof ConfigurationModel.insert.Type;
+type MilestoneInsert = typeof MilestoneModel.insert.Type;
+type RequirementInsert = typeof RequirementModel.insert.Type;
 
 export type ConfigurationPersistenceRecords = {
   readonly configuration: ConfigurationInsert;

@@ -7,7 +7,7 @@ export class MilestoneConfigurationJsonError extends Data.TaggedError(
   readonly filePath: string;
 }> {}
 
-export class UnknownFellowshipDungeonError extends Data.TaggedError(
+class UnknownFellowshipDungeonError extends Data.TaggedError(
   "UnknownFellowshipDungeonError",
 )<{
   readonly dungeonKey: string;

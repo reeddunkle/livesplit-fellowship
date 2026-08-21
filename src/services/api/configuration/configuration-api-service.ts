@@ -15,15 +15,15 @@ import {
 import { createConfigurationApiResponse } from "@/services/api/configuration/create-configuration-api-response.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 
-export type CreateConfigurationApiOptions = {
+type CreateConfigurationApiOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
 };
 
-export type DeleteConfigurationApiOptions = {
+type DeleteConfigurationApiOptions = {
   readonly id: ConfigurationId;
 };
 
-export type GetConfigurationApiByIdOptions = {
+type GetConfigurationApiByIdOptions = {
   readonly id: ConfigurationId;
 };
 

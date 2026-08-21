@@ -8,18 +8,18 @@ import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/mil
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
-export type CanonicalMilestoneRequirement = {
+type CanonicalMilestoneRequirement = {
   readonly requiredCount: number;
   readonly startOccurrence: number;
   readonly targetId: MilestoneRequirementTargetId;
   readonly type: MilestoneRequirementEventType;
 };
 
-export type CanonicalMilestone = {
+type CanonicalMilestone = {
   readonly requirements: ReadonlyArray<CanonicalMilestoneRequirement>;
 };
 
-export type CanonicalMilestoneConfiguration = {
+type CanonicalMilestoneConfiguration = {
   readonly dungeonId: string;
   readonly milestones: ReadonlyArray<CanonicalMilestone>;
 };
@@ -55,7 +55,7 @@ function canonicalizeRequirement({
   };
 }
 
-export function canonicalizeMilestoneConfiguration(
+function canonicalizeMilestoneConfiguration(
   configuration: FellowshipMilestoneConfiguration,
 ): CanonicalMilestoneConfiguration {
   const milestones = configuration.milestones.map((milestone) => {

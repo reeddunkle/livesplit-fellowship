@@ -12,15 +12,15 @@ export type PersistedConfiguration = {
   readonly id: ConfigurationId;
 };
 
-export type CreateConfigurationOptions = {
+type CreateConfigurationOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
 };
 
-export type GetConfigurationByIdOptions = {
+type GetConfigurationByIdOptions = {
   readonly id: ConfigurationId;
 };
 
-export type DeleteConfigurationOptions = {
+type DeleteConfigurationOptions = {
   readonly id: ConfigurationId;
 };
 

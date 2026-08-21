@@ -11,10 +11,10 @@ export const CreateConfigurationApiRequestSchema = Schema.Struct({
   configuration: FellowshipMilestoneConfigurationFileSchema,
 });
 
-export type CreateConfigurationApiRequest =
+type CreateConfigurationApiRequest =
   typeof CreateConfigurationApiRequestSchema.Type;
 
-export const ConfigurationApiRequirementSchema = Schema.Struct({
+const ConfigurationApiRequirementSchema = Schema.Struct({
   requiredCount: PositiveIntegerSchema,
   startOccurrence: PositiveIntegerSchema,
   targetId: NonEmptyStringSchema,
@@ -24,7 +24,7 @@ export const ConfigurationApiRequirementSchema = Schema.Struct({
 export type ConfigurationApiRequirement =
   typeof ConfigurationApiRequirementSchema.Type;
 
-export const ConfigurationApiMilestoneSchema = Schema.Struct({
+const ConfigurationApiMilestoneSchema = Schema.Struct({
   label: NonEmptyStringSchema,
   requirements: Schema.NonEmptyArray(ConfigurationApiRequirementSchema),
 });

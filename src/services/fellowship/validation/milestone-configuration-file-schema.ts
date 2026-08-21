@@ -88,5 +88,5 @@ export const FellowshipMilestoneConfigurationFileSchema = Schema.Struct({
   milestones: Schema.Array(FellowshipMilestoneDefinitionSchema),
 });
 
-export type FellowshipMilestoneConfigurationFile =
+type FellowshipMilestoneConfigurationFile =
   typeof FellowshipMilestoneConfigurationFileSchema.Type;

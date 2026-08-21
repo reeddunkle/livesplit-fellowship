@@ -2,7 +2,7 @@ import * as Schema from "effect/Schema";
 
 import { ROUTES } from "@/api/constants/routes.ts";
 
-export const ConfigurationIdPathSegmentSchema = Schema.String.check(
+const ConfigurationIdPathSegmentSchema = Schema.String.check(
   Schema.isUUID(),
 );
 
