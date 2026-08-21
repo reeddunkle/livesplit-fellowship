@@ -6,6 +6,8 @@ import * as HttpServer from "effect/unstable/http/HttpServer";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
+import { getConfigurationRoute } from "@/api/constants/routes.ts";
+import { ConfigurationStoreError } from "@/errors/configuration-store-error.ts";
 import { CreateConfigurationApiRequestSchema } from "@/services/api/configuration/configuration-api-schema.ts";
 import { ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
 import { PushEventServer } from "@/services/api/push-event-server-service.ts";
@@ -51,6 +53,12 @@ function badRequestResponse() {
   });
 }
 
+function conflictResponse() {
+  return HttpServerResponse.text("Conflict", {
+    status: 409,
+  });
+}
+
 function notFoundResponse() {
   return HttpServerResponse.text("Not Found", {
     status: 404,
@@ -60,6 +68,23 @@ function notFoundResponse() {
 function internalServerErrorResponse() {
   return HttpServerResponse.text("Internal Server Error", {
     status: 500,
+  });
+}
+
+function handleCreateConfigurationError(error: unknown) {
+  if (
+    error instanceof ConfigurationStoreError &&
+    error.details._tag === "DuplicateConfiguration"
+  ) {
+    return E.succeed(conflictResponse());
+  }
+
+  return E.gen(function* () {
+    yield* E.logError("Failed to create configuration.", {
+      error,
+    });
+
+    return internalServerErrorResponse();
   });
 }
 
@@ -212,17 +237,16 @@ const handleCreateConfiguration = E.gen(function* () {
       E.flatMap((createdConfiguration) => {
         return HttpServerResponse.json(createdConfiguration, {
           status: 201,
-        });
+        }).pipe(
+          E.map(
+            HttpServerResponse.setHeader(
+              "location",
+              getConfigurationRoute(createdConfiguration.id),
+            ),
+          ),
+        );
       }),
-      E.catch((error) =>
-        E.gen(function* () {
-          yield* E.logError("Failed to create configuration.", {
-            error,
-          });
-
-          return internalServerErrorResponse();
-        }),
-      ),
+      E.catch(handleCreateConfigurationError),
     );
 });
 

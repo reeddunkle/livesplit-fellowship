@@ -234,6 +234,9 @@ describe("configuration routes", () => {
         )(json);
 
         expect(response.status).toBe(201);
+        expect(response.headers.get("location")).toBe(
+          getConfigurationRoute(CONFIGURATION_ID),
+        );
         expect(body).toEqual(configuration);
       }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
     );
@@ -261,6 +264,41 @@ describe("configuration routes", () => {
 
         expect(response.status).toBe(400);
         expect(yield* E.promise(() => response.text())).toBe("Bad Request");
+      }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
+    );
+
+    await runTest(program);
+  });
+
+  test("POST /configurations returns 409 for a duplicate configuration", async () => {
+    const configurationApiServiceTest = makeConfigurationApiServiceTest({
+      create: () => {
+        return E.fail(
+          new ConfigurationStoreError({
+            details: {
+              _tag: "DuplicateConfiguration",
+              fingerprint: "duplicate-fingerprint",
+            },
+          }),
+        );
+      },
+    });
+
+    const program = E.scoped(
+      E.gen(function* () {
+        const httpServer = yield* HttpServer.HttpServer;
+        const baseUrl = getHttpUrl(httpServer.address);
+
+        const response = yield* request(`${baseUrl}${ROUTES.configurations}`, {
+          body: JSON.stringify(createConfigurationRequest),
+          headers: {
+            "content-type": "application/json",
+          },
+          method: "POST",
+        });
+
+        expect(response.status).toBe(409);
+        expect(yield* E.promise(() => response.text())).toBe("Conflict");
       }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
     );
 
