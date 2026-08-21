@@ -11,6 +11,7 @@ catalogs:
   effect:
     "@effect/language-service": "0.87.1"
     "@effect/platform-node": "4.0.0-beta.102"
+    "@effect/sql-sqlite-node": "4.0.0-beta.102"
     "effect": "4.0.0-beta.102"
   electron:
     "electron": "^43.4.0"
@@ -30,5 +31,6 @@ catalogs:
     "vite": "^8.2.1"
 
 allowBuilds:
+  better-sqlite3: true
   esbuild: true
   msgpackr-extract: false

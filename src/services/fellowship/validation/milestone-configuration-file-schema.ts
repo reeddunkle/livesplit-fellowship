@@ -1,7 +1,10 @@
 import * as Schema from "effect/Schema";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
-import { NonEmptyStringSchema } from "@/validation/common.ts";
+import {
+  NonEmptyStringSchema,
+  PositiveIntegerSchema,
+} from "@/validation/common.ts";
 
 const FellowshipDungeonKeySchema = Schema.Union([
   Schema.Literal("CITHRELS_FALL"),
@@ -20,11 +23,6 @@ const FellowshipDungeonKeySchema = Schema.Union([
   Schema.Literal("WYRMHEART"),
   Schema.Literal("XUL_THE_BLOOD_MONOLITH"),
 ]);
-
-const PositiveIntegerSchema = Schema.Number.check(
-  Schema.isInt(),
-  Schema.isGreaterThanOrEqualTo(1),
-);
 
 const RequirementOccurrenceFields = {
   requiredCount: PositiveIntegerSchema,

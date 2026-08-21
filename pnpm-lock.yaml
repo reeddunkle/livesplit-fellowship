@@ -16,6 +16,9 @@ catalogs:
     '@effect/platform-node':
       specifier: 4.0.0-beta.102
       version: 4.0.0-beta.102
+    '@effect/sql-sqlite-node':
+      specifier: 4.0.0-beta.102
+      version: 4.0.0-beta.102
     effect:
       specifier: 4.0.0-beta.102
       version: 4.0.0-beta.102
@@ -61,6 +64,9 @@ importers:
       '@effect/platform-node':
         specifier: catalog:effect
         version: 4.0.0-beta.102(effect@4.0.0-beta.102)(ioredis@5.11.1)
+      '@effect/sql-sqlite-node':
+        specifier: catalog:effect
+        version: 4.0.0-beta.102(effect@4.0.0-beta.102)
       dotenv:
         specifier: catalog:runtime
         version: 17.4.2
@@ -174,6 +180,11 @@ packages:
     peerDependencies:
       effect: ^4.0.0-beta.102
       ioredis: ^5.7.0
+
+  '@effect/sql-sqlite-node@4.0.0-beta.102':
+    resolution: {integrity: sha512-MtHf58b33hP8t5wJ9SrQCoLwIWQntxtFdcAN3aSLTSczBgKk+d/BPGfyv6iIgDkWWyMKHOYrJ29C7vprgjqeyA==}
+    peerDependencies:
+      effect: ^4.0.0-beta.102
 
   '@electron-internal/extract-zip@1.0.5':
     resolution: {integrity: sha512-+bqFCP98pLI0Tt0XQo1TmlXtwjWchISndDOxCkEcIuUgXWpBnLyRI+2DU+mesvnMMX6L1XDqYNA0lXNDHd/yiA==}
@@ -1483,6 +1494,10 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+
+  '@effect/sql-sqlite-node@4.0.0-beta.102(effect@4.0.0-beta.102)':
+    dependencies:
+      effect: 4.0.0-beta.102
 
   '@electron-internal/extract-zip@1.0.5': {}
 

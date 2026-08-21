@@ -22,3 +22,8 @@ export const JsonStringArraySchema = Schema.fromJsonString(
 export const JsonIntegerArraySchema = Schema.fromJsonString(
   Schema.Array(Schema.Int),
 );
+
+export const PositiveIntegerSchema = Schema.Number.check(
+  Schema.isInt(),
+  Schema.isGreaterThanOrEqualTo(1),
+);

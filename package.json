@@ -24,6 +24,7 @@
   "packageManager": "pnpm@11.22.0",
   "dependencies": {
     "@effect/platform-node": "catalog:effect",
+    "@effect/sql-sqlite-node": "catalog:effect",
     "dotenv": "catalog:runtime",
     "effect": "catalog:effect"
   },
