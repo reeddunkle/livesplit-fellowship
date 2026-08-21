@@ -5,6 +5,7 @@ import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/valid
 import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
+  UuidSchema,
 } from "@/validation/common.ts";
 
 export const CreateConfigurationApiRequestSchema = Schema.Struct({
@@ -35,7 +36,7 @@ export type ConfigurationApiMilestone =
 export const ConfigurationApiConfigurationSchema = Schema.Struct({
   dungeonId: NonEmptyStringSchema,
   dungeonName: NonEmptyStringSchema,
-  id: NonEmptyStringSchema,
+  id: UuidSchema,
   milestones: Schema.Array(ConfigurationApiMilestoneSchema),
 });
 

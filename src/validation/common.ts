@@ -27,3 +27,5 @@ export const PositiveIntegerSchema = Schema.Number.check(
   Schema.isInt(),
   Schema.isGreaterThanOrEqualTo(1),
 );
+
+export const UuidSchema = Schema.String.check(Schema.isUUID());

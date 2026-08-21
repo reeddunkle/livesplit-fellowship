@@ -9,11 +9,12 @@ import {
   ConfigurationApiConfigurationSchema,
   CreateConfigurationApiRequestSchema,
 } from "@/services/api/configuration/configuration-api-schema.ts";
+import { UuidSchema } from "@/validation/common.ts";
 
 const CONFIGURATIONS_PATH = "/configurations" as const;
 
 const ConfigurationIdParamsSchema = Schema.Struct({
-  id: Schema.String.check(Schema.isUUID()),
+  id: UuidSchema,
 });
 
 const CreatedConfigurationSchema = ConfigurationApiConfigurationSchema.pipe(
