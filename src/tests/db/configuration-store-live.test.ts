@@ -1,5 +1,4 @@
 import * as E from "effect/Effect";
-import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Result from "effect/Result";
 import { describe, expect, test } from "vitest";
@@ -9,8 +8,7 @@ import {
   ConfigurationStore,
   type PersistedConfiguration,
 } from "@/db/configuration/configuration-store.ts";
-import { ConfigurationStoreLive } from "@/db/configuration/configuration-store-live.ts";
-import { makeDatabaseLayer } from "@/db/database-layer.ts";
+import { makeConfigurationStoreLayer } from "@/layers/configuration-store-layer.ts";
 import { FELLOWSHIP_DUNGEON } from "@/services/fellowship/constants/fellowship-dungeon.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { runTest } from "@/tests/common/run-test.ts";
@@ -96,12 +94,10 @@ function getPersistedConfiguration(
 }
 
 function makeTestLayer() {
-  return ConfigurationStoreLive.pipe(
-    Layer.provideMerge(makeDatabaseLayer(":memory:")),
-  );
+  return makeConfigurationStoreLayer(":memory:");
 }
 
-describe("ConfigurationRepositoryLive", () => {
+describe("ConfigurationStoreLive", () => {
   test("creates and retrieves a configuration", async () => {
     const program = E.gen(function* () {
       const configurationStore = yield* ConfigurationStore;
