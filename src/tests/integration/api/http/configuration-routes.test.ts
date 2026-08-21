@@ -181,6 +181,32 @@ describe("configuration routes", () => {
     await runTest(program);
   });
 
+  test("POST /configurations returns 400 for an invalid request body", async () => {
+    const configurationApiServiceTest = makeConfigurationApiServiceTest();
+
+    const program = E.scoped(
+      E.gen(function* () {
+        const httpServer = yield* HttpServer.HttpServer;
+        const baseUrl = getHttpUrl(httpServer.address);
+
+        const response = yield* request(`${baseUrl}/configurations`, {
+          body: JSON.stringify({
+            invalid: true,
+          }),
+          headers: {
+            "content-type": "application/json",
+          },
+          method: "POST",
+        });
+
+        expect(response.status).toBe(400);
+        expect(yield* E.promise(() => response.text())).toBe("Bad Request");
+      }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
+    );
+
+    await runTest(program);
+  });
+
   test("returns 404 for a malformed configuration id", async () => {
     const configurationApiServiceTest = makeConfigurationApiServiceTest();
 
