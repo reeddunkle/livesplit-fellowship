@@ -1,3 +1,6 @@
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import * as E from "effect/Effect";
 import * as SqlClient from "effect/unstable/sql/SqlClient";
 import { describe, expect, test } from "vitest";
@@ -117,5 +120,37 @@ describe("DatabaseLayer", () => {
     }).pipe(E.provide(makeDatabaseLayer(":memory:")));
 
     await runTest(program);
+  });
+
+  test("creates the database parent directory on first startup", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "livesplit-fellowship-"));
+
+    const databaseFilename = join(
+      directory,
+      "nested",
+      "data",
+      "livesplit-fellowship.db",
+    );
+
+    const program = E.gen(function* () {
+      const sql = yield* SqlClient.SqlClient;
+
+      const result = yield* sql`
+      SELECT name
+      FROM sqlite_master
+      WHERE type = 'table'
+    `;
+
+      expect(result.length).toBeGreaterThan(0);
+    }).pipe(E.provide(makeDatabaseLayer(databaseFilename)));
+
+    try {
+      await runTest(program);
+    } finally {
+      await rm(directory, {
+        force: true,
+        recursive: true,
+      });
+    }
   });
 });

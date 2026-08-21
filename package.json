@@ -8,6 +8,7 @@
     "cli": "tsx src/cli/cli.ts",
     "cli:api": "tsx src/cli/api-cli.ts",
     "cli:livesplit": "tsx src/cli/live-split-cli.ts",
+    "db:setup": "tsx src/scripts/setup-database.ts",
     "electron:build:main": "tsc -p tsconfig.electron.json",
     "electron:build:renderer": "vite build --config vite.electron.config.ts",
     "electron:build": "run-s electron:build:main electron:build:renderer",
