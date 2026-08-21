@@ -11,7 +11,7 @@ import {
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { UuidSchema } from "@/validation/common.ts";
 
-const CONFIGURATIONS_PATH = "/configurations" as const;
+const CONFIGURATIONS_ROUTE = "/configurations" as const;
 
 const ConfigurationIdParamsSchema = Schema.Struct({
   id: UuidSchema,
@@ -23,7 +23,7 @@ const CreatedConfigurationSchema = ConfigurationApiConfigurationSchema.pipe(
 
 const GetConfigurationsEndpoint = HttpApiEndpoint.get(
   "getConfigurations",
-  CONFIGURATIONS_PATH,
+  CONFIGURATIONS_ROUTE,
   {
     error: HttpApiError.InternalServerErrorNoContent,
     success: ConfigurationApiConfigurationListSchema,
@@ -32,7 +32,7 @@ const GetConfigurationsEndpoint = HttpApiEndpoint.get(
 
 const GetConfigurationEndpoint = HttpApiEndpoint.get(
   "getConfiguration",
-  `${CONFIGURATIONS_PATH}/:id`,
+  `${CONFIGURATIONS_ROUTE}/:id`,
   {
     error: [
       HttpApiError.NotFoundNoContent,
@@ -45,7 +45,7 @@ const GetConfigurationEndpoint = HttpApiEndpoint.get(
 
 const CreateConfigurationEndpoint = HttpApiEndpoint.post(
   "createConfiguration",
-  CONFIGURATIONS_PATH,
+  CONFIGURATIONS_ROUTE,
   {
     error: [
       HttpApiError.ConflictNoContent,
@@ -58,7 +58,7 @@ const CreateConfigurationEndpoint = HttpApiEndpoint.post(
 
 const DeleteConfigurationEndpoint = HttpApiEndpoint.delete(
   "deleteConfiguration",
-  `${CONFIGURATIONS_PATH}/:id`,
+  `${CONFIGURATIONS_ROUTE}/:id`,
   {
     error: HttpApiError.InternalServerErrorNoContent,
     params: ConfigurationIdParamsSchema,

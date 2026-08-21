@@ -9,7 +9,7 @@ import * as HttpServer from "effect/unstable/http/HttpServer";
 import { describe, expect, test } from "vitest";
 
 import { ApiServer } from "@/api/api-server.ts";
-import { type RunApiMessage } from "@/api/validation/run-api-message-schema.ts";
+import { type RunApiMessage } from "@/api/websocket/run-api-message-schema.ts";
 import {
   API_CONNECTION_STATE,
   createConfigurationForUrl,

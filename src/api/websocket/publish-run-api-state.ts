@@ -1,5 +1,5 @@
-import { createRunApiState } from "@/api/run-api-state.ts";
-import { type RunApiMessage } from "@/api/validation/run-api-message-schema.ts";
+import { type RunApiMessage } from "@/api/websocket/run-api-message-schema.ts";
+import { createRunApiState } from "@/api/websocket/run-api-state.ts";
 import { type PushEventServerService } from "@/services/api/push-event-server-service.ts";
 import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type RunProcessingState } from "@/services/fellowship/runs/run-processing-state.ts";

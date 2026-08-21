@@ -3,7 +3,7 @@ import * as E from "effect/Effect";
 import * as Schema from "effect/Schema";
 import { describe, expect, test } from "vitest";
 
-import { RunApiMessageSchema } from "@/api/validation/run-api-message-schema.ts";
+import { RunApiMessageSchema } from "@/api/websocket/run-api-message-schema.ts";
 import { processApiEventStream } from "@/application/run-processing/process-api-event-stream.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { runTest } from "@/tests/common/run-test.ts";

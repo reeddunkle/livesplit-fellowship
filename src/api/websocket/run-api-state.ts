@@ -2,7 +2,7 @@ import {
   type RunApiMilestone,
   type RunApiRequirement,
   type RunApiState,
-} from "@/api/validation/run-api-message-schema.ts";
+} from "@/api/websocket/run-api-message-schema.ts";
 import {
   analyzeMilestoneProgress,
   type MilestoneProgress,

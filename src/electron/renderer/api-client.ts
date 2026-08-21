@@ -13,7 +13,7 @@ import { AppHttpApi } from "@/api/http/http-api.ts";
 import {
   type RunApiMessage,
   RunApiMessageSchema,
-} from "@/api/validation/run-api-message-schema.ts";
+} from "@/api/websocket/run-api-message-schema.ts";
 import { ApiClientMessageDecodeError } from "@/errors/api-client-error.ts";
 import { type CreateConfigurationApiRequest } from "@/services/api/configuration/configuration-api-schema.ts";
 
