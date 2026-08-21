@@ -13,7 +13,7 @@ export class ConfigurationModel extends Model.Class<ConfigurationModel>(
   "ConfigurationModel",
 )({
   canonicalJson: Schema.String,
-  createdAt: Model.DateTimeInsert,
+  createdAt: Model.DateTimeInsertFromNumber,
   dungeonKey: NonEmptyStringSchema,
   fingerprint: NonEmptyStringSchema,
   id: Model.UuidV7Insert(ConfigurationIdSchema),
