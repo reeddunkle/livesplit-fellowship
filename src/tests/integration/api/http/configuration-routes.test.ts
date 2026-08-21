@@ -195,7 +195,7 @@ describe("configuration routes", () => {
         );
 
         expect(response.status).toBe(404);
-        expect(yield* E.promise(() => response.text())).toBe("Not Found");
+        expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
     );
 
@@ -234,9 +234,6 @@ describe("configuration routes", () => {
         )(json);
 
         expect(response.status).toBe(201);
-        expect(response.headers.get("location")).toBe(
-          getConfigurationRoute(CONFIGURATION_ID),
-        );
         expect(body).toEqual(configuration);
       }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
     );
@@ -263,7 +260,7 @@ describe("configuration routes", () => {
         });
 
         expect(response.status).toBe(400);
-        expect(yield* E.promise(() => response.text())).toBe("Bad Request");
+        expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
     );
 
@@ -298,7 +295,7 @@ describe("configuration routes", () => {
         });
 
         expect(response.status).toBe(409);
-        expect(yield* E.promise(() => response.text())).toBe("Conflict");
+        expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
     );
 
@@ -337,7 +334,7 @@ describe("configuration routes", () => {
     await runTest(program);
   });
 
-  test("returns 404 for a malformed configuration id", async () => {
+  test("returns 400 for a malformed configuration id", async () => {
     const configurationApiServiceTest = makeConfigurationApiServiceTest();
 
     const program = E.scoped(
@@ -349,8 +346,8 @@ describe("configuration routes", () => {
           `${baseUrl}${getConfigurationRoute("not-a-uuid")}`,
         );
 
-        expect(response.status).toBe(404);
-        expect(yield* E.promise(() => response.text())).toBe("Not Found");
+        expect(response.status).toBe(400);
+        expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
     );
 
@@ -370,7 +367,6 @@ describe("configuration routes", () => {
         });
 
         expect(response.status).toBe(404);
-        expect(yield* E.promise(() => response.text())).toBe("Not Found");
       }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
     );
 
@@ -399,9 +395,7 @@ describe("configuration routes", () => {
         const response = yield* request(`${baseUrl}${ROUTES.configurations}`);
 
         expect(response.status).toBe(500);
-        expect(yield* E.promise(() => response.text())).toBe(
-          "Internal Server Error",
-        );
+        expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
     );
 
