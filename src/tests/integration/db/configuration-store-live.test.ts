@@ -1,3 +1,6 @@
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import * as E from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Result from "effect/Result";
@@ -337,5 +340,73 @@ describe("ConfigurationStoreLive", () => {
     }).pipe(E.provide(makeTestLayer()));
 
     await runTest(program);
+  });
+
+  test("persists configurations across database restarts", async () => {
+    const temporaryDirectory = await mkdtemp(
+      join(tmpdir(), "livesplit-fellowship-"),
+    );
+
+    const databaseFilename = join(
+      temporaryDirectory,
+      "livesplit-fellowship.db",
+    );
+
+    try {
+      let configurationId: string | undefined;
+
+      const createProgram = E.gen(function* () {
+        const configurationStore = yield* ConfigurationStore;
+
+        const created = yield* configurationStore.create({
+          configuration,
+        });
+
+        configurationId = created.id;
+      }).pipe(
+        E.provide(
+          makePersistenceLayer({
+            databaseFilename,
+          }),
+        ),
+      );
+
+      await runTest(E.scoped(createProgram));
+
+      if (configurationId === undefined) {
+        throw new Error("Expected configuration to be created.");
+      }
+
+      const persistedConfigurationId = configurationId;
+
+      const readProgram = E.gen(function* () {
+        const configurationStore = yield* ConfigurationStore;
+
+        const result = yield* configurationStore.getById({
+          id: persistedConfigurationId,
+        });
+
+        const persisted = getPersistedConfiguration(result);
+
+        expect(persisted.id).toBe(persistedConfigurationId);
+
+        expect(
+          createConfigurationFingerprint(persisted.configuration).fingerprint,
+        ).toBe(createConfigurationFingerprint(configuration).fingerprint);
+      }).pipe(
+        E.provide(
+          makePersistenceLayer({
+            databaseFilename,
+          }),
+        ),
+      );
+
+      await runTest(E.scoped(readProgram));
+    } finally {
+      await rm(temporaryDirectory, {
+        force: true,
+        recursive: true,
+      });
+    }
   });
 });
