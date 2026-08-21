@@ -91,6 +91,13 @@ export function processRunEvent({
 }: ProcessRunEventOptions): ProcessRunEventResult {
   const isDungeonStart = event.type === FELLOWSHIP_EVENT.DUNGEON_START;
 
+  const isConfiguredDungeonStart =
+    isDungeonStart &&
+    doesRunStartMatchConfiguration({
+      configuration,
+      runStart: event,
+    });
+
   const currentRunStart = state.runTracker.currentStart;
 
   const wasConfiguredRunActive =
@@ -112,7 +119,7 @@ export function processRunEvent({
     state: state.runTracker,
   });
 
-  const milestoneProcessor = isDungeonStart
+  const milestoneProcessor = isConfiguredDungeonStart
     ? initialMilestoneProcessorState
     : state.milestoneProcessor;
 
@@ -148,14 +155,15 @@ export function processRunEvent({
 
   const timestamp = getEventTimestamp(event);
 
-  const dungeonStartEvents: ReadonlyArray<RunProcessingEvent> = isDungeonStart
-    ? [
-        {
-          timestamp,
-          type: RUN_PROCESSING_EVENT.RUN_STARTED,
-        },
-      ]
-    : [];
+  const dungeonStartEvents: ReadonlyArray<RunProcessingEvent> =
+    isConfiguredDungeonStart
+      ? [
+          {
+            timestamp,
+            type: RUN_PROCESSING_EVENT.RUN_STARTED,
+          },
+        ]
+      : [];
 
   const milestoneEvents: ReadonlyArray<RunProcessingEvent> =
     milestoneResult.milestones.map((milestone) => {
@@ -176,8 +184,8 @@ export function processRunEvent({
       : [];
 
   const isStateUpdated =
-    isDungeonStart ||
-    milestoneResult.isRequirementsUpdated ||
+    isConfiguredDungeonStart ||
+    milestoneResult.isStateUpdated ||
     hasExitedConfiguredRun;
 
   return {

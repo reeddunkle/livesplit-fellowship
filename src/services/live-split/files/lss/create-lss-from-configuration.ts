@@ -13,32 +13,6 @@ function createGameName(
   return `Fellowship ${configuration.dungeon.name}`;
 }
 
-function createSplitTimes(targetElapsedTime: string | undefined): XMLElement {
-  if (targetElapsedTime === undefined) {
-    return createXMLElement({
-      name: "SplitTimes",
-    });
-  }
-
-  return createXMLElement({
-    children: [
-      createXMLElement({
-        attributes: {
-          name: "Goal",
-        },
-        children: [
-          createXMLElement({
-            children: [targetElapsedTime],
-            name: "RealTime",
-          }),
-        ],
-        name: "SplitTime",
-      }),
-    ],
-    name: "SplitTimes",
-  });
-}
-
 function createSegment(milestone: FellowshipMilestoneDefinition): XMLElement {
   return createXMLElement({
     children: [
@@ -49,7 +23,9 @@ function createSegment(milestone: FellowshipMilestoneDefinition): XMLElement {
       createXMLElement({
         name: "Icon",
       }),
-      createSplitTimes(milestone.targetElapsedTime),
+      createXMLElement({
+        name: "SplitTimes",
+      }),
       createXMLElement({
         name: "BestSegmentTime",
       }),

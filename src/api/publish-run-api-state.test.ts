@@ -8,7 +8,7 @@ import { compileMilestoneConfiguration } from "@/services/fellowship/milestones/
 import {
   initialMilestoneProcessorState,
   type MilestoneProcessorState,
-  type ObservedRequirementsById,
+  type RequirementObservationsByTargetId,
 } from "@/services/fellowship/milestones/milestone-processor-state.ts";
 import { type RunProcessingState } from "@/services/fellowship/runs/run-processing-state.ts";
 import {
@@ -27,9 +27,10 @@ const configuration = compileMilestoneConfiguration({
   milestones: [
     {
       label: "Desecrator 1 Killed",
-      milestoneId: "desecrator:killed:1",
       requirements: [
         {
+          requiredCount: 1,
+          startOccurrence: 1,
           type: "UNIT_DEATH",
           unitTypeId: "42",
         },
@@ -37,6 +38,12 @@ const configuration = compileMilestoneConfiguration({
     },
   ],
 });
+
+const [milestone] = configuration.milestones;
+
+if (milestone === undefined) {
+  throw new Error("Expected test configuration to contain a milestone.");
+}
 
 function createDungeonStartEvent(
   timestampMilliseconds: number,
@@ -96,12 +103,13 @@ describe("publishRunApiState", () => {
                 completedAtMilliseconds: null,
                 elapsedMilliseconds: null,
                 label: "Desecrator 1 Killed",
-                milestoneId: "desecrator:killed:1",
+                milestoneId: milestone.milestoneId,
                 requirements: [
                   {
-                    id: "42",
                     observations: [],
                     requiredCount: 1,
+                    startOccurrence: 1,
+                    targetId: "42",
                     type: "UNIT_DEATH",
                   },
                 ],
@@ -125,41 +133,30 @@ describe("publishRunApiState", () => {
 
       const requirementTimestamp = DateTime.makeUnsafe(13_345);
 
-      const observedRequirementsById: ObservedRequirementsById = HashMap.make([
-        "42",
-        {
-          observations: [
-            {
-              timestamp: requirementTimestamp,
-            },
-          ],
-        },
-      ]);
+      const observationsByTargetId: RequirementObservationsByTargetId =
+        HashMap.make([
+          "42",
+          {
+            observations: [
+              {
+                timestamp: requirementTimestamp,
+              },
+            ],
+          },
+        ]);
 
-      const observedRequirements = HashMap.set(
+      const requirementObservations = HashMap.set(
         HashMap.empty<
           MilestoneRequirementEventType,
-          ObservedRequirementsById
+          RequirementObservationsByTargetId
         >(),
         "UNIT_DEATH",
-        observedRequirementsById,
+        observationsByTargetId,
       );
 
       const state = createRunProcessingState({
         milestoneProcessor: {
-          observedMilestones: HashMap.make([
-            "desecrator:killed:1",
-            {
-              elapsedMilliseconds: 12_345,
-              label: "Desecrator 1 Killed",
-              milestoneId: "desecrator:killed:1",
-              timestamp: requirementTimestamp,
-            },
-          ]),
-          observedRequirements: HashMap.make([
-            "desecrator:killed:1",
-            observedRequirements,
-          ]),
+          requirementObservations,
         },
         runTracker: {
           currentEvents: [],
@@ -183,16 +180,17 @@ describe("publishRunApiState", () => {
                 completedAtMilliseconds: 13_345,
                 elapsedMilliseconds: 12_345,
                 label: "Desecrator 1 Killed",
-                milestoneId: "desecrator:killed:1",
+                milestoneId: milestone.milestoneId,
                 requirements: [
                   {
-                    id: "42",
                     observations: [
                       {
                         timestampMilliseconds: 13_345,
                       },
                     ],
                     requiredCount: 1,
+                    startOccurrence: 1,
+                    targetId: "42",
                     type: "UNIT_DEATH",
                   },
                 ],
@@ -230,12 +228,13 @@ describe("publishRunApiState", () => {
                 completedAtMilliseconds: null,
                 elapsedMilliseconds: null,
                 label: "Desecrator 1 Killed",
-                milestoneId: "desecrator:killed:1",
+                milestoneId: milestone.milestoneId,
                 requirements: [
                   {
-                    id: "42",
                     observations: [],
                     requiredCount: 1,
+                    startOccurrence: 1,
+                    targetId: "42",
                     type: "UNIT_DEATH",
                   },
                 ],

@@ -21,30 +21,46 @@ const FellowshipDungeonKeySchema = Schema.Union([
   Schema.Literal("XUL_THE_BLOOD_MONOLITH"),
 ]);
 
+const PositiveIntegerSchema = Schema.Number.check(
+  Schema.isInt(),
+  Schema.isGreaterThanOrEqualTo(1),
+);
+
+const RequirementOccurrenceFields = {
+  requiredCount: PositiveIntegerSchema,
+  startOccurrence: PositiveIntegerSchema,
+};
+
 const AbilityActivatedMilestoneRequirementSchema = Schema.Struct({
   abilityId: NonEmptyStringSchema,
+  ...RequirementOccurrenceFields,
   type: Schema.Literal(FELLOWSHIP_EVENT.ABILITY_ACTIVATED),
 });
 
 const DungeonStartMilestoneRequirementSchema = Schema.Struct({
+  ...RequirementOccurrenceFields,
   type: Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_START),
 });
 
 const DungeonEndMilestoneRequirementSchema = Schema.Struct({
+  ...RequirementOccurrenceFields,
   type: Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_END),
 });
 
 const EncounterStartMilestoneRequirementSchema = Schema.Struct({
   encounterId: NonEmptyStringSchema,
+  ...RequirementOccurrenceFields,
   type: Schema.Literal(FELLOWSHIP_EVENT.ENCOUNTER_START),
 });
 
 const EncounterEndMilestoneRequirementSchema = Schema.Struct({
   encounterId: NonEmptyStringSchema,
+  ...RequirementOccurrenceFields,
   type: Schema.Literal(FELLOWSHIP_EVENT.ENCOUNTER_END),
 });
 
 const UnitDeathMilestoneRequirementSchema = Schema.Struct({
+  ...RequirementOccurrenceFields,
   type: Schema.Literal(FELLOWSHIP_EVENT.UNIT_DEATH),
   unitTypeId: NonEmptyStringSchema,
 });
@@ -61,15 +77,9 @@ const FellowshipMilestoneRequirementSchema = Schema.Union([
 export type FellowshipMilestoneRequirement =
   typeof FellowshipMilestoneRequirementSchema.Type;
 
-const TargetElapsedTimeSchema = Schema.String.check(
-  Schema.isPattern(/^\d{2}:[0-5]\d:[0-5]\d$/),
-);
-
 const FellowshipMilestoneDefinitionSchema = Schema.Struct({
   label: NonEmptyStringSchema,
-  milestoneId: NonEmptyStringSchema,
   requirements: Schema.NonEmptyArray(FellowshipMilestoneRequirementSchema),
-  targetElapsedTime: Schema.optional(TargetElapsedTimeSchema),
 });
 
 export type FellowshipMilestoneDefinition =

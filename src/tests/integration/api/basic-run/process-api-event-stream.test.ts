@@ -1,7 +1,9 @@
 import path from "node:path";
 import * as E from "effect/Effect";
+import * as Schema from "effect/Schema";
 import { describe, expect, test } from "vitest";
 
+import { RunApiMessageSchema } from "@/api/validation/run-api-message-schema.ts";
 import { processApiEventStream } from "@/application/run-processing/process-api-event-stream.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { runTest } from "@/tests/common/run-test.ts";
@@ -30,7 +32,18 @@ describe("processApiEventStream", () => {
 
         expect(messages.length).toBeGreaterThan(0);
 
-        expect(messages[0]).toMatchObject({
+        const firstMessage = messages[0];
+
+        expect(firstMessage).toBeDefined();
+
+        if (firstMessage === undefined) {
+          return;
+        }
+
+        const decodedFirstMessage =
+          Schema.decodeUnknownSync(RunApiMessageSchema)(firstMessage);
+
+        expect(decodedFirstMessage).toMatchObject({
           state: {
             run: {
               startedAtMilliseconds: expect.any(Number),
@@ -47,138 +60,137 @@ describe("processApiEventStream", () => {
           return;
         }
 
-        expect(finalMessage).toMatchObject({
-          state: {
-            milestones: expect.arrayContaining(
-              configuration.milestones.map((milestone) => {
-                return expect.objectContaining({
-                  completedAtMilliseconds: expect.any(Number),
-                  elapsedMilliseconds: expect.any(Number),
-                  label: milestone.label,
-                  milestoneId: milestone.milestoneId,
-                  requirements: expect.any(Array),
-                });
-              }),
-            ),
-          },
-          version: 1,
-        });
+        const decodedFinalMessage =
+          Schema.decodeUnknownSync(RunApiMessageSchema)(finalMessage);
 
-        const desecrator1 = finalMessage.state.milestones.find((milestone) => {
-          return milestone.milestoneId === "desecrator:killed:1";
-        });
+        const desecrator1 = decodedFinalMessage.state.milestones.find(
+          (milestone) => {
+            return milestone.label === "Desecrator 1 Killed";
+          },
+        );
 
         expect(desecrator1).toBeDefined();
 
         expect(desecrator1?.requirements).toEqual([
           expect.objectContaining({
-            id: "42",
             observations: [
               expect.objectContaining({
                 timestampMilliseconds: expect.any(Number),
               }),
             ],
             requiredCount: 1,
+            startOccurrence: 1,
+            targetId: "42",
             type: "UNIT_DEATH",
           }),
         ]);
 
-        const desecrator2 = finalMessage.state.milestones.find((milestone) => {
-          return milestone.milestoneId === "desecrator:killed:2";
-        });
+        const desecrator2 = decodedFinalMessage.state.milestones.find(
+          (milestone) => {
+            return milestone.label === "Desecrator 2 Killed";
+          },
+        );
 
         expect(desecrator2).toBeDefined();
 
         expect(desecrator2?.requirements).toEqual([
           expect.objectContaining({
-            id: "42",
             observations: [
               expect.objectContaining({
                 timestampMilliseconds: expect.any(Number),
               }),
-              expect.objectContaining({
-                timestampMilliseconds: expect.any(Number),
-              }),
             ],
-            requiredCount: 2,
+            requiredCount: 1,
+            startOccurrence: 2,
+            targetId: "42",
             type: "UNIT_DEATH",
           }),
         ]);
 
-        const butcher2 = finalMessage.state.milestones.find((milestone) => {
-          return milestone.milestoneId === "butcher:killed:2";
-        });
+        const butcher2 = decodedFinalMessage.state.milestones.find(
+          (milestone) => {
+            return milestone.label === "Butcher 2 Killed";
+          },
+        );
 
         expect(butcher2).toBeDefined();
 
         expect(butcher2?.requirements).toEqual([
           expect.objectContaining({
-            id: "41",
             observations: [
               expect.objectContaining({
                 timestampMilliseconds: expect.any(Number),
               }),
-              expect.objectContaining({
-                timestampMilliseconds: expect.any(Number),
-              }),
             ],
-            requiredCount: 2,
+            requiredCount: 1,
+            startOccurrence: 2,
+            targetId: "41",
             type: "UNIT_DEATH",
           }),
         ]);
 
-        const shadowlord2 = finalMessage.state.milestones.find((milestone) => {
-          return milestone.milestoneId === "shadowlord:killed:2";
-        });
+        const shadowlord2 = decodedFinalMessage.state.milestones.find(
+          (milestone) => {
+            return milestone.label === "Shadowlord 2 Killed";
+          },
+        );
 
         expect(shadowlord2).toBeDefined();
 
         expect(shadowlord2?.requirements).toEqual([
           expect.objectContaining({
-            id: "274",
             observations: [
               expect.objectContaining({
                 timestampMilliseconds: expect.any(Number),
               }),
-              expect.objectContaining({
-                timestampMilliseconds: expect.any(Number),
-              }),
             ],
-            requiredCount: 2,
+            requiredCount: 1,
+            startOccurrence: 2,
+            targetId: "274",
             type: "UNIT_DEATH",
           }),
         ]);
 
-        const bossPull = finalMessage.state.milestones.find((milestone) => {
-          return milestone.milestoneId === "boss:pulled";
-        });
+        const bossPull = decodedFinalMessage.state.milestones.find(
+          (milestone) => {
+            return milestone.label === "Boss Pull";
+          },
+        );
+
+        expect(bossPull).toBeDefined();
 
         expect(bossPull?.requirements).toEqual([
           expect.objectContaining({
-            id: "30",
             observations: [
               expect.objectContaining({
                 timestampMilliseconds: expect.any(Number),
               }),
             ],
             requiredCount: 1,
+            startOccurrence: 1,
+            targetId: "30",
             type: "ENCOUNTER_START",
           }),
         ]);
 
-        const bossKill = finalMessage.state.milestones.find((milestone) => {
-          return milestone.milestoneId === "boss:defeated";
-        });
+        const bossKill = decodedFinalMessage.state.milestones.find(
+          (milestone) => {
+            return milestone.label === "Boss Kill";
+          },
+        );
+
+        expect(bossKill).toBeDefined();
 
         expect(bossKill?.requirements).toEqual([
           expect.objectContaining({
-            id: "30",
             observations: [
               expect.objectContaining({
                 timestampMilliseconds: expect.any(Number),
               }),
             ],
             requiredCount: 1,
+            startOccurrence: 1,
+            targetId: "30",
             type: "ENCOUNTER_END",
           }),
         ]);

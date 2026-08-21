@@ -3,58 +3,102 @@
   "milestones": [
     {
       "label": "Desecrator 1 Killed",
-      "milestoneId": "desecrator:killed:1",
-      "requirements": [{ "unitTypeId": "42", "type": "UNIT_DEATH" }]
+      "requirements": [
+        {
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "UNIT_DEATH",
+          "unitTypeId": "42"
+        }
+      ]
     },
     {
       "label": "Butcher 1 Killed",
-      "milestoneId": "butcher:killed:1",
-      "requirements": [{ "unitTypeId": "41", "type": "UNIT_DEATH" }]
+      "requirements": [
+        {
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "UNIT_DEATH",
+          "unitTypeId": "41"
+        }
+      ]
     },
     {
       "label": "Desecrator 2 Killed",
-      "milestoneId": "desecrator:killed:2",
       "requirements": [
-        { "unitTypeId": "42", "type": "UNIT_DEATH" },
-        { "unitTypeId": "42", "type": "UNIT_DEATH" }
+        {
+          "requiredCount": 1,
+          "startOccurrence": 2,
+          "type": "UNIT_DEATH",
+          "unitTypeId": "42"
+        }
       ]
     },
     {
       "label": "Seer 1 Killed",
-      "milestoneId": "seer:killed:1",
-      "requirements": [{ "unitTypeId": "40", "type": "UNIT_DEATH" }]
+      "requirements": [
+        {
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "UNIT_DEATH",
+          "unitTypeId": "40"
+        }
+      ]
     },
     {
       "label": "Butcher 2 Killed",
-      "milestoneId": "butcher:killed:2",
       "requirements": [
-        { "unitTypeId": "41", "type": "UNIT_DEATH" },
-        { "unitTypeId": "41", "type": "UNIT_DEATH" }
+        {
+          "requiredCount": 1,
+          "startOccurrence": 2,
+          "type": "UNIT_DEATH",
+          "unitTypeId": "41"
+        }
       ]
     },
     {
       "label": "Shadowlord 1 Killed",
-      "milestoneId": "shadowlord:killed:1",
-      "requirements": [{ "unitTypeId": "274", "type": "UNIT_DEATH" }]
+      "requirements": [
+        {
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "UNIT_DEATH",
+          "unitTypeId": "274"
+        }
+      ]
     },
     {
       "label": "Shadowlord 2 Killed",
-      "milestoneId": "shadowlord:killed:2",
       "requirements": [
-        { "unitTypeId": "274", "type": "UNIT_DEATH" },
-        { "unitTypeId": "274", "type": "UNIT_DEATH" }
+        {
+          "requiredCount": 1,
+          "startOccurrence": 2,
+          "type": "UNIT_DEATH",
+          "unitTypeId": "274"
+        }
       ]
     },
     {
       "label": "Boss Pull",
-      "milestoneId": "boss:pulled",
-      "requirements": [{ "encounterId": "30", "type": "ENCOUNTER_START" }]
+      "requirements": [
+        {
+          "encounterId": "30",
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "ENCOUNTER_START"
+        }
+      ]
     },
     {
       "label": "Boss Kill",
-      "milestoneId": "boss:defeated",
-      "targetElapsedTime": "00:11:48",
-      "requirements": [{ "encounterId": "30", "type": "ENCOUNTER_END" }]
+      "requirements": [
+        {
+          "encounterId": "30",
+          "requiredCount": 1,
+          "startOccurrence": 1,
+          "type": "ENCOUNTER_END"
+        }
+      ]
     }
   ]
 }

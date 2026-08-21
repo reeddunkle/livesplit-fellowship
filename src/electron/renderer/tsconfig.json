@@ -7,6 +7,6 @@
     "types": ["vite/client"],
     "noEmit": true
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "../../types/vite-env.d.ts"],
   "exclude": []
 }

@@ -1,106 +1,101 @@
 import * as HashMap from "effect/HashMap";
 import * as Option from "effect/Option";
 
-import {
-  getMilestoneRequirementLookup,
-  type MilestoneRequirementId,
-  type MilestoneRequirementLookup,
-} from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
+import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import {
   type CompiledFellowshipMilestoneConfiguration,
   type CompiledMilestoneDefinition,
   type CompiledMilestoneRequirement,
   type FellowshipMilestoneConfiguration,
-  type MilestoneRequirementsById,
-  type MilestoneRequirementTarget,
+  type MilestoneRequirementReference,
+  type MilestoneRequirementReferencesByTargetId,
   type RequirementsByEvent,
 } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
-
-type RequirementCount = {
-  readonly lookup: MilestoneRequirementLookup;
-  readonly requiredCount: number;
-};
-
-type RequirementCountsById = HashMap.HashMap<
-  MilestoneRequirementId,
-  RequirementCount
->;
-
-type RequirementCountsByEvent = HashMap.HashMap<
-  MilestoneRequirementEventType,
-  RequirementCountsById
->;
 
 type CompiledMilestoneConfigurationIndexes = {
   readonly milestonesById: HashMap.HashMap<string, CompiledMilestoneDefinition>;
   readonly requirementsByEvent: RequirementsByEvent;
 };
 
-function addRequirementCount({
-  countsByEvent,
-  lookup,
+function compileMilestoneRequirement({
+  configuration,
+  requirement,
 }: {
-  readonly countsByEvent: RequirementCountsByEvent;
-  readonly lookup: MilestoneRequirementLookup;
-}): RequirementCountsByEvent {
-  const countsById = Option.getOrElse(
-    HashMap.get(countsByEvent, lookup.type),
-    () => HashMap.empty<MilestoneRequirementId, RequirementCount>(),
-  );
-
-  const requiredCount = Option.match(HashMap.get(countsById, lookup.id), {
-    onNone: () => 1,
-    onSome: ({ requiredCount }) => requiredCount + 1,
+  readonly configuration: FellowshipMilestoneConfiguration;
+  readonly requirement: FellowshipMilestoneRequirement;
+}): CompiledMilestoneRequirement {
+  const lookup = getMilestoneRequirementLookup({
+    dungeonId: configuration.dungeon.dungeonId,
+    requirement,
   });
 
-  const nextCountsById = HashMap.set(countsById, lookup.id, {
-    lookup,
-    requiredCount,
-  });
-
-  return HashMap.set(countsByEvent, lookup.type, nextCountsById);
+  return {
+    requiredCount: requirement.requiredCount,
+    startOccurrence: requirement.startOccurrence,
+    targetId: lookup.targetId,
+    type: lookup.type,
+  };
 }
 
-function compileMilestoneRequirements(
+function getMilestoneRequirementIdentityKey(
+  requirement: CompiledMilestoneRequirement,
+): string {
+  return JSON.stringify([
+    requirement.type,
+    requirement.targetId,
+    requirement.startOccurrence,
+    requirement.requiredCount,
+  ]);
+}
+
+function getMilestoneId(
+  requirements: ReadonlyArray<CompiledMilestoneRequirement>,
+): string {
+  const requirementKeys = requirements
+    .map(getMilestoneRequirementIdentityKey)
+    .sort();
+
+  return JSON.stringify(requirementKeys);
+}
+
+function compileMilestones(
   configuration: FellowshipMilestoneConfiguration,
 ): ReadonlyArray<CompiledMilestoneDefinition> {
   return configuration.milestones.map((definition) => {
-    const requirementCounts = definition.requirements.reduce(
-      (countsByEvent, requirement) => {
-        const lookup = getMilestoneRequirementLookup({
-          dungeonId: configuration.dungeon.dungeonId,
-          requirement,
-        });
-
-        return addRequirementCount({
-          countsByEvent,
-          lookup,
-        });
-      },
-      HashMap.empty<MilestoneRequirementEventType, RequirementCountsById>(),
-    );
-
-    const requirements = Array.from(requirementCounts).flatMap(
-      ([, countsById]) => {
-        return Array.from(countsById).map(([, requirement]) => {
-          return {
-            id: requirement.lookup.id,
-            requiredCount: requirement.requiredCount,
-            type: requirement.lookup.type,
-          } satisfies CompiledMilestoneRequirement;
-        });
-      },
-    );
+    const requirements = definition.requirements.map((requirement) => {
+      return compileMilestoneRequirement({
+        configuration,
+        requirement,
+      });
+    });
 
     return {
       ...definition,
+      milestoneId: getMilestoneId(requirements),
       requirements,
     };
   });
 }
 
-function addRequirementTarget({
+function assertUniqueMilestones(
+  milestones: ReadonlyArray<CompiledMilestoneDefinition>,
+): void {
+  const milestoneIds = new Set<string>();
+
+  milestones.forEach((milestone) => {
+    if (milestoneIds.has(milestone.milestoneId)) {
+      throw new Error(
+        `Duplicate milestone requirements found for "${milestone.label}".`,
+      );
+    }
+
+    milestoneIds.add(milestone.milestoneId);
+  });
+}
+
+function addRequirementReference({
   definition,
   requirement,
   requirementsByEvent,
@@ -109,78 +104,83 @@ function addRequirementTarget({
   readonly requirement: CompiledMilestoneRequirement;
   readonly requirementsByEvent: RequirementsByEvent;
 }): RequirementsByEvent {
-  const requirementsById = Option.getOrElse(
+  const referencesByTargetId = Option.getOrElse(
     HashMap.get(requirementsByEvent, requirement.type),
-    () =>
-      HashMap.empty<
-        MilestoneRequirementId,
-        ReadonlyArray<MilestoneRequirementTarget>
-      >(),
+    () => HashMap.empty(),
   );
 
-  const targets = Option.getOrElse(
-    HashMap.get(requirementsById, requirement.id),
-    () => [] as ReadonlyArray<MilestoneRequirementTarget>,
+  const references = Option.getOrElse(
+    HashMap.get(referencesByTargetId, requirement.targetId),
+    () => [] as ReadonlyArray<MilestoneRequirementReference>,
   );
 
-  const nextTargets: ReadonlyArray<MilestoneRequirementTarget> = [
-    ...targets,
+  const nextReferences: ReadonlyArray<MilestoneRequirementReference> = [
+    ...references,
     {
       milestoneId: definition.milestoneId,
       requiredCount: requirement.requiredCount,
+      startOccurrence: requirement.startOccurrence,
     },
   ];
 
-  const nextRequirementsById = HashMap.set(
-    requirementsById,
-    requirement.id,
-    nextTargets,
+  const nextReferencesByTargetId = HashMap.set(
+    referencesByTargetId,
+    requirement.targetId,
+    nextReferences,
   );
 
   return HashMap.set(
     requirementsByEvent,
     requirement.type,
-    nextRequirementsById,
+    nextReferencesByTargetId,
+  );
+}
+
+function createIndexes(
+  milestones: ReadonlyArray<CompiledMilestoneDefinition>,
+): CompiledMilestoneConfigurationIndexes {
+  return milestones.reduce<CompiledMilestoneConfigurationIndexes>(
+    (accumulator, definition) => {
+      return {
+        milestonesById: HashMap.set(
+          accumulator.milestonesById,
+          definition.milestoneId,
+          definition,
+        ),
+        requirementsByEvent: definition.requirements.reduce(
+          (requirementsByEvent, requirement) => {
+            return addRequirementReference({
+              definition,
+              requirement,
+              requirementsByEvent,
+            });
+          },
+          accumulator.requirementsByEvent,
+        ),
+      };
+    },
+    {
+      milestonesById: HashMap.empty<string, CompiledMilestoneDefinition>(),
+      requirementsByEvent: HashMap.empty<
+        MilestoneRequirementEventType,
+        MilestoneRequirementReferencesByTargetId
+      >(),
+    },
   );
 }
 
 export function compileMilestoneConfiguration(
   configuration: FellowshipMilestoneConfiguration,
 ): CompiledFellowshipMilestoneConfiguration {
-  const compiledMilestones = compileMilestoneRequirements(configuration);
+  const milestones = compileMilestones(configuration);
 
-  const { milestonesById, requirementsByEvent } =
-    compiledMilestones.reduce<CompiledMilestoneConfigurationIndexes>(
-      (accumulator, definition) => {
-        return {
-          milestonesById: HashMap.set(
-            accumulator.milestonesById,
-            definition.milestoneId,
-            definition,
-          ),
-          requirementsByEvent: definition.requirements.reduce(
-            (requirementsByEvent, requirement) => {
-              return addRequirementTarget({
-                definition,
-                requirement,
-                requirementsByEvent,
-              });
-            },
-            accumulator.requirementsByEvent,
-          ),
-        };
-      },
-      {
-        milestonesById: HashMap.empty<string, CompiledMilestoneDefinition>(),
-        requirementsByEvent: HashMap.empty<
-          MilestoneRequirementEventType,
-          MilestoneRequirementsById
-        >(),
-      },
-    );
+  assertUniqueMilestones(milestones);
+
+  const { milestonesById, requirementsByEvent } = createIndexes(milestones);
 
   return {
-    ...configuration,
+    dungeon: configuration.dungeon,
+    milestones,
     milestonesById,
     requirementsByEvent,
   };

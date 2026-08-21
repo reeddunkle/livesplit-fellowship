@@ -7,9 +7,10 @@ const RunApiRequirementObservationSchema = Schema.Struct({
 });
 
 const RunApiRequirementSchema = Schema.Struct({
-  id: Schema.String,
   observations: Schema.Array(RunApiRequirementObservationSchema),
   requiredCount: Schema.Number,
+  startOccurrence: Schema.Number,
+  targetId: Schema.String,
   type: MilestoneRequirementEventTypeSchema,
 });
 

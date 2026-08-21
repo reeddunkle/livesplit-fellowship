@@ -36,13 +36,10 @@ const message = {
         milestoneId: "desecrator:killed:2",
         requirements: [
           {
-            id: "42",
-            observations: [
-              {
-                timestampMilliseconds: 13_345,
-              },
-            ],
-            requiredCount: 2,
+            observations: [],
+            requiredCount: 1,
+            startOccurrence: 1,
+            targetId: "42",
             type: "UNIT_DEATH",
           },
         ],

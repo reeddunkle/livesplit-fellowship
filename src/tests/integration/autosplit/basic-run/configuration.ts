@@ -6,9 +6,10 @@ export const configuration = {
   milestones: [
     {
       label: "Desecrator 1 Killed",
-      milestoneId: "desecrator:killed:1",
       requirements: [
         {
+          requiredCount: 1,
+          startOccurrence: 1,
           type: "UNIT_DEATH",
           unitTypeId: "42",
         },
@@ -16,9 +17,10 @@ export const configuration = {
     },
     {
       label: "Butcher 1 Killed",
-      milestoneId: "butcher:killed:1",
       requirements: [
         {
+          requiredCount: 1,
+          startOccurrence: 1,
           type: "UNIT_DEATH",
           unitTypeId: "41",
         },
@@ -26,13 +28,10 @@ export const configuration = {
     },
     {
       label: "Desecrator 2 Killed",
-      milestoneId: "desecrator:killed:2",
       requirements: [
         {
-          type: "UNIT_DEATH",
-          unitTypeId: "42",
-        },
-        {
+          requiredCount: 1,
+          startOccurrence: 2,
           type: "UNIT_DEATH",
           unitTypeId: "42",
         },
@@ -40,9 +39,10 @@ export const configuration = {
     },
     {
       label: "Seer 1 Killed",
-      milestoneId: "seer:killed:1",
       requirements: [
         {
+          requiredCount: 1,
+          startOccurrence: 1,
           type: "UNIT_DEATH",
           unitTypeId: "40",
         },
@@ -50,13 +50,10 @@ export const configuration = {
     },
     {
       label: "Butcher 2 Killed",
-      milestoneId: "butcher:killed:2",
       requirements: [
         {
-          type: "UNIT_DEATH",
-          unitTypeId: "41",
-        },
-        {
+          requiredCount: 1,
+          startOccurrence: 2,
           type: "UNIT_DEATH",
           unitTypeId: "41",
         },
@@ -64,9 +61,10 @@ export const configuration = {
     },
     {
       label: "Shadowlord 1 Killed",
-      milestoneId: "shadowlord:killed:1",
       requirements: [
         {
+          requiredCount: 1,
+          startOccurrence: 1,
           type: "UNIT_DEATH",
           unitTypeId: "274",
         },
@@ -74,13 +72,10 @@ export const configuration = {
     },
     {
       label: "Shadowlord 2 Killed",
-      milestoneId: "shadowlord:killed:2",
       requirements: [
         {
-          type: "UNIT_DEATH",
-          unitTypeId: "274",
-        },
-        {
+          requiredCount: 1,
+          startOccurrence: 2,
           type: "UNIT_DEATH",
           unitTypeId: "274",
         },
@@ -88,24 +83,25 @@ export const configuration = {
     },
     {
       label: "Boss Pull",
-      milestoneId: "boss:pulled",
       requirements: [
         {
           encounterId: "30",
+          requiredCount: 1,
+          startOccurrence: 1,
           type: "ENCOUNTER_START",
         },
       ],
     },
     {
       label: "Boss Kill",
-      milestoneId: "boss:defeated",
       requirements: [
         {
           encounterId: "30",
+          requiredCount: 1,
+          startOccurrence: 1,
           type: "ENCOUNTER_END",
         },
       ],
-      targetElapsedTime: "00:11:48",
     },
   ],
 } satisfies FellowshipMilestoneConfiguration;

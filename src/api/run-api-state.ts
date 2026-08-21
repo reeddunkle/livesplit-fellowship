@@ -1,113 +1,59 @@
-import * as HashMap from "effect/HashMap";
-import * as Option from "effect/Option";
-
 import {
   type RunApiMilestone,
   type RunApiRequirement,
   type RunApiState,
 } from "@/api/validation/run-api-message-schema.ts";
 import {
-  type ObservedRequirement,
-  type ObservedRequirements,
-} from "@/services/fellowship/milestones/milestone-processor-state.ts";
-import {
-  type CompiledFellowshipMilestoneConfiguration,
-  type CompiledMilestoneDefinition,
-  type CompiledMilestoneRequirement,
-} from "@/services/fellowship/milestones/milestone-types.ts";
+  analyzeMilestoneProgress,
+  type MilestoneProgress,
+  type RequirementProgress,
+} from "@/services/fellowship/milestones/analyze-milestone-progress.ts";
+import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type RunProcessingState } from "@/services/fellowship/runs/run-processing-state.ts";
+import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
 
 export type CreateRunApiStateOptions = {
   readonly configuration: CompiledFellowshipMilestoneConfiguration;
   readonly state: RunProcessingState;
 };
 
-function getObservedRequirements({
-  milestoneId,
-  state,
-}: {
-  readonly milestoneId: string;
-  readonly state: RunProcessingState;
-}): ObservedRequirements {
-  return Option.getOrElse(
-    HashMap.get(state.milestoneProcessor.observedRequirements, milestoneId),
-    () => HashMap.empty(),
-  );
-}
-
-function getObservedRequirement({
-  observedRequirements,
-  requirement,
-}: {
-  readonly observedRequirements: ObservedRequirements;
-  readonly requirement: CompiledMilestoneRequirement;
-}): ObservedRequirement | undefined {
-  return Option.flatMap(
-    HashMap.get(observedRequirements, requirement.type),
-    (requirementsById) => {
-      return HashMap.get(requirementsById, requirement.id);
-    },
-  ).pipe(Option.getOrUndefined);
-}
-
-function createRunApiRequirement({
-  observedRequirements,
-  requirement,
-}: {
-  readonly observedRequirements: ObservedRequirements;
-  readonly requirement: CompiledMilestoneRequirement;
-}): RunApiRequirement {
-  const observedRequirement = getObservedRequirement({
-    observedRequirements,
-    requirement,
-  });
-
-  const observations =
-    observedRequirement?.observations.map((observation) => {
+function createRunApiRequirement(
+  progress: RequirementProgress,
+): RunApiRequirement {
+  return {
+    observations: progress.observations.map((observation) => {
       return {
         timestampMilliseconds: observation.timestamp.epochMilliseconds,
       };
-    }) ?? [];
-
-  return {
-    id: requirement.id,
-    observations,
-    requiredCount: requirement.requiredCount,
-    type: requirement.type,
+    }),
+    requiredCount: progress.requirement.requiredCount,
+    startOccurrence: progress.requirement.startOccurrence,
+    targetId: progress.requirement.targetId,
+    type: progress.requirement.type,
   };
 }
 
 function createRunApiMilestone({
-  definition,
-  state,
+  progress,
+  runStart,
 }: {
-  readonly definition: CompiledMilestoneDefinition;
-  readonly state: RunProcessingState;
+  readonly progress: MilestoneProgress;
+  readonly runStart: RunProcessingState["runTracker"]["currentStart"];
 }): RunApiMilestone {
-  const observedRequirements = getObservedRequirements({
-    milestoneId: definition.milestoneId,
-    state,
-  });
+  const completedAtMilliseconds =
+    progress.completedAt?.epochMilliseconds ?? null;
 
-  const observedMilestone = Option.getOrUndefined(
-    HashMap.get(
-      state.milestoneProcessor.observedMilestones,
-      definition.milestoneId,
-    ),
-  );
+  const elapsedMilliseconds =
+    progress.completedAt === undefined || runStart === undefined
+      ? null
+      : getElapsedMilliseconds(runStart.startedAt, progress.completedAt);
 
   return {
-    completedAtMilliseconds:
-      observedMilestone?.timestamp.epochMilliseconds ?? null,
-    elapsedMilliseconds: observedMilestone?.elapsedMilliseconds ?? null,
-    label: definition.label,
-    milestoneId: definition.milestoneId,
-    requirements: definition.requirements.map((requirement) => {
-      return createRunApiRequirement({
-        observedRequirements,
-        requirement,
-      });
-    }),
+    completedAtMilliseconds,
+    elapsedMilliseconds,
+    label: progress.definition.label,
+    milestoneId: progress.definition.milestoneId,
+    requirements: progress.requirements.map(createRunApiRequirement),
   };
 }
 
@@ -115,27 +61,20 @@ export function createRunApiState({
   configuration,
   state,
 }: CreateRunApiStateOptions): RunApiState {
-  const milestones = configuration.milestones.flatMap((milestone) => {
-    const definition = Option.getOrUndefined(
-      HashMap.get(configuration.milestonesById, milestone.milestoneId),
-    );
-
-    if (definition === undefined) {
-      return [];
-    }
-
-    return [
-      createRunApiMilestone({
-        definition,
-        state,
-      }),
-    ];
+  const analysis = analyzeMilestoneProgress({
+    configuration,
+    state: state.milestoneProcessor,
   });
 
   const runStart = state.runTracker.currentStart;
 
   return {
-    milestones,
+    milestones: analysis.milestones.map((progress) => {
+      return createRunApiMilestone({
+        progress,
+        runStart,
+      });
+    }),
     run:
       runStart === undefined
         ? null
