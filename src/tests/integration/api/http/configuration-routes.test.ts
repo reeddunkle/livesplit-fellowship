@@ -7,6 +7,7 @@ import * as HttpServer from "effect/unstable/http/HttpServer";
 import { describe, expect, test } from "vitest";
 
 import { ApiServer } from "@/api/api-server.ts";
+import { getConfigurationRoute, ROUTES } from "@/api/constants/routes.ts";
 import { ConfigurationStoreError } from "@/errors/configuration-store-error.ts";
 import {
   type ConfigurationApiConfiguration,
@@ -18,28 +19,6 @@ import { PushEventServerLive } from "@/services/api/push-event-server-service.ts
 import { makeConfigurationApiServiceTest } from "@/tests/common/configuration-api-service-test.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 import { parseJson } from "@/util/parse-json.ts";
-
-function parseResponseJson(response: Response): E.Effect<unknown, Error> {
-  return E.gen(function* () {
-    const contents = yield* E.tryPromise({
-      catch: (cause) => {
-        return cause instanceof Error
-          ? cause
-          : new Error("Failed to read HTTP response.");
-      },
-      try: () => response.text(),
-    });
-
-    return yield* parseJson({
-      contents,
-      onError: (cause) => {
-        return cause instanceof Error
-          ? cause
-          : new Error("Failed to parse HTTP response.");
-      },
-    });
-  });
-}
 
 const CONFIGURATION_ID = "0198d56c-1234-7abc-8def-1234567890ab";
 const UNKNOWN_CONFIGURATION_ID = "0198d56c-5678-7abc-8def-1234567890ab";
@@ -62,6 +41,28 @@ const configuration = {
     },
   ],
 } satisfies ConfigurationApiConfiguration;
+
+function parseResponseJson(response: Response): E.Effect<unknown, Error> {
+  return E.gen(function* () {
+    const contents = yield* E.tryPromise({
+      catch: (cause) => {
+        return cause instanceof Error
+          ? cause
+          : new Error("Failed to read HTTP response.");
+      },
+      try: () => response.text(),
+    });
+
+    return yield* parseJson({
+      contents,
+      onError: (cause) => {
+        return cause instanceof Error
+          ? cause
+          : new Error("Failed to parse HTTP response.");
+      },
+    });
+  });
+}
 
 function makeApiServerTest(
   configurationApiServiceTest: Layer.Layer<ConfigurationApiService>,
@@ -111,7 +112,7 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const response = yield* request(`${baseUrl}/configurations`);
+        const response = yield* request(`${baseUrl}${ROUTES.configurations}`);
 
         const json = yield* parseResponseJson(response);
 
@@ -144,7 +145,7 @@ describe("configuration routes", () => {
         const baseUrl = getHttpUrl(httpServer.address);
 
         const response = yield* request(
-          `${baseUrl}/configurations/${CONFIGURATION_ID}`,
+          `${baseUrl}${getConfigurationRoute(CONFIGURATION_ID)}`,
         );
 
         const json = yield* parseResponseJson(response);
@@ -170,7 +171,7 @@ describe("configuration routes", () => {
         const baseUrl = getHttpUrl(httpServer.address);
 
         const response = yield* request(
-          `${baseUrl}/configurations/${UNKNOWN_CONFIGURATION_ID}`,
+          `${baseUrl}${getConfigurationRoute(UNKNOWN_CONFIGURATION_ID)}`,
         );
 
         expect(response.status).toBe(404);
@@ -189,7 +190,7 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const response = yield* request(`${baseUrl}/configurations`, {
+        const response = yield* request(`${baseUrl}${ROUTES.configurations}`, {
           body: JSON.stringify({
             invalid: true,
           }),
@@ -215,7 +216,9 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const response = yield* request(`${baseUrl}/configurations/not-a-uuid`);
+        const response = yield* request(
+          `${baseUrl}${getConfigurationRoute("not-a-uuid")}`,
+        );
 
         expect(response.status).toBe(404);
         expect(yield* E.promise(() => response.text())).toBe("Not Found");
@@ -233,7 +236,7 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const response = yield* request(`${baseUrl}/configurations`, {
+        const response = yield* request(`${baseUrl}${ROUTES.configurations}`, {
           method: "PUT",
         });
 
@@ -261,7 +264,7 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const response = yield* request(`${baseUrl}/configurations`);
+        const response = yield* request(`${baseUrl}${ROUTES.configurations}`);
 
         expect(response.status).toBe(500);
         expect(yield* E.promise(() => response.text())).toBe(
