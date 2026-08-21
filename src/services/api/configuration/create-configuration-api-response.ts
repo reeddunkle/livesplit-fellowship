@@ -1,3 +1,5 @@
+import * as A from "effect/Array";
+
 import { type PersistedConfiguration } from "@/db/configuration/configuration-store.ts";
 import {
   type ConfigurationApiConfiguration,
@@ -7,17 +9,16 @@ import {
 import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
-import { isNonEmptyArray } from "@/util/is-non-empty-array.ts";
 
 function createConfigurationApiRequirement({
-  configuration,
+  dungeonId,
   requirement,
 }: {
-  readonly configuration: FellowshipMilestoneConfiguration;
+  readonly dungeonId: string;
   readonly requirement: FellowshipMilestoneRequirement;
 }): ConfigurationApiRequirement {
   const lookup = getMilestoneRequirementLookup({
-    dungeonId: configuration.dungeon.dungeonId,
+    dungeonId,
     requirement,
   });
 
@@ -30,26 +31,17 @@ function createConfigurationApiRequirement({
 }
 
 function createConfigurationApiMilestone({
-  configuration,
+  dungeonId,
   milestone,
 }: {
-  readonly configuration: FellowshipMilestoneConfiguration;
+  readonly dungeonId: string;
   readonly milestone: FellowshipMilestoneConfiguration["milestones"][number];
 }): ConfigurationApiMilestone {
-  const requirements = milestone.requirements.map((requirement) => {
-    return createConfigurationApiRequirement({
-      configuration,
-      requirement,
-    });
-  });
-
-  if (!isNonEmptyArray(requirements)) {
-    throw new Error(`Milestone "${milestone.label}" has no requirements.`);
-  }
-
   return {
     label: milestone.label,
-    requirements,
+    requirements: A.map(milestone.requirements, (requirement) =>
+      createConfigurationApiRequirement({ dungeonId, requirement }),
+    ),
   };
 }
 
@@ -57,13 +49,15 @@ export function createConfigurationApiResponse({
   configuration,
   id,
 }: PersistedConfiguration): ConfigurationApiConfiguration {
+  const dungeonId = configuration.dungeon.dungeonId;
+
   return {
-    dungeonId: configuration.dungeon.dungeonId,
+    dungeonId,
     dungeonName: configuration.dungeon.name,
     id,
     milestones: configuration.milestones.map((milestone) => {
       return createConfigurationApiMilestone({
-        configuration,
+        dungeonId,
         milestone,
       });
     }),

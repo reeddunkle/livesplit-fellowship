@@ -15,25 +15,25 @@ import {
 import { createConfigurationApiResponse } from "@/services/api/configuration/create-configuration-api-response.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 
-type CreateConfigurationApiOptions = {
+type CreateConfigurationOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
 };
 
-type DeleteConfigurationApiOptions = {
+type DeleteConfigurationOptions = {
   readonly id: ConfigurationId;
 };
 
-type GetConfigurationApiByIdOptions = {
+type GetConfigurationByIdOptions = {
   readonly id: ConfigurationId;
 };
 
 export type ConfigurationApiServiceShape = {
   readonly create: (
-    options: CreateConfigurationApiOptions,
+    options: CreateConfigurationOptions,
   ) => E.Effect<ConfigurationApiConfiguration, ConfigurationStoreError>;
 
   readonly delete: (
-    options: DeleteConfigurationApiOptions,
+    options: DeleteConfigurationOptions,
   ) => E.Effect<void, ConfigurationStoreError>;
 
   readonly getAll: () => E.Effect<
@@ -42,7 +42,7 @@ export type ConfigurationApiServiceShape = {
   >;
 
   readonly getById: (
-    options: GetConfigurationApiByIdOptions,
+    options: GetConfigurationByIdOptions,
   ) => E.Effect<
     Option.Option<ConfigurationApiConfiguration>,
     ConfigurationStoreError
@@ -60,11 +60,9 @@ const make = E.gen(function* () {
   const create: ConfigurationApiServiceShape["create"] = ({
     configuration,
   }) => {
-    return configurationStore.create({ configuration }).pipe(
-      E.map((persistedConfiguration) => {
-        return createConfigurationApiResponse(persistedConfiguration);
-      }),
-    );
+    return configurationStore
+      .create({ configuration })
+      .pipe(E.map(createConfigurationApiResponse));
   };
 
   const deleteConfiguration: ConfigurationApiServiceShape["delete"] = ({
@@ -82,13 +80,9 @@ const make = E.gen(function* () {
   };
 
   const getById: ConfigurationApiServiceShape["getById"] = ({ id }) => {
-    return configurationStore.getById({ id }).pipe(
-      E.map(
-        Option.map((configuration) => {
-          return createConfigurationApiResponse(configuration);
-        }),
-      ),
-    );
+    return configurationStore
+      .getById({ id })
+      .pipe(E.map(Option.map(createConfigurationApiResponse)));
   };
 
   return {
