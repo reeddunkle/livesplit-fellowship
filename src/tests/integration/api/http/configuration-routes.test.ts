@@ -4,10 +4,11 @@ import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as HttpServer from "effect/unstable/http/HttpServer";
+import * as HttpApiClient from "effect/unstable/httpapi/HttpApiClient";
 import { describe, expect, test } from "vitest";
 
 import { ApiServer } from "@/api/api-server.ts";
-import { getConfigurationRoute, ROUTES } from "@/api/constants/routes.ts";
+import { AppHttpApi } from "@/api/http/http-api.ts";
 import { ConfigurationStoreError } from "@/errors/configuration-store-error.ts";
 import {
   type ConfigurationApiConfiguration,
@@ -132,7 +133,13 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const response = yield* request(`${baseUrl}${ROUTES.configurations}`);
+        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
+          baseUrl,
+        });
+
+        const response = yield* request(
+          urls.configurations.getConfigurations(),
+        );
 
         const json = yield* parseResponseJson(response);
 
@@ -164,8 +171,16 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
+        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
+          baseUrl,
+        });
+
         const response = yield* request(
-          `${baseUrl}${getConfigurationRoute(CONFIGURATION_ID)}`,
+          urls.configurations.getConfiguration({
+            params: {
+              id: CONFIGURATION_ID,
+            },
+          }),
         );
 
         const json = yield* parseResponseJson(response);
@@ -190,8 +205,16 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
+        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
+          baseUrl,
+        });
+
         const response = yield* request(
-          `${baseUrl}${getConfigurationRoute(UNKNOWN_CONFIGURATION_ID)}`,
+          urls.configurations.getConfiguration({
+            params: {
+              id: UNKNOWN_CONFIGURATION_ID,
+            },
+          }),
         );
 
         expect(response.status).toBe(404);
@@ -219,13 +242,20 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const response = yield* request(`${baseUrl}${ROUTES.configurations}`, {
-          body: JSON.stringify(createConfigurationRequest),
-          headers: {
-            "content-type": "application/json",
-          },
-          method: "POST",
+        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
+          baseUrl,
         });
+
+        const response = yield* request(
+          urls.configurations.createConfiguration(),
+          {
+            body: JSON.stringify(createConfigurationRequest),
+            headers: {
+              "content-type": "application/json",
+            },
+            method: "POST",
+          },
+        );
 
         const json = yield* parseResponseJson(response);
 
@@ -249,15 +279,22 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const response = yield* request(`${baseUrl}${ROUTES.configurations}`, {
-          body: JSON.stringify({
-            invalid: true,
-          }),
-          headers: {
-            "content-type": "application/json",
-          },
-          method: "POST",
+        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
+          baseUrl,
         });
+
+        const response = yield* request(
+          urls.configurations.createConfiguration(),
+          {
+            body: JSON.stringify({
+              invalid: true,
+            }),
+            headers: {
+              "content-type": "application/json",
+            },
+            method: "POST",
+          },
+        );
 
         expect(response.status).toBe(400);
         expect(yield* E.promise(() => response.text())).toBe("");
@@ -286,13 +323,20 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const response = yield* request(`${baseUrl}${ROUTES.configurations}`, {
-          body: JSON.stringify(createConfigurationRequest),
-          headers: {
-            "content-type": "application/json",
-          },
-          method: "POST",
+        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
+          baseUrl,
         });
+
+        const response = yield* request(
+          urls.configurations.createConfiguration(),
+          {
+            body: JSON.stringify(createConfigurationRequest),
+            headers: {
+              "content-type": "application/json",
+            },
+            method: "POST",
+          },
+        );
 
         expect(response.status).toBe(409);
         expect(yield* E.promise(() => response.text())).toBe("");
@@ -318,8 +362,16 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
+        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
+          baseUrl,
+        });
+
         const response = yield* request(
-          `${baseUrl}${getConfigurationRoute(CONFIGURATION_ID)}`,
+          urls.configurations.deleteConfiguration({
+            params: {
+              id: CONFIGURATION_ID,
+            },
+          }),
           {
             method: "DELETE",
           },
@@ -342,9 +394,12 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const response = yield* request(
-          `${baseUrl}${getConfigurationRoute("not-a-uuid")}`,
-        );
+        /*
+         * Build this URL manually because the typed URL builder correctly
+         * rejects an invalid configuration id before a request can be made.
+         * This test intentionally verifies the server-side validation path.
+         */
+        const response = yield* request(`${baseUrl}/configurations/not-a-uuid`);
 
         expect(response.status).toBe(400);
         expect(yield* E.promise(() => response.text())).toBe("");
@@ -362,9 +417,16 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const response = yield* request(`${baseUrl}${ROUTES.configurations}`, {
-          method: "PUT",
+        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
+          baseUrl,
         });
+
+        const response = yield* request(
+          urls.configurations.getConfigurations(),
+          {
+            method: "PUT",
+          },
+        );
 
         expect(response.status).toBe(404);
       }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
@@ -392,7 +454,13 @@ describe("configuration routes", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const response = yield* request(`${baseUrl}${ROUTES.configurations}`);
+        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
+          baseUrl,
+        });
+
+        const response = yield* request(
+          urls.configurations.getConfigurations(),
+        );
 
         expect(response.status).toBe(500);
         expect(yield* E.promise(() => response.text())).toBe("");

@@ -50,10 +50,14 @@ function getApiBaseUrl(): string {
   return `http://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}`;
 }
 
-function makeHttpApiClient(baseUrl: string) {
+function getApiWebSocketUrl(): string {
+  return `ws://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}${ROUTES.events}`;
+}
+
+function makeHttpApiClientForUrl(baseUrl: string) {
   return HttpApiClient.make(AppHttpApi, {
     baseUrl,
-  });
+  }).pipe(E.provide(FetchHttpClient.layer));
 }
 
 function offerConnectionState(
@@ -93,22 +97,22 @@ function decodeMessage(
 
 export function getConfigurationsForUrl(baseUrl: string) {
   return E.gen(function* () {
-    const client = yield* makeHttpApiClient(baseUrl);
+    const client = yield* makeHttpApiClientForUrl(baseUrl);
 
     return yield* client.configurations.getConfigurations();
-  }).pipe(E.provide(FetchHttpClient.layer));
+  });
 }
 
 export function getConfigurationForUrl(baseUrl: string, id: string) {
   return E.gen(function* () {
-    const client = yield* makeHttpApiClient(baseUrl);
+    const client = yield* makeHttpApiClientForUrl(baseUrl);
 
     return yield* client.configurations.getConfiguration({
       params: {
         id,
       },
     });
-  }).pipe(E.provide(FetchHttpClient.layer));
+  });
 }
 
 export function createConfigurationForUrl(
@@ -116,24 +120,24 @@ export function createConfigurationForUrl(
   createConfigurationRequest: CreateConfigurationApiRequest,
 ) {
   return E.gen(function* () {
-    const client = yield* makeHttpApiClient(baseUrl);
+    const client = yield* makeHttpApiClientForUrl(baseUrl);
 
     return yield* client.configurations.createConfiguration({
       payload: createConfigurationRequest,
     });
-  }).pipe(E.provide(FetchHttpClient.layer));
+  });
 }
 
 export function deleteConfigurationForUrl(baseUrl: string, id: string) {
   return E.gen(function* () {
-    const client = yield* makeHttpApiClient(baseUrl);
+    const client = yield* makeHttpApiClientForUrl(baseUrl);
 
     yield* client.configurations.deleteConfiguration({
       params: {
         id,
       },
     });
-  }).pipe(E.provide(FetchHttpClient.layer));
+  });
 }
 
 export function makeApiEventStreamForUrl(
@@ -192,11 +196,6 @@ export function makeApiEventStreamForUrl(
        */
       E.repeat(Schedule.spaced(reconnectDelay)),
 
-      /*
-       * Stream.callback communicates failure through its queue. At this point
-       * the only expected recoverable-error exclusion is a message decode
-       * failure.
-       */
       E.catchCause((cause) => {
         return E.sync(() => {
           Queue.failCauseUnsafe(queue, cause);
@@ -230,7 +229,5 @@ export function makeApiEventStream(): Stream.Stream<
   ApiClientEvent,
   ApiClientEventError
 > {
-  const url = `ws://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}${ROUTES.events}`;
-
-  return makeApiEventStreamForUrl(url);
+  return makeApiEventStreamForUrl(getApiWebSocketUrl());
 }
