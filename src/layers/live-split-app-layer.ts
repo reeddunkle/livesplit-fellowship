@@ -1,18 +1,10 @@
 import * as Layer from "effect/Layer";
 
-import { makeAppLive } from "@/layers/app-layer.ts";
+import { type MakeAppLiveOptions, makeAppLive } from "@/layers/app-layer.ts";
 import { LiveSplitClientLive } from "@/services/live-split/client/live-split-client-service.ts";
-import { type DatabaseOptions } from "@/types/app-options.ts";
 
-export type MakeLiveSplitAppLiveOptions = DatabaseOptions;
+export type MakeLiveSplitAppLiveOptions = MakeAppLiveOptions;
 
-export function makeLiveSplitAppLive({
-  databaseFilename,
-}: MakeLiveSplitAppLiveOptions) {
-  return Layer.mergeAll(
-    makeAppLive({
-      databaseFilename,
-    }),
-    LiveSplitClientLive,
-  );
+export function makeLiveSplitAppLive(options: MakeLiveSplitAppLiveOptions) {
+  return Layer.mergeAll(makeAppLive(options), LiveSplitClientLive);
 }

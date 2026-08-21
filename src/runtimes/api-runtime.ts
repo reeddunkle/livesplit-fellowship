@@ -1,14 +1,12 @@
 import * as ManagedRuntime from "effect/ManagedRuntime";
 
-import { makeApiAppLive } from "@/layers/api-app-layer.ts";
-import { type DatabaseOptions } from "@/types/app-options.ts";
+import {
+  type MakeApiAppLiveOptions,
+  makeApiAppLive,
+} from "@/layers/api-app-layer.ts";
 
-export type MakeApiRuntimeOptions = DatabaseOptions;
+export type MakeApiRuntimeOptions = MakeApiAppLiveOptions;
 
-export function makeApiRuntime({ databaseFilename }: MakeApiRuntimeOptions) {
-  return ManagedRuntime.make(
-    makeApiAppLive({
-      databaseFilename,
-    }),
-  );
+export function makeApiRuntime(options: MakeApiRuntimeOptions) {
+  return ManagedRuntime.make(makeApiAppLive(options));
 }

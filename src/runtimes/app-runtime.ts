@@ -1,14 +1,9 @@
 import * as ManagedRuntime from "effect/ManagedRuntime";
 
-import { makeAppLive } from "@/layers/app-layer.ts";
-import { type DatabaseOptions } from "@/types/app-options.ts";
+import { type MakeAppLiveOptions, makeAppLive } from "@/layers/app-layer.ts";
 
-export type MakeAppRuntimeOptions = DatabaseOptions;
+export type MakeAppRuntimeOptions = MakeAppLiveOptions;
 
-export function makeAppRuntime({ databaseFilename }: MakeAppRuntimeOptions) {
-  return ManagedRuntime.make(
-    makeAppLive({
-      databaseFilename,
-    }),
-  );
+export function makeAppRuntime(options: MakeAppRuntimeOptions) {
+  return ManagedRuntime.make(makeAppLive(options));
 }

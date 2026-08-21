@@ -10,12 +10,14 @@ import {
   PushEventServerLive,
   type PushEventServerService,
 } from "@/services/api/push-event-server-service.ts";
+import { ConfigurationApiServiceTest } from "@/tests/common/configuration-api-service-test-layer.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
 const TEST_TIMEOUT = "1 second";
 
 const ApiServerTest = ApiServer.pipe(
   Layer.provideMerge(PushEventServerLive),
+  Layer.provideMerge(ConfigurationApiServiceTest),
   Layer.provideMerge(NodeHttpServer.layerTest),
 );
 

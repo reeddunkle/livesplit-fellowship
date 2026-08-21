@@ -11,7 +11,5 @@ export function makePersistenceLayer({
 }: MakePersistenceLayerOptions) {
   const DatabaseLive = makeDatabaseLayer(databaseFilename);
 
-  const PersistenceServicesLive = Layer.mergeAll(ConfigurationStoreLive);
-
-  return PersistenceServicesLive.pipe(Layer.provideMerge(DatabaseLive));
+  return ConfigurationStoreLive.pipe(Layer.provideMerge(DatabaseLive));
 }

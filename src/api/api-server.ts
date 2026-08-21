@@ -1,21 +1,62 @@
 import * as E from "effect/Effect";
+import * as Match from "effect/Match";
+import * as Option from "effect/Option";
+import * as Schema from "effect/Schema";
 import * as HttpServer from "effect/unstable/http/HttpServer";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
+import { ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
 import { PushEventServer } from "@/services/api/push-event-server-service.ts";
 
-const EVENTS_PATH = "/events";
+import { type ApiRoute, ApiRouteSchema } from "./validation/route-schema.ts";
 
-const handleRequest = E.gen(function* () {
+type NotFoundRoute = {
+  readonly _tag: "NotFound";
+};
+
+function getPathname(url: string): string {
+  return new URL(url, "http://localhost").pathname;
+}
+
+function getRoute({
+  method,
+  pathname,
+}: {
+  readonly method: string;
+  readonly pathname: string;
+}): ApiRoute | NotFoundRoute {
+  return Option.match(
+    Schema.decodeUnknownOption(ApiRouteSchema)({
+      method,
+      pathname,
+    }),
+    {
+      onNone: () => {
+        return {
+          _tag: "NotFound",
+        } as const;
+      },
+      onSome: (route) => route,
+    },
+  );
+}
+
+function notFoundResponse() {
+  return HttpServerResponse.text("Not Found", {
+    status: 404,
+  });
+}
+
+function internalServerErrorResponse() {
+  return HttpServerResponse.text("Internal Server Error", {
+    status: 500,
+  });
+}
+
+const handleEventsRequest = E.gen(function* () {
   const request = yield* HttpServerRequest.HttpServerRequest;
   const pushEventServer = yield* PushEventServer;
-
-  if (request.method !== "GET" || request.url !== EVENTS_PATH) {
-    return HttpServerResponse.text("Not Found", {
-      status: 404,
-    });
-  }
 
   yield* E.logDebug("WebSocket upgrade requested.", {
     method: request.method,
@@ -79,6 +120,78 @@ const handleRequest = E.gen(function* () {
   );
 
   return HttpServerResponse.empty();
+});
+
+const handleGetConfigurations = E.gen(function* () {
+  const configurationApiService = yield* ConfigurationApiService;
+
+  return yield* configurationApiService.getAll().pipe(
+    E.flatMap((configurations) => {
+      return HttpServerResponse.json(configurations);
+    }),
+    E.catch((error) =>
+      E.gen(function* () {
+        yield* E.logError("Failed to load configurations.", {
+          error,
+        });
+
+        return internalServerErrorResponse();
+      }),
+    ),
+  );
+});
+
+function handleGetConfiguration(id: string) {
+  return E.gen(function* () {
+    const configurationApiService = yield* ConfigurationApiService;
+
+    return yield* configurationApiService.getById({ id }).pipe(
+      E.flatMap(
+        Option.match({
+          onNone: () => E.succeed(notFoundResponse()),
+          onSome: (configuration) => {
+            return HttpServerResponse.json(configuration);
+          },
+        }),
+      ),
+      E.catch((error) =>
+        E.gen(function* () {
+          yield* E.logError("Failed to load configuration.", {
+            error,
+            id,
+          });
+
+          return internalServerErrorResponse();
+        }),
+      ),
+    );
+  });
+}
+
+const handleRequest = E.gen(function* () {
+  const request = yield* HttpServerRequest.HttpServerRequest;
+
+  const route = getRoute({
+    method: request.method,
+    pathname: getPathname(request.url),
+  });
+
+  return yield* Match.value(route).pipe(
+    Match.tag("Events", () => handleEventsRequest),
+    Match.tag("Configurations", () => handleGetConfigurations),
+
+    Match.tag("Configuration", ({ pathname }) => {
+      const [, id] = pathname;
+
+      return handleGetConfiguration(id);
+    }),
+
+    Match.tag("NotFound", () => {
+      return E.succeed(notFoundResponse());
+    }),
+
+    Match.exhaustive,
+  );
 });
 
 export const ApiServer = HttpServer.serve(handleRequest);

@@ -1,16 +1,12 @@
 import * as ManagedRuntime from "effect/ManagedRuntime";
 
-import { makeLiveSplitAppLive } from "@/layers/live-split-app-layer.ts";
-import { type DatabaseOptions } from "@/types/app-options.ts";
+import {
+  type MakeLiveSplitAppLiveOptions,
+  makeLiveSplitAppLive,
+} from "@/layers/live-split-app-layer.ts";
 
-export type MakeLiveSplitRuntimeOptions = DatabaseOptions;
+export type MakeLiveSplitRuntimeOptions = MakeLiveSplitAppLiveOptions;
 
-export function makeLiveSplitRuntime({
-  databaseFilename,
-}: MakeLiveSplitRuntimeOptions) {
-  return ManagedRuntime.make(
-    makeLiveSplitAppLive({
-      databaseFilename,
-    }),
-  );
+export function makeLiveSplitRuntime(options: MakeLiveSplitRuntimeOptions) {
+  return ManagedRuntime.make(makeLiveSplitAppLive(options));
 }
