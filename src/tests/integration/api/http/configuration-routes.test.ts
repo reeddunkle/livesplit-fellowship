@@ -208,7 +208,7 @@ describe("configuration routes", () => {
         const baseUrl = getHttpUrl(httpServer.address);
 
         const response = yield* request(`${baseUrl}/configurations`, {
-          method: "POST",
+          method: "PUT",
         });
 
         expect(response.status).toBe(404);

@@ -19,22 +19,36 @@ const EventsRouteSchema = Schema.Struct({
   pathname: Schema.Literal(ROUTES.events),
 });
 
-const ConfigurationsRouteSchema = Schema.Struct({
-  _tag: Schema.tagDefaultOmit("Configurations"),
+const GetConfigurationsRouteSchema = Schema.Struct({
+  _tag: Schema.tagDefaultOmit("GetConfigurations"),
   method: Schema.Literal("GET"),
   pathname: Schema.Literal(ROUTES.configurations),
 });
 
-const ConfigurationRouteSchema = Schema.Struct({
-  _tag: Schema.tagDefaultOmit("Configuration"),
+const CreateConfigurationRouteSchema = Schema.Struct({
+  _tag: Schema.tagDefaultOmit("CreateConfiguration"),
+  method: Schema.Literal("POST"),
+  pathname: Schema.Literal(ROUTES.configurations),
+});
+
+const GetConfigurationRouteSchema = Schema.Struct({
+  _tag: Schema.tagDefaultOmit("GetConfiguration"),
   method: Schema.Literal("GET"),
+  pathname: ConfigurationPathParserSchema,
+});
+
+const DeleteConfigurationRouteSchema = Schema.Struct({
+  _tag: Schema.tagDefaultOmit("DeleteConfiguration"),
+  method: Schema.Literal("DELETE"),
   pathname: ConfigurationPathParserSchema,
 });
 
 export const ApiRouteSchema = Schema.Union([
   EventsRouteSchema,
-  ConfigurationsRouteSchema,
-  ConfigurationRouteSchema,
+  GetConfigurationsRouteSchema,
+  CreateConfigurationRouteSchema,
+  GetConfigurationRouteSchema,
+  DeleteConfigurationRouteSchema,
 ]);
 
 export type ApiRoute = typeof ApiRouteSchema.Type;

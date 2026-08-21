@@ -6,8 +6,11 @@ import * as HttpServer from "effect/unstable/http/HttpServer";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
+import { CreateConfigurationApiRequestSchema } from "@/services/api/configuration/configuration-api-schema.ts";
 import { ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
 import { PushEventServer } from "@/services/api/push-event-server-service.ts";
+import { FELLOWSHIP_DUNGEON } from "@/services/fellowship/constants/fellowship-dungeon.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 
 import { type ApiRoute, ApiRouteSchema } from "./validation/route-schema.ts";
 
@@ -40,6 +43,12 @@ function getRoute({
       onSome: (route) => route,
     },
   );
+}
+
+function badRequestResponse() {
+  return HttpServerResponse.text("Bad Request", {
+    status: 400,
+  });
 }
 
 function notFoundResponse() {
@@ -168,6 +177,79 @@ function handleGetConfiguration(id: string) {
   });
 }
 
+const handleCreateConfiguration = E.gen(function* () {
+  const request = yield* HttpServerRequest.HttpServerRequest;
+  const configurationApiService = yield* ConfigurationApiService;
+
+  const body = yield* request.json.pipe(
+    E.flatMap(Schema.decodeUnknownEffect(CreateConfigurationApiRequestSchema)),
+    E.map(Option.some),
+    E.catch((error) =>
+      E.gen(function* () {
+        yield* E.logDebug("Invalid create configuration request.", {
+          error,
+        });
+
+        return Option.none();
+      }),
+    ),
+  );
+
+  if (Option.isNone(body)) {
+    return badRequestResponse();
+  }
+
+  const configuration = {
+    dungeon: FELLOWSHIP_DUNGEON[body.value.configuration.dungeonKey],
+    milestones: body.value.configuration.milestones,
+  } satisfies FellowshipMilestoneConfiguration;
+
+  return yield* configurationApiService
+    .create({
+      configuration,
+    })
+    .pipe(
+      E.flatMap((createdConfiguration) => {
+        return HttpServerResponse.json(createdConfiguration, {
+          status: 201,
+        });
+      }),
+      E.catch((error) =>
+        E.gen(function* () {
+          yield* E.logError("Failed to create configuration.", {
+            error,
+          });
+
+          return internalServerErrorResponse();
+        }),
+      ),
+    );
+});
+
+function handleDeleteConfiguration(id: string) {
+  return E.gen(function* () {
+    const configurationApiService = yield* ConfigurationApiService;
+
+    return yield* configurationApiService.delete({ id }).pipe(
+      E.as(
+        HttpServerResponse.empty({
+          status: 204,
+        }),
+      ),
+      E.catch((error) =>
+        E.gen(function* () {
+          yield* E.logError("Failed to delete configuration.", {
+            error,
+            id,
+          });
+
+          return internalServerErrorResponse();
+        }),
+      ),
+    );
+  });
+}
+
 const handleRequest = E.gen(function* () {
   const request = yield* HttpServerRequest.HttpServerRequest;
 
@@ -178,12 +260,25 @@ const handleRequest = E.gen(function* () {
 
   return yield* Match.value(route).pipe(
     Match.tag("Events", () => handleEventsRequest),
-    Match.tag("Configurations", () => handleGetConfigurations),
 
-    Match.tag("Configuration", ({ pathname }) => {
+    Match.tag("GetConfigurations", () => {
+      return handleGetConfigurations;
+    }),
+
+    Match.tag("CreateConfiguration", () => {
+      return handleCreateConfiguration;
+    }),
+
+    Match.tag("GetConfiguration", ({ pathname }) => {
       const [, id] = pathname;
 
       return handleGetConfiguration(id);
+    }),
+
+    Match.tag("DeleteConfiguration", ({ pathname }) => {
+      const [, id] = pathname;
+
+      return handleDeleteConfiguration(id);
     }),
 
     Match.tag("NotFound", () => {

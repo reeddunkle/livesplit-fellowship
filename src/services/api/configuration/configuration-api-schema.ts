@@ -1,10 +1,18 @@
 import * as Schema from "effect/Schema";
 
+import { FellowshipMilestoneConfigurationFileSchema } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
 } from "@/validation/common.ts";
+
+export const CreateConfigurationApiRequestSchema = Schema.Struct({
+  configuration: FellowshipMilestoneConfigurationFileSchema,
+});
+
+export type CreateConfigurationApiRequest =
+  typeof CreateConfigurationApiRequestSchema.Type;
 
 export const ConfigurationApiRequirementSchema = Schema.Struct({
   requiredCount: PositiveIntegerSchema,

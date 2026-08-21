@@ -3,19 +3,10 @@ import * as FileSystem from "effect/FileSystem";
 import type * as PlatformError from "effect/PlatformError";
 import * as Schema from "effect/Schema";
 
-import {
-  MilestoneConfigurationJsonError,
-  UnknownFellowshipDungeonError,
-} from "@/errors/milestone-configuration-file-error.ts";
-import {
-  FELLOWSHIP_DUNGEON,
-  type FellowshipDungeon,
-} from "@/services/fellowship/constants/fellowship-dungeon.ts";
+import { MilestoneConfigurationJsonError } from "@/errors/milestone-configuration-file-error.ts";
+import { FELLOWSHIP_DUNGEON } from "@/services/fellowship/constants/fellowship-dungeon.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
-import {
-  type FellowshipMilestoneConfigurationFile,
-  FellowshipMilestoneConfigurationFileSchema,
-} from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+import { FellowshipMilestoneConfigurationFileSchema } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 import { parseJson } from "@/util/parse-json.ts";
 
 export type LoadMilestoneConfigurationOptions = {
@@ -25,61 +16,7 @@ export type LoadMilestoneConfigurationOptions = {
 export type LoadMilestoneConfigurationError =
   | MilestoneConfigurationJsonError
   | PlatformError.PlatformError
-  | Schema.SchemaError
-  | UnknownFellowshipDungeonError;
-
-type ResolveDungeonOptions = {
-  readonly dungeonKey: string;
-  readonly filePath: string;
-};
-
-type ResolveConfigurationOptions = {
-  readonly configurationFile: FellowshipMilestoneConfigurationFile;
-  readonly filePath: string;
-};
-
-function resolveDungeon({
-  dungeonKey,
-  filePath,
-}: ResolveDungeonOptions): E.Effect<
-  FellowshipDungeon,
-  UnknownFellowshipDungeonError
-> {
-  if (!Object.hasOwn(FELLOWSHIP_DUNGEON, dungeonKey)) {
-    return E.fail(
-      new UnknownFellowshipDungeonError({
-        dungeonKey,
-        filePath,
-      }),
-    );
-  }
-
-  const resolvedDungeonKey = dungeonKey as keyof typeof FELLOWSHIP_DUNGEON;
-
-  return E.succeed(FELLOWSHIP_DUNGEON[resolvedDungeonKey]);
-}
-
-function resolveConfiguration({
-  configurationFile,
-  filePath,
-}: ResolveConfigurationOptions): E.Effect<
-  FellowshipMilestoneConfiguration,
-  UnknownFellowshipDungeonError
-> {
-  return E.gen(function* () {
-    const dungeon = yield* resolveDungeon({
-      dungeonKey: configurationFile.dungeonKey,
-      filePath,
-    });
-
-    const configuration = {
-      dungeon,
-      milestones: configurationFile.milestones,
-    };
-
-    return configuration;
-  });
-}
+  | Schema.SchemaError;
 
 export const loadMilestoneConfiguration = E.fn(
   "fellowship.load-milestone-configuration",
@@ -107,10 +44,10 @@ export const loadMilestoneConfiguration = E.fn(
     FellowshipMilestoneConfigurationFileSchema,
   )(json);
 
-  const configuration = yield* resolveConfiguration({
-    configurationFile,
-    filePath,
-  });
+  const configuration = {
+    dungeon: FELLOWSHIP_DUNGEON[configurationFile.dungeonKey],
+    milestones: configurationFile.milestones,
+  } satisfies FellowshipMilestoneConfiguration;
 
   yield* E.annotateCurrentSpan(
     "fellowship.dungeon",
