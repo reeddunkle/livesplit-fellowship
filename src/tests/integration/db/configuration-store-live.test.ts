@@ -228,6 +228,9 @@ describe("ConfigurationStoreLive", () => {
       ],
     } satisfies FellowshipMilestoneConfiguration;
 
+    const expectedFingerprint =
+      createConfigurationFingerprint(configuration).fingerprint;
+
     const program = E.gen(function* () {
       const configurationStore = yield* ConfigurationStore;
 
@@ -247,6 +250,13 @@ describe("ConfigurationStoreLive", () => {
         );
 
       expect(Result.isFailure(result)).toBe(true);
+
+      if (Result.isFailure(result)) {
+        expect(result.failure.details).toEqual({
+          _tag: "DuplicateConfiguration",
+          fingerprint: expectedFingerprint,
+        });
+      }
     }).pipe(E.provide(makeTestLayer()));
 
     await runTest(program);

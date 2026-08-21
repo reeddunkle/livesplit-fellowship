@@ -25,8 +25,26 @@ import { RequirementModel } from "@/db/models/requirement-model.ts";
 import { ConfigurationStoreError } from "@/errors/configuration-store-error.ts";
 
 function mapConfigurationStoreError(cause: unknown): ConfigurationStoreError {
+  if (cause instanceof ConfigurationStoreError) {
+    return cause;
+  }
+
   return new ConfigurationStoreError({
-    cause,
+    details: {
+      _tag: "Unexpected",
+      cause,
+    },
+  });
+}
+
+function duplicateConfigurationError(
+  fingerprint: string,
+): ConfigurationStoreError {
+  return new ConfigurationStoreError({
+    details: {
+      _tag: "DuplicateConfiguration",
+      fingerprint,
+    },
   });
 }
 
@@ -155,57 +173,70 @@ const make = E.gen(function* () {
       yield* sql
         .withTransaction(
           E.gen(function* () {
+            const existingConfigurations = yield* sql`
+              SELECT id
+              FROM configurations
+              WHERE fingerprint = ${configurationInsert.fingerprint}
+              LIMIT 1
+            `;
+
+            if (existingConfigurations.length > 0) {
+              yield* E.fail(
+                duplicateConfigurationError(configurationInsert.fingerprint),
+              );
+            }
+
             yield* sql`
-            INSERT INTO configurations (
-              id,
-              dungeon_key,
-              fingerprint,
-              canonical_json,
-              created_at_milliseconds
-            )
-            VALUES (
-              ${configurationInsert.id},
-              ${configurationInsert.dungeonKey},
-              ${configurationInsert.fingerprint},
-              ${configurationInsert.canonicalJson},
-              ${configurationInsert.createdAt}
-            )
-          `;
+              INSERT INTO configurations (
+                id,
+                dungeon_key,
+                fingerprint,
+                canonical_json,
+                created_at_milliseconds
+              )
+              VALUES (
+                ${configurationInsert.id},
+                ${configurationInsert.dungeonKey},
+                ${configurationInsert.fingerprint},
+                ${configurationInsert.canonicalJson},
+                ${configurationInsert.createdAt}
+              )
+            `;
 
             for (const milestone of milestoneInserts) {
               yield* sql`
-              INSERT INTO milestones (
-                id,
-                configuration_id,
-                label
-              )
-              VALUES (
-                ${milestone.id},
-                ${milestone.configurationId},
-                ${milestone.label}
-              )
-            `;
+                INSERT INTO milestones (
+                  id,
+                  configuration_id,
+                  label
+                )
+                VALUES (
+                  ${milestone.id},
+                  ${milestone.configurationId},
+                  ${milestone.label}
+                )
+              `;
             }
 
             for (const requirement of requirementInserts) {
               yield* sql`
-              INSERT INTO requirements (
-                id,
-                milestone_id,
-                type,
-                target_id,
-                start_occurrence,
-                required_count
-              )
-              VALUES (
-                ${requirement.id},
-                ${requirement.milestoneId},
-                ${requirement.type},
-                ${requirement.targetId},
-                ${requirement.startOccurrence},
-                ${requirement.requiredCount}
-              )
-            `;
+                INSERT INTO requirements (
+                  id,
+                  milestone_id,
+                  type,
+                  target_id,
+                  start_occurrence,
+                  required_count
+                )
+                VALUES (
+                  ${requirement.id},
+                  ${requirement.milestoneId},
+                  ${requirement.type},
+                  ${requirement.targetId},
+                  ${requirement.startOccurrence},
+                  ${requirement.requiredCount}
+                )
+              `;
             }
           }),
         )
