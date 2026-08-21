@@ -208,21 +208,21 @@ export function makeApiEventStreamForUrl(
   });
 }
 
-export function getConfigurations() {
+function getConfigurations() {
   return getConfigurationsForUrl(getApiBaseUrl());
 }
 
-export function getConfiguration(id: string) {
+function getConfiguration(id: string) {
   return getConfigurationForUrl(getApiBaseUrl(), id);
 }
 
-export function createConfiguration(
+function createConfiguration(
   createConfigurationRequest: CreateConfigurationApiRequest,
 ) {
   return createConfigurationForUrl(getApiBaseUrl(), createConfigurationRequest);
 }
 
-export function deleteConfiguration(id: string) {
+function deleteConfiguration(id: string) {
   return deleteConfigurationForUrl(getApiBaseUrl(), id);
 }
 
