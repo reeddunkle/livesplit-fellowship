@@ -6,10 +6,3 @@ export class MilestoneConfigurationJsonError extends Data.TaggedError(
   readonly cause: unknown;
   readonly filePath: string;
 }> {}
-
-class UnknownFellowshipDungeonError extends Data.TaggedError(
-  "UnknownFellowshipDungeonError",
-)<{
-  readonly dungeonKey: string;
-  readonly filePath: string;
-}> {}

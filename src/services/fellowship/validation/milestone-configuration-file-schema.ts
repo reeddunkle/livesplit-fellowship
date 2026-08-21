@@ -87,6 +87,3 @@ export const FellowshipMilestoneConfigurationFileSchema = Schema.Struct({
   dungeonKey: FellowshipDungeonKeySchema,
   milestones: Schema.Array(FellowshipMilestoneDefinitionSchema),
 });
-
-type FellowshipMilestoneConfigurationFile =
-  typeof FellowshipMilestoneConfigurationFileSchema.Type;

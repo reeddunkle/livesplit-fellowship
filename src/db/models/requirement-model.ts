@@ -8,11 +8,7 @@ import {
   PositiveIntegerSchema,
 } from "@/validation/common.ts";
 
-const RequirementIdSchema = Schema.String.pipe(
-  Schema.brand("RequirementId"),
-);
-
-type RequirementId = typeof RequirementIdSchema.Type;
+const RequirementIdSchema = Schema.String.pipe(Schema.brand("RequirementId"));
 
 export class RequirementModel extends Model.Class<RequirementModel>(
   "RequirementModel",

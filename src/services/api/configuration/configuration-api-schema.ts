@@ -11,9 +11,6 @@ export const CreateConfigurationApiRequestSchema = Schema.Struct({
   configuration: FellowshipMilestoneConfigurationFileSchema,
 });
 
-type CreateConfigurationApiRequest =
-  typeof CreateConfigurationApiRequestSchema.Type;
-
 const ConfigurationApiRequirementSchema = Schema.Struct({
   requiredCount: PositiveIntegerSchema,
   startOccurrence: PositiveIntegerSchema,
