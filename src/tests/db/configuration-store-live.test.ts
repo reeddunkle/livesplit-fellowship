@@ -8,7 +8,7 @@ import {
   ConfigurationStore,
   type PersistedConfiguration,
 } from "@/db/configuration/configuration-store.ts";
-import { makeConfigurationStoreLayer } from "@/layers/configuration-store-layer.ts";
+import { makePersistenceLayer } from "@/layers/persistence-layer.ts";
 import { FELLOWSHIP_DUNGEON } from "@/services/fellowship/constants/fellowship-dungeon.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { runTest } from "@/tests/common/run-test.ts";
@@ -94,7 +94,7 @@ function getPersistedConfiguration(
 }
 
 function makeTestLayer() {
-  return makeConfigurationStoreLayer(":memory:");
+  return makePersistenceLayer(":memory:");
 }
 
 describe("ConfigurationStoreLive", () => {
