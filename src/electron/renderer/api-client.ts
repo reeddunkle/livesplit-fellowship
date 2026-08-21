@@ -4,27 +4,18 @@ import * as Queue from "effect/Queue";
 import * as Schedule from "effect/Schedule";
 import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
+import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
+import * as HttpApiClient from "effect/unstable/httpapi/HttpApiClient";
 import * as Socket from "effect/unstable/socket/Socket";
 
-import { getConfigurationRoute, ROUTES } from "@/api/constants/routes.ts";
+import { ROUTES } from "@/api/constants/routes.ts";
+import { AppHttpApi } from "@/api/http/http-api.ts";
 import {
   type RunApiMessage,
   RunApiMessageSchema,
 } from "@/api/validation/run-api-message-schema.ts";
-import {
-  ApiClientMessageDecodeError,
-  ApiClientRequestError,
-  ApiClientResponseDecodeError,
-  ApiClientResponseStatusError,
-} from "@/errors/api-client-error.ts";
-import {
-  type ConfigurationApiConfiguration,
-  type ConfigurationApiConfigurationList,
-  ConfigurationApiConfigurationListSchema,
-  ConfigurationApiConfigurationSchema,
-  type CreateConfigurationApiRequest,
-} from "@/services/api/configuration/configuration-api-schema.ts";
-import { parseJson } from "@/util/parse-json.ts";
+import { ApiClientMessageDecodeError } from "@/errors/api-client-error.ts";
+import { type CreateConfigurationApiRequest } from "@/services/api/configuration/configuration-api-schema.ts";
 
 export const API_CONNECTION_STATE = {
   CONNECTED: "CONNECTED",
@@ -49,11 +40,6 @@ export type ApiClientEventError =
   | ApiClientMessageDecodeError
   | Socket.SocketError;
 
-export type ApiClientHttpError =
-  | ApiClientRequestError
-  | ApiClientResponseDecodeError
-  | ApiClientResponseStatusError;
-
 export type MakeApiEventStreamOptions = {
   readonly reconnectDelay?: Duration.Input;
 };
@@ -62,6 +48,12 @@ const DEFAULT_RECONNECT_DELAY = "1 second";
 
 function getApiBaseUrl(): string {
   return `http://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}`;
+}
+
+function makeHttpApiClient(baseUrl: string) {
+  return HttpApiClient.make(AppHttpApi, {
+    baseUrl,
+  });
 }
 
 function offerConnectionState(
@@ -99,144 +91,49 @@ function decodeMessage(
   });
 }
 
-function request(
-  url: string,
-  options?: RequestInit,
-): E.Effect<Response, ApiClientRequestError> {
-  return E.tryPromise({
-    catch: (cause) => {
-      return new ApiClientRequestError({
-        cause,
-      });
-    },
-    try: () => {
-      return fetch(url, options);
-    },
-  });
-}
-
-function ensureSuccessfulResponse(
-  response: Response,
-): E.Effect<Response, ApiClientResponseStatusError> {
-  if (response.ok) {
-    return E.succeed(response);
-  }
-
-  return E.fail(
-    new ApiClientResponseStatusError({
-      status: response.status,
-      statusText: response.statusText,
-    }),
-  );
-}
-
-function parseResponseJson(
-  response: Response,
-): E.Effect<unknown, ApiClientResponseDecodeError> {
+export function getConfigurationsForUrl(baseUrl: string) {
   return E.gen(function* () {
-    const contents = yield* E.tryPromise({
-      catch: (cause) => {
-        return new ApiClientResponseDecodeError({
-          cause,
-        });
-      },
-      try: () => {
-        return response.text();
+    const client = yield* makeHttpApiClient(baseUrl);
+
+    return yield* client.configurations.getConfigurations();
+  }).pipe(E.provide(FetchHttpClient.layer));
+}
+
+export function getConfigurationForUrl(baseUrl: string, id: string) {
+  return E.gen(function* () {
+    const client = yield* makeHttpApiClient(baseUrl);
+
+    return yield* client.configurations.getConfiguration({
+      params: {
+        id,
       },
     });
-
-    return yield* parseJson({
-      contents,
-      onError: (cause) => {
-        return new ApiClientResponseDecodeError({
-          cause,
-        });
-      },
-    });
-  });
-}
-
-function decodeConfigurationResponse(
-  response: Response,
-): E.Effect<ConfigurationApiConfiguration, ApiClientResponseDecodeError> {
-  return E.gen(function* () {
-    const json = yield* parseResponseJson(response);
-
-    return yield* Schema.decodeUnknownEffect(
-      ConfigurationApiConfigurationSchema,
-    )(json).pipe(
-      E.mapError((cause) => {
-        return new ApiClientResponseDecodeError({
-          cause,
-        });
-      }),
-    );
-  });
-}
-
-export function getConfigurationsForUrl(
-  baseUrl: string,
-): E.Effect<ConfigurationApiConfigurationList, ApiClientHttpError> {
-  return E.gen(function* () {
-    const response = yield* request(`${baseUrl}${ROUTES.configurations}`);
-    const successfulResponse = yield* ensureSuccessfulResponse(response);
-    const json = yield* parseResponseJson(successfulResponse);
-
-    return yield* Schema.decodeUnknownEffect(
-      ConfigurationApiConfigurationListSchema,
-    )(json).pipe(
-      E.mapError((cause) => {
-        return new ApiClientResponseDecodeError({
-          cause,
-        });
-      }),
-    );
-  });
-}
-
-export function getConfigurationForUrl(
-  baseUrl: string,
-  id: string,
-): E.Effect<ConfigurationApiConfiguration, ApiClientHttpError> {
-  return E.gen(function* () {
-    const response = yield* request(`${baseUrl}${getConfigurationRoute(id)}`);
-
-    const successfulResponse = yield* ensureSuccessfulResponse(response);
-
-    return yield* decodeConfigurationResponse(successfulResponse);
-  });
+  }).pipe(E.provide(FetchHttpClient.layer));
 }
 
 export function createConfigurationForUrl(
   baseUrl: string,
   createConfigurationRequest: CreateConfigurationApiRequest,
-): E.Effect<ConfigurationApiConfiguration, ApiClientHttpError> {
+) {
   return E.gen(function* () {
-    const response = yield* request(`${baseUrl}${ROUTES.configurations}`, {
-      body: JSON.stringify(createConfigurationRequest),
-      headers: {
-        "content-type": "application/json",
-      },
-      method: "POST",
+    const client = yield* makeHttpApiClient(baseUrl);
+
+    return yield* client.configurations.createConfiguration({
+      payload: createConfigurationRequest,
     });
-
-    const successfulResponse = yield* ensureSuccessfulResponse(response);
-
-    return yield* decodeConfigurationResponse(successfulResponse);
-  });
+  }).pipe(E.provide(FetchHttpClient.layer));
 }
 
-export function deleteConfigurationForUrl(
-  baseUrl: string,
-  id: string,
-): E.Effect<void, ApiClientHttpError> {
+export function deleteConfigurationForUrl(baseUrl: string, id: string) {
   return E.gen(function* () {
-    const response = yield* request(`${baseUrl}${getConfigurationRoute(id)}`, {
-      method: "DELETE",
-    });
+    const client = yield* makeHttpApiClient(baseUrl);
 
-    yield* ensureSuccessfulResponse(response);
-  });
+    yield* client.configurations.deleteConfiguration({
+      params: {
+        id,
+      },
+    });
+  }).pipe(E.provide(FetchHttpClient.layer));
 }
 
 export function makeApiEventStreamForUrl(
@@ -278,6 +175,10 @@ export function makeApiEventStreamForUrl(
     );
 
     return connect.pipe(
+      /*
+       * Retry socket failures indefinitely. Message decoding failures indicate
+       * a protocol/schema problem and should fail the stream instead.
+       */
       E.retry({
         schedule: Schedule.spaced(reconnectDelay),
         while: (error) => {
@@ -285,8 +186,17 @@ export function makeApiEventStreamForUrl(
         },
       }),
 
+      /*
+       * A socket can also close successfully, such as with WebSocket close
+       * code 1000. Reconnect after normal completion as well.
+       */
       E.repeat(Schedule.spaced(reconnectDelay)),
 
+      /*
+       * Stream.callback communicates failure through its queue. At this point
+       * the only expected recoverable-error exclusion is a message decode
+       * failure.
+       */
       E.catchCause((cause) => {
         return E.sync(() => {
           Queue.failCauseUnsafe(queue, cause);
@@ -298,28 +208,21 @@ export function makeApiEventStreamForUrl(
   });
 }
 
-export function getConfigurations(): E.Effect<
-  ConfigurationApiConfigurationList,
-  ApiClientHttpError
-> {
+export function getConfigurations() {
   return getConfigurationsForUrl(getApiBaseUrl());
 }
 
-export function getConfiguration(
-  id: string,
-): E.Effect<ConfigurationApiConfiguration, ApiClientHttpError> {
+export function getConfiguration(id: string) {
   return getConfigurationForUrl(getApiBaseUrl(), id);
 }
 
 export function createConfiguration(
   createConfigurationRequest: CreateConfigurationApiRequest,
-): E.Effect<ConfigurationApiConfiguration, ApiClientHttpError> {
+) {
   return createConfigurationForUrl(getApiBaseUrl(), createConfigurationRequest);
 }
 
-export function deleteConfiguration(
-  id: string,
-): E.Effect<void, ApiClientHttpError> {
+export function deleteConfiguration(id: string) {
   return deleteConfigurationForUrl(getApiBaseUrl(), id);
 }
 
