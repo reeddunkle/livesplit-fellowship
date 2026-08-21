@@ -17,7 +17,7 @@ import {
   PushEventServer,
   PushEventServerLive,
 } from "@/services/api/push-event-server-service.ts";
-import { ConfigurationApiServiceTest } from "@/tests/common/configuration-api-service-test-layer.ts";
+import { ConfigurationApiServiceTest } from "@/tests/common/configuration-api-service-test.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
 const TEST_TIMEOUT = "1 second";
