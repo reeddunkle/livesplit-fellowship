@@ -344,7 +344,10 @@ describe("configuration routes", () => {
       getAll: () => {
         return E.fail(
           new ConfigurationStoreError({
-            cause: new Error("Database failure."),
+            details: {
+              _tag: "Unexpected",
+              cause: new Error("Database failure."),
+            },
           }),
         );
       },
