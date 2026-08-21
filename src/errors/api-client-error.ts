@@ -5,3 +5,22 @@ export class ApiClientMessageDecodeError extends Data.TaggedError(
 )<{
   readonly cause: unknown;
 }> {}
+
+export class ApiClientRequestError extends Data.TaggedError(
+  "ApiClientRequestError",
+)<{
+  readonly cause: unknown;
+}> {}
+
+export class ApiClientResponseStatusError extends Data.TaggedError(
+  "ApiClientResponseStatusError",
+)<{
+  readonly status: number;
+  readonly statusText: string;
+}> {}
+
+export class ApiClientResponseDecodeError extends Data.TaggedError(
+  "ApiClientResponseDecodeError",
+)<{
+  readonly cause: unknown;
+}> {}

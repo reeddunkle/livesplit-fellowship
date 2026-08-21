@@ -6,11 +6,22 @@ import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 import * as Socket from "effect/unstable/socket/Socket";
 
+import { ROUTES } from "@/api/constants/routes.ts";
 import {
   type RunApiMessage,
   RunApiMessageSchema,
 } from "@/api/validation/run-api-message-schema.ts";
-import { ApiClientMessageDecodeError } from "@/errors/api-client-error.ts";
+import {
+  ApiClientMessageDecodeError,
+  ApiClientRequestError,
+  ApiClientResponseDecodeError,
+  ApiClientResponseStatusError,
+} from "@/errors/api-client-error.ts";
+import {
+  type ConfigurationApiConfigurationList,
+  ConfigurationApiConfigurationListSchema,
+} from "@/services/api/configuration/configuration-api-schema.ts";
+import { parseJson } from "@/util/parse-json.ts";
 
 export const API_CONNECTION_STATE = {
   CONNECTED: "CONNECTED",
@@ -31,7 +42,14 @@ export type ApiClientEvent =
       readonly type: "MESSAGE_RECEIVED";
     };
 
-export type ApiClientError = ApiClientMessageDecodeError | Socket.SocketError;
+export type ApiClientEventError =
+  | ApiClientMessageDecodeError
+  | Socket.SocketError;
+
+export type ApiClientHttpError =
+  | ApiClientRequestError
+  | ApiClientResponseDecodeError
+  | ApiClientResponseStatusError;
 
 export type MakeApiEventStreamOptions = {
   readonly reconnectDelay?: Duration.Input;
@@ -74,13 +92,90 @@ function decodeMessage(
   });
 }
 
+function request(
+  url: string,
+  options?: RequestInit,
+): E.Effect<Response, ApiClientRequestError> {
+  return E.tryPromise({
+    catch: (cause) => {
+      return new ApiClientRequestError({
+        cause,
+      });
+    },
+    try: () => {
+      return fetch(url, options);
+    },
+  });
+}
+
+function ensureSuccessfulResponse(
+  response: Response,
+): E.Effect<Response, ApiClientResponseStatusError> {
+  if (response.ok) {
+    return E.succeed(response);
+  }
+
+  return E.fail(
+    new ApiClientResponseStatusError({
+      status: response.status,
+      statusText: response.statusText,
+    }),
+  );
+}
+
+function parseResponseJson(
+  response: Response,
+): E.Effect<unknown, ApiClientResponseDecodeError> {
+  return E.gen(function* () {
+    const contents = yield* E.tryPromise({
+      catch: (cause) => {
+        return new ApiClientResponseDecodeError({
+          cause,
+        });
+      },
+      try: () => {
+        return response.text();
+      },
+    });
+
+    return yield* parseJson({
+      contents,
+      onError: (cause) => {
+        return new ApiClientResponseDecodeError({
+          cause,
+        });
+      },
+    });
+  });
+}
+
+export function getConfigurationsForUrl(
+  baseUrl: string,
+): E.Effect<ConfigurationApiConfigurationList, ApiClientHttpError> {
+  return E.gen(function* () {
+    const response = yield* request(`${baseUrl}${ROUTES.configurations}`);
+    const successfulResponse = yield* ensureSuccessfulResponse(response);
+    const json = yield* parseResponseJson(successfulResponse);
+
+    return yield* Schema.decodeUnknownEffect(
+      ConfigurationApiConfigurationListSchema,
+    )(json).pipe(
+      E.mapError((cause) => {
+        return new ApiClientResponseDecodeError({
+          cause,
+        });
+      }),
+    );
+  });
+}
+
 export function makeApiEventStreamForUrl(
   url: string,
   options: MakeApiEventStreamOptions = {},
-): Stream.Stream<ApiClientEvent, ApiClientError> {
+): Stream.Stream<ApiClientEvent, ApiClientEventError> {
   const reconnectDelay = options.reconnectDelay ?? DEFAULT_RECONNECT_DELAY;
 
-  return Stream.callback<ApiClientEvent, ApiClientError>((queue) => {
+  return Stream.callback<ApiClientEvent, ApiClientEventError>((queue) => {
     const connect = E.gen(function* () {
       yield* offerConnectionState(queue, API_CONNECTION_STATE.CONNECTING);
 
@@ -146,11 +241,20 @@ export function makeApiEventStreamForUrl(
   });
 }
 
+export function getConfigurations(): E.Effect<
+  ConfigurationApiConfigurationList,
+  ApiClientHttpError
+> {
+  const baseUrl = `http://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}`;
+
+  return getConfigurationsForUrl(baseUrl);
+}
+
 export function makeApiEventStream(): Stream.Stream<
   ApiClientEvent,
-  ApiClientError
+  ApiClientEventError
 > {
-  const url = `ws://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}/events`;
+  const url = `ws://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}${ROUTES.events}`;
 
   return makeApiEventStreamForUrl(url);
 }
