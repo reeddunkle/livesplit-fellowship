@@ -14,7 +14,10 @@
     {
       "label": "Disciple 2",
       "milestoneId": "sanguine-disciple:2",
-      "requirements": [{ "type": "UNIT_DEATH", "unitTypeId": "331" }]
+      "requirements": [
+        { "type": "UNIT_DEATH", "unitTypeId": "331" },
+        { "type": "UNIT_DEATH", "unitTypeId": "331" }
+      ]
     },
     {
       "label": "Varux Pulled",
