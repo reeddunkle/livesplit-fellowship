@@ -5,9 +5,14 @@ import * as Exit from "effect/Exit";
 
 import { runCLI } from "@/cli/main.ts";
 import { logCause } from "@/logging/log-cause.ts";
-import { AppRuntime } from "@/runtimes/app-runtime.ts";
+import { makeAppRuntime } from "@/runtimes/app-runtime.ts";
 
-const exit = await AppRuntime.runPromiseExit(
+const databaseFilename =
+  process.env.DATABASE_FILENAME ?? "livesplit-fellowship.db";
+
+const appRuntime = makeAppRuntime(databaseFilename);
+
+const exit = await appRuntime.runPromiseExit(
   runCLI(process.argv.slice(2)).pipe(E.tapCause(logCause)),
 );
 
@@ -15,4 +20,4 @@ if (Exit.isFailure(exit)) {
   process.exitCode = 1;
 }
 
-await AppRuntime.dispose();
+await appRuntime.dispose();

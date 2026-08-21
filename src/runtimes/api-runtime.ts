@@ -1,5 +1,7 @@
 import * as ManagedRuntime from "effect/ManagedRuntime";
 
-import { ApiAppLive } from "@/layers/api-app-layer.ts";
+import { makeApiAppLive } from "@/layers/api-app-layer.ts";
 
-export const ApiRuntime = ManagedRuntime.make(ApiAppLive);
+export function makeApiRuntime(databaseFilename: string) {
+  return ManagedRuntime.make(makeApiAppLive(databaseFilename));
+}

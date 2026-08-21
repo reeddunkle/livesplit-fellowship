@@ -1,5 +1,7 @@
 import * as ManagedRuntime from "effect/ManagedRuntime";
 
-import { LiveSplitAppLive } from "@/layers/live-split-app-layer.ts";
+import { makeLiveSplitAppLive } from "@/layers/live-split-app-layer.ts";
 
-export const LiveSplitRuntime = ManagedRuntime.make(LiveSplitAppLive);
+export function makeLiveSplitRuntime(databaseFilename: string) {
+  return ManagedRuntime.make(makeLiveSplitAppLive(databaseFilename));
+}

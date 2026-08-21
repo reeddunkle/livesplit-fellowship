@@ -1,5 +1,7 @@
 import * as ManagedRuntime from "effect/ManagedRuntime";
 
-import { AppLive } from "@/layers/app-layer.ts";
+import { makeAppLive } from "@/layers/app-layer.ts";
 
-export const AppRuntime = ManagedRuntime.make(AppLive);
+export function makeAppRuntime(databaseFilename: string) {
+  return ManagedRuntime.make(makeAppLive(databaseFilename));
+}
