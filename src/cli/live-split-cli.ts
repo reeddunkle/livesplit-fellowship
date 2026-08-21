@@ -10,7 +10,9 @@ import { makeLiveSplitRuntime } from "@/runtimes/live-split-runtime.ts";
 const databaseFilename =
   process.env.DATABASE_FILENAME ?? "livesplit-fellowship.db";
 
-const liveSplitRuntime = makeLiveSplitRuntime(databaseFilename);
+const liveSplitRuntime = makeLiveSplitRuntime({
+  databaseFilename,
+});
 
 const exit = await liveSplitRuntime.runPromiseExit(
   runLiveSplitCLI(process.argv.slice(2)).pipe(E.tapCause(logCause)),

@@ -15,7 +15,9 @@ export function makeApiAppMock(databaseFilename = ":memory:") {
     );
 
     const layer = Layer.mergeAll(
-      makeAppServicesLive(databaseFilename),
+      makeAppServicesLive({
+        databaseFilename,
+      }),
       pushEventServerLayer,
     );
 

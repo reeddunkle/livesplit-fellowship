@@ -6,6 +6,11 @@ import { makePersistenceLayer } from "@/layers/persistence-layer.ts";
 import { FellowshipLive } from "@/services/fellowship/fellowship-service.ts";
 import { FileMonitorLive } from "@/services/filesystem/file-monitor-service.ts";
 import { LiveSplitFileLive } from "@/services/live-split/files/live-split-file-service.ts";
+import { type DatabaseOptions } from "@/types/app-options.ts";
+
+export type MakeAppServicesLiveOptions = DatabaseOptions;
+
+export type MakeAppLiveOptions = DatabaseOptions;
 
 const PlatformLive = Layer.mergeAll(NodeFileSystem.layer, NodePath.layer);
 
@@ -19,19 +24,25 @@ const FellowshipWithDependencies = FellowshipLive.pipe(
   Layer.provide(FileMonitorWithPlatform),
 );
 
-export function makeAppServicesLive(databaseFilename: string) {
+export function makeAppServicesLive({
+  databaseFilename,
+}: MakeAppServicesLiveOptions) {
   return Layer.mergeAll(
     PlatformLive,
     FileMonitorWithPlatform,
     FellowshipWithDependencies,
     LiveSplitFileLive,
-    makePersistenceLayer(databaseFilename),
+    makePersistenceLayer({
+      databaseFilename,
+    }),
   );
 }
 
-export function makeAppLive(databaseFilename: string) {
+export function makeAppLive({ databaseFilename }: MakeAppLiveOptions) {
   return Layer.mergeAll(
     AppLoggerWithPlatform,
-    makeAppServicesLive(databaseFilename),
+    makeAppServicesLive({
+      databaseFilename,
+    }),
   );
 }

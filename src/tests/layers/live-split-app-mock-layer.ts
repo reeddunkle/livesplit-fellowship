@@ -4,12 +4,20 @@ import * as Layer from "effect/Layer";
 import { makeAppServicesLive } from "@/layers/app-layer.ts";
 import { makeLiveSplitTestHarness } from "@/tests/common/live-split-test-harness.ts";
 
-export function makeLiveSplitAppMock(databaseFilename = ":memory:") {
+export type MakeLiveSplitAppMockOptions = {
+  readonly databaseFilename?: string;
+};
+
+export function makeLiveSplitAppMock({
+  databaseFilename = ":memory:",
+}: MakeLiveSplitAppMockOptions = {}) {
   return E.gen(function* () {
     const harness = yield* makeLiveSplitTestHarness();
 
     const layer = Layer.mergeAll(
-      makeAppServicesLive(databaseFilename),
+      makeAppServicesLive({
+        databaseFilename,
+      }),
       harness.clientLayer,
     );
 

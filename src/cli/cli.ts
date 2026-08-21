@@ -10,7 +10,9 @@ import { makeAppRuntime } from "@/runtimes/app-runtime.ts";
 const databaseFilename =
   process.env.DATABASE_FILENAME ?? "livesplit-fellowship.db";
 
-const appRuntime = makeAppRuntime(databaseFilename);
+const appRuntime = makeAppRuntime({
+  databaseFilename,
+});
 
 const exit = await appRuntime.runPromiseExit(
   runCLI(process.argv.slice(2)).pipe(E.tapCause(logCause)),

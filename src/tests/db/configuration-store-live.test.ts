@@ -94,7 +94,9 @@ function getPersistedConfiguration(
 }
 
 function makeTestLayer() {
-  return makePersistenceLayer(":memory:");
+  return makePersistenceLayer({
+    databaseFilename: ":memory:",
+  });
 }
 
 describe("ConfigurationStoreLive", () => {
