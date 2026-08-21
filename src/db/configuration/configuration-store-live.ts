@@ -9,10 +9,10 @@ import {
   createPersistedConfiguration,
 } from "@/db/configuration/configuration-persistence.ts";
 import {
-  ConfigurationRepository,
-  type ConfigurationRepositoryShape,
+  ConfigurationStore,
+  type ConfigurationStoreShape,
   type PersistedConfiguration,
-} from "@/db/configuration/configuration-repository.ts";
+} from "@/db/configuration/configuration-store.ts";
 import {
   type ConfigurationId,
   ConfigurationModel,
@@ -22,35 +22,35 @@ import {
   MilestoneModel,
 } from "@/db/models/milestone-model.ts";
 import { RequirementModel } from "@/db/models/requirement-model.ts";
-import { ConfigurationRepositoryError } from "@/errors/configuration-repository-error.ts";
+import { ConfigurationStoreError } from "@/errors/configuration-store-error.ts";
 
-function mapRepositoryError(cause: unknown): ConfigurationRepositoryError {
-  return new ConfigurationRepositoryError({
+function mapConfigurationStoreError(cause: unknown): ConfigurationStoreError {
+  return new ConfigurationStoreError({
     cause,
   });
 }
 
 function decodeConfigurationRows(
   rows: unknown,
-): E.Effect<ReadonlyArray<ConfigurationModel>, ConfigurationRepositoryError> {
+): E.Effect<ReadonlyArray<ConfigurationModel>, ConfigurationStoreError> {
   return Schema.decodeUnknownEffect(Schema.Array(ConfigurationModel))(
     rows,
-  ).pipe(E.mapError(mapRepositoryError));
+  ).pipe(E.mapError(mapConfigurationStoreError));
 }
 
 function decodeMilestoneRows(
   rows: unknown,
-): E.Effect<ReadonlyArray<MilestoneModel>, ConfigurationRepositoryError> {
+): E.Effect<ReadonlyArray<MilestoneModel>, ConfigurationStoreError> {
   return Schema.decodeUnknownEffect(Schema.Array(MilestoneModel))(rows).pipe(
-    E.mapError(mapRepositoryError),
+    E.mapError(mapConfigurationStoreError),
   );
 }
 
 function decodeRequirementRows(
   rows: unknown,
-): E.Effect<ReadonlyArray<RequirementModel>, ConfigurationRepositoryError> {
+): E.Effect<ReadonlyArray<RequirementModel>, ConfigurationStoreError> {
   return Schema.decodeUnknownEffect(Schema.Array(RequirementModel))(rows).pipe(
-    E.mapError(mapRepositoryError),
+    E.mapError(mapConfigurationStoreError),
   );
 }
 
@@ -59,7 +59,7 @@ const make = E.gen(function* () {
 
   const getMilestonesByConfigurationId = (
     configurationId: ConfigurationId,
-  ): E.Effect<ReadonlyArray<MilestoneModel>, ConfigurationRepositoryError> => {
+  ): E.Effect<ReadonlyArray<MilestoneModel>, ConfigurationStoreError> => {
     return E.gen(function* () {
       const rows = yield* sql`
         SELECT
@@ -71,15 +71,12 @@ const make = E.gen(function* () {
       `;
 
       return yield* decodeMilestoneRows(rows);
-    }).pipe(E.mapError(mapRepositoryError));
+    }).pipe(E.mapError(mapConfigurationStoreError));
   };
 
   const getRequirementsByMilestoneIds = (
     milestoneIds: ReadonlyArray<MilestoneId>,
-  ): E.Effect<
-    ReadonlyArray<RequirementModel>,
-    ConfigurationRepositoryError
-  > => {
+  ): E.Effect<ReadonlyArray<RequirementModel>, ConfigurationStoreError> => {
     if (milestoneIds.length === 0) {
       return E.succeed([]);
     }
@@ -98,12 +95,12 @@ const make = E.gen(function* () {
       `;
 
       return yield* decodeRequirementRows(rows);
-    }).pipe(E.mapError(mapRepositoryError));
+    }).pipe(E.mapError(mapConfigurationStoreError));
   };
 
   const hydrateConfiguration = (
     configuration: ConfigurationModel,
-  ): E.Effect<PersistedConfiguration, ConfigurationRepositoryError> => {
+  ): E.Effect<PersistedConfiguration, ConfigurationStoreError> => {
     return E.gen(function* () {
       const milestones = yield* getMilestonesByConfigurationId(
         configuration.id,
@@ -114,7 +111,7 @@ const make = E.gen(function* () {
       );
 
       return yield* E.try({
-        catch: mapRepositoryError,
+        catch: mapConfigurationStoreError,
         try: () => {
           return createPersistedConfiguration({
             configuration,
@@ -126,12 +123,10 @@ const make = E.gen(function* () {
     });
   };
 
-  const create: ConfigurationRepositoryShape["create"] = ({
-    configuration,
-  }) => {
+  const create: ConfigurationStoreShape["create"] = ({ configuration }) => {
     return E.gen(function* () {
       const records = yield* E.try({
-        catch: mapRepositoryError,
+        catch: mapConfigurationStoreError,
         try: () => {
           return createConfigurationPersistenceRecords({
             configuration,
@@ -141,21 +136,21 @@ const make = E.gen(function* () {
 
       const configurationInsert = yield* Schema.encodeEffect(
         ConfigurationModel.insert,
-      )(records.configuration).pipe(E.mapError(mapRepositoryError));
+      )(records.configuration).pipe(E.mapError(mapConfigurationStoreError));
 
       const milestoneInserts = yield* E.forEach(
         records.milestones,
         (milestone) => {
           return Schema.encodeEffect(MilestoneModel.insert)(milestone);
         },
-      ).pipe(E.mapError(mapRepositoryError));
+      ).pipe(E.mapError(mapConfigurationStoreError));
 
       const requirementInserts = yield* E.forEach(
         records.requirements,
         (requirement) => {
           return Schema.encodeEffect(RequirementModel.insert)(requirement);
         },
-      ).pipe(E.mapError(mapRepositoryError));
+      ).pipe(E.mapError(mapConfigurationStoreError));
 
       yield* sql
         .withTransaction(
@@ -214,7 +209,7 @@ const make = E.gen(function* () {
             }
           }),
         )
-        .pipe(E.mapError(mapRepositoryError));
+        .pipe(E.mapError(mapConfigurationStoreError));
 
       return {
         configuration,
@@ -223,7 +218,7 @@ const make = E.gen(function* () {
     });
   };
 
-  const getById: ConfigurationRepositoryShape["getById"] = ({ id }) => {
+  const getById: ConfigurationStoreShape["getById"] = ({ id }) => {
     return E.gen(function* () {
       const rows = yield* sql`
         SELECT
@@ -247,10 +242,10 @@ const make = E.gen(function* () {
       const persistedConfiguration = yield* hydrateConfiguration(configuration);
 
       return Option.some(persistedConfiguration);
-    }).pipe(E.mapError(mapRepositoryError));
+    }).pipe(E.mapError(mapConfigurationStoreError));
   };
 
-  const getAll: ConfigurationRepositoryShape["getAll"] = () => {
+  const getAll: ConfigurationStoreShape["getAll"] = () => {
     return E.gen(function* () {
       const rows = yield* sql`
         SELECT
@@ -274,16 +269,14 @@ const make = E.gen(function* () {
       }
 
       return persistedConfigurations;
-    }).pipe(E.mapError(mapRepositoryError));
+    }).pipe(E.mapError(mapConfigurationStoreError));
   };
 
-  const deleteConfiguration: ConfigurationRepositoryShape["delete"] = ({
-    id,
-  }) => {
+  const deleteConfiguration: ConfigurationStoreShape["delete"] = ({ id }) => {
     return sql`
       DELETE FROM configurations
       WHERE id = ${id}
-    `.pipe(E.asVoid, E.mapError(mapRepositoryError));
+    `.pipe(E.asVoid, E.mapError(mapConfigurationStoreError));
   };
 
   return {
@@ -291,10 +284,7 @@ const make = E.gen(function* () {
     delete: deleteConfiguration,
     getAll,
     getById,
-  } satisfies ConfigurationRepositoryShape;
+  } satisfies ConfigurationStoreShape;
 });
 
-export const ConfigurationRepositoryLive = Layer.effect(
-  ConfigurationRepository,
-  make,
-);
+export const ConfigurationStoreLive = Layer.effect(ConfigurationStore, make);

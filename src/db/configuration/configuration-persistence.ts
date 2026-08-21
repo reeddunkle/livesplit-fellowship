@@ -14,7 +14,7 @@ import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/mil
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 import { isNonEmptyArray } from "@/util/is-non-empty-array.ts";
 
-import { type PersistedConfiguration } from "./configuration-repository.ts";
+import { type PersistedConfiguration } from "./configuration-store.ts";
 
 export type ConfigurationInsert = typeof ConfigurationModel.insert.Type;
 export type MilestoneInsert = typeof MilestoneModel.insert.Type;

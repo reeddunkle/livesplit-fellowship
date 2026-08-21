@@ -6,10 +6,10 @@ import { describe, expect, test } from "vitest";
 
 import { createConfigurationFingerprint } from "@/db/configuration/configuration-fingerprint.ts";
 import {
-  ConfigurationRepository,
+  ConfigurationStore,
   type PersistedConfiguration,
-} from "@/db/configuration/configuration-repository.ts";
-import { ConfigurationRepositoryLive } from "@/db/configuration/configuration-repository-live.ts";
+} from "@/db/configuration/configuration-store.ts";
+import { ConfigurationStoreLive } from "@/db/configuration/configuration-store-live.ts";
 import { makeDatabaseLayer } from "@/db/database-layer.ts";
 import { FELLOWSHIP_DUNGEON } from "@/services/fellowship/constants/fellowship-dungeon.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
@@ -96,7 +96,7 @@ function getPersistedConfiguration(
 }
 
 function makeTestLayer() {
-  return ConfigurationRepositoryLive.pipe(
+  return ConfigurationStoreLive.pipe(
     Layer.provideMerge(makeDatabaseLayer(":memory:")),
   );
 }
@@ -104,16 +104,16 @@ function makeTestLayer() {
 describe("ConfigurationRepositoryLive", () => {
   test("creates and retrieves a configuration", async () => {
     const program = E.gen(function* () {
-      const repository = yield* ConfigurationRepository;
+      const configurationStore = yield* ConfigurationStore;
 
-      const created = yield* repository.create({
+      const created = yield* configurationStore.create({
         configuration,
       });
 
       expect(created.id).toBeDefined();
       expect(created.configuration).toEqual(configuration);
 
-      const result = yield* repository.getById({
+      const result = yield* configurationStore.getById({
         id: created.id,
       });
 
@@ -231,13 +231,13 @@ describe("ConfigurationRepositoryLive", () => {
     } satisfies FellowshipMilestoneConfiguration;
 
     const program = E.gen(function* () {
-      const repository = yield* ConfigurationRepository;
+      const configurationStore = yield* ConfigurationStore;
 
-      yield* repository.create({
+      yield* configurationStore.create({
         configuration,
       });
 
-      const result = yield* repository
+      const result = yield* configurationStore
         .create({
           configuration: duplicateConfiguration,
         })
@@ -256,17 +256,17 @@ describe("ConfigurationRepositoryLive", () => {
 
   test("deletes a configuration", async () => {
     const program = E.gen(function* () {
-      const repository = yield* ConfigurationRepository;
+      const configurationStore = yield* ConfigurationStore;
 
-      const created = yield* repository.create({
+      const created = yield* configurationStore.create({
         configuration,
       });
 
-      yield* repository.delete({
+      yield* configurationStore.delete({
         id: created.id,
       });
 
-      const result = yield* repository.getById({
+      const result = yield* configurationStore.getById({
         id: created.id,
       });
 
@@ -295,17 +295,17 @@ describe("ConfigurationRepositoryLive", () => {
     } satisfies FellowshipMilestoneConfiguration;
 
     const program = E.gen(function* () {
-      const repository = yield* ConfigurationRepository;
+      const configurationStore = yield* ConfigurationStore;
 
-      const first = yield* repository.create({
+      const first = yield* configurationStore.create({
         configuration,
       });
 
-      const second = yield* repository.create({
+      const second = yield* configurationStore.create({
         configuration: secondConfiguration,
       });
 
-      const persistedConfigurations = yield* repository.getAll();
+      const persistedConfigurations = yield* configurationStore.getAll();
 
       expect(persistedConfigurations).toHaveLength(2);
 

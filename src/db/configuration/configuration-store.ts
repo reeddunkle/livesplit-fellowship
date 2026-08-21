@@ -2,7 +2,7 @@ import * as Context from "effect/Context";
 import type * as E from "effect/Effect";
 import type * as Option from "effect/Option";
 
-import { type ConfigurationRepositoryError } from "@/errors/configuration-repository-error.ts";
+import { type ConfigurationStoreError } from "@/errors/configuration-store-error.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 
 export type ConfigurationId = string;
@@ -24,29 +24,26 @@ export type DeleteConfigurationOptions = {
   readonly id: ConfigurationId;
 };
 
-export type ConfigurationRepositoryShape = {
+export type ConfigurationStoreShape = {
   readonly create: (
     options: CreateConfigurationOptions,
-  ) => E.Effect<PersistedConfiguration, ConfigurationRepositoryError>;
+  ) => E.Effect<PersistedConfiguration, ConfigurationStoreError>;
 
   readonly delete: (
     options: DeleteConfigurationOptions,
-  ) => E.Effect<void, ConfigurationRepositoryError>;
+  ) => E.Effect<void, ConfigurationStoreError>;
 
   readonly getAll: () => E.Effect<
     ReadonlyArray<PersistedConfiguration>,
-    ConfigurationRepositoryError
+    ConfigurationStoreError
   >;
 
   readonly getById: (
     options: GetConfigurationByIdOptions,
-  ) => E.Effect<
-    Option.Option<PersistedConfiguration>,
-    ConfigurationRepositoryError
-  >;
+  ) => E.Effect<Option.Option<PersistedConfiguration>, ConfigurationStoreError>;
 };
 
-export class ConfigurationRepository extends Context.Service<
-  ConfigurationRepository,
-  ConfigurationRepositoryShape
->()("app/ConfigurationRepository") {}
+export class ConfigurationStore extends Context.Service<
+  ConfigurationStore,
+  ConfigurationStoreShape
+>()("app/ConfigurationStore") {}
