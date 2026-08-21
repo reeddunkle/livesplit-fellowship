@@ -16,6 +16,7 @@ import {
   type FellowshipMilestoneConfigurationFile,
   FellowshipMilestoneConfigurationFileSchema,
 } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+import { parseJson } from "@/util/parse-json.ts";
 
 export type LoadMilestoneConfigurationOptions = {
   readonly filePath: string;
@@ -27,11 +28,6 @@ export type LoadMilestoneConfigurationError =
   | Schema.SchemaError
   | UnknownFellowshipDungeonError;
 
-type ParseJsonOptions = {
-  readonly contents: string;
-  readonly filePath: string;
-};
-
 type ResolveDungeonOptions = {
   readonly dungeonKey: string;
   readonly filePath: string;
@@ -41,21 +37,6 @@ type ResolveConfigurationOptions = {
   readonly configurationFile: FellowshipMilestoneConfigurationFile;
   readonly filePath: string;
 };
-
-function parseJson({
-  contents,
-  filePath,
-}: ParseJsonOptions): E.Effect<unknown, MilestoneConfigurationJsonError> {
-  return E.try({
-    catch: (cause) => {
-      return new MilestoneConfigurationJsonError({
-        cause,
-        filePath,
-      });
-    },
-    try: () => JSON.parse(contents),
-  });
-}
 
 function resolveDungeon({
   dungeonKey,
@@ -114,7 +95,12 @@ export const loadMilestoneConfiguration = E.fn(
 
   const json = yield* parseJson({
     contents,
-    filePath,
+    onError: (cause) => {
+      return new MilestoneConfigurationJsonError({
+        cause,
+        filePath,
+      });
+    },
   });
 
   const configurationFile = yield* Schema.decodeUnknownEffect(

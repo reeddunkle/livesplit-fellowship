@@ -2,6 +2,7 @@ import { NodeHttpServer } from "@effect/platform-node";
 import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import * as Schema from "effect/Schema";
 import * as HttpServer from "effect/unstable/http/HttpServer";
 import { describe, expect, test } from "vitest";
 
@@ -9,12 +10,36 @@ import { ApiServer } from "@/api/api-server.ts";
 import { ConfigurationStoreError } from "@/errors/configuration-store-error.ts";
 import {
   type ConfigurationApiConfiguration,
-  type ConfigurationApiConfigurationList,
+  ConfigurationApiConfigurationListSchema,
+  ConfigurationApiConfigurationSchema,
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
 import { PushEventServerLive } from "@/services/api/push-event-server-service.ts";
 import { makeConfigurationApiServiceTest } from "@/tests/common/configuration-api-service-test.ts";
 import { runTest } from "@/tests/common/run-test.ts";
+import { parseJson } from "@/util/parse-json.ts";
+
+function parseResponseJson(response: Response): E.Effect<unknown, Error> {
+  return E.gen(function* () {
+    const contents = yield* E.tryPromise({
+      catch: (cause) => {
+        return cause instanceof Error
+          ? cause
+          : new Error("Failed to read HTTP response.");
+      },
+      try: () => response.text(),
+    });
+
+    return yield* parseJson({
+      contents,
+      onError: (cause) => {
+        return cause instanceof Error
+          ? cause
+          : new Error("Failed to parse HTTP response.");
+      },
+    });
+  });
+}
 
 const CONFIGURATION_ID = "0198d56c-1234-7abc-8def-1234567890ab";
 const UNKNOWN_CONFIGURATION_ID = "0198d56c-5678-7abc-8def-1234567890ab";
@@ -73,19 +98,6 @@ function request(
   });
 }
 
-function parseJson<T>(response: Response): E.Effect<T, Error> {
-  return E.tryPromise({
-    catch: (cause) => {
-      return cause instanceof Error
-        ? cause
-        : new Error("Failed to parse HTTP response.");
-    },
-    try: () => {
-      return response.json() as Promise<T>;
-    },
-  });
-}
-
 describe("configuration routes", () => {
   test("GET /configurations returns all configurations", async () => {
     const configurationApiServiceTest = makeConfigurationApiServiceTest({
@@ -100,8 +112,12 @@ describe("configuration routes", () => {
         const baseUrl = getHttpUrl(httpServer.address);
 
         const response = yield* request(`${baseUrl}/configurations`);
-        const body =
-          yield* parseJson<ConfigurationApiConfigurationList>(response);
+
+        const json = yield* parseResponseJson(response);
+
+        const body = yield* Schema.decodeUnknownEffect(
+          ConfigurationApiConfigurationListSchema,
+        )(json);
 
         expect(response.status).toBe(200);
         expect(body).toEqual([configuration]);
@@ -131,7 +147,11 @@ describe("configuration routes", () => {
           `${baseUrl}/configurations/${CONFIGURATION_ID}`,
         );
 
-        const body = yield* parseJson<ConfigurationApiConfiguration>(response);
+        const json = yield* parseResponseJson(response);
+
+        const body = yield* Schema.decodeUnknownEffect(
+          ConfigurationApiConfigurationSchema,
+        )(json);
 
         expect(response.status).toBe(200);
         expect(body).toEqual(configuration);
