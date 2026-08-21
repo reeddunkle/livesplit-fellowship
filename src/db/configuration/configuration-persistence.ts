@@ -1,3 +1,5 @@
+import * as Match from "effect/Match";
+
 import { createConfigurationFingerprint } from "@/db/configuration/configuration-fingerprint.ts";
 import { ConfigurationModel } from "@/db/models/configuration-model.ts";
 import {
@@ -38,10 +40,7 @@ function getDungeonKey(
   configuration: FellowshipMilestoneConfiguration,
 ): string {
   const entry = Object.entries(FELLOWSHIP_DUNGEON).find(([, dungeon]) => {
-    return (
-      dungeon.dungeonId === configuration.dungeon.dungeonId &&
-      dungeon.name === configuration.dungeon.name
-    );
+    return dungeon.dungeonId === configuration.dungeon.dungeonId;
   });
 
   if (entry === undefined) {
@@ -96,47 +95,37 @@ function createMilestoneRequirement(
     startOccurrence: requirement.startOccurrence,
   };
 
-  switch (requirement.type) {
-    case FELLOWSHIP_EVENT.ABILITY_ACTIVATED:
-      return {
-        ...common,
-        abilityId: requirement.targetId,
-        type: requirement.type,
-      };
-
-    case FELLOWSHIP_EVENT.DUNGEON_START:
-      return {
-        ...common,
-        type: requirement.type,
-      };
-
-    case FELLOWSHIP_EVENT.DUNGEON_END:
-      return {
-        ...common,
-        type: requirement.type,
-      };
-
-    case FELLOWSHIP_EVENT.ENCOUNTER_START:
-      return {
-        ...common,
-        encounterId: requirement.targetId,
-        type: requirement.type,
-      };
-
-    case FELLOWSHIP_EVENT.ENCOUNTER_END:
-      return {
-        ...common,
-        encounterId: requirement.targetId,
-        type: requirement.type,
-      };
-
-    case FELLOWSHIP_EVENT.UNIT_DEATH:
-      return {
-        ...common,
-        type: requirement.type,
-        unitTypeId: requirement.targetId,
-      };
-  }
+  return Match.value(requirement.type).pipe(
+    Match.when(FELLOWSHIP_EVENT.ABILITY_ACTIVATED, (type) => ({
+      ...common,
+      abilityId: requirement.targetId,
+      type,
+    })),
+    Match.when(FELLOWSHIP_EVENT.DUNGEON_START, (type) => ({
+      ...common,
+      type,
+    })),
+    Match.when(FELLOWSHIP_EVENT.DUNGEON_END, (type) => ({
+      ...common,
+      type,
+    })),
+    Match.when(FELLOWSHIP_EVENT.ENCOUNTER_START, (type) => ({
+      ...common,
+      encounterId: requirement.targetId,
+      type,
+    })),
+    Match.when(FELLOWSHIP_EVENT.ENCOUNTER_END, (type) => ({
+      ...common,
+      encounterId: requirement.targetId,
+      type,
+    })),
+    Match.when(FELLOWSHIP_EVENT.UNIT_DEATH, (type) => ({
+      ...common,
+      type,
+      unitTypeId: requirement.targetId,
+    })),
+    Match.exhaustive,
+  );
 }
 
 export function createConfigurationPersistenceRecords({
