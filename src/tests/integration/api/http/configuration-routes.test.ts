@@ -16,6 +16,7 @@ import {
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
 import { PushEventServerLive } from "@/services/api/push-event-server-service.ts";
+import { FELLOWSHIP_DUNGEON } from "@/services/fellowship/constants/fellowship-dungeon.ts";
 import { makeConfigurationApiServiceTest } from "@/tests/common/configuration-api-service-test.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 import { parseJson } from "@/util/parse-json.ts";
@@ -41,6 +42,25 @@ const configuration = {
     },
   ],
 } satisfies ConfigurationApiConfiguration;
+
+const createConfigurationRequest = {
+  configuration: {
+    dungeonKey: "EVERDAWN_GROVE",
+    milestones: [
+      {
+        label: "Desecrator 1 Killed",
+        requirements: [
+          {
+            requiredCount: 1,
+            startOccurrence: 1,
+            type: "UNIT_DEATH",
+            unitTypeId: "42",
+          },
+        ],
+      },
+    ],
+  },
+} as const;
 
 function parseResponseJson(response: Response): E.Effect<unknown, Error> {
   return E.gen(function* () {
@@ -182,6 +202,45 @@ describe("configuration routes", () => {
     await runTest(program);
   });
 
+  test("POST /configurations creates a configuration", async () => {
+    const configurationApiServiceTest = makeConfigurationApiServiceTest({
+      create: ({ configuration: createdConfiguration }) => {
+        expect(createdConfiguration).toEqual({
+          dungeon: FELLOWSHIP_DUNGEON.EVERDAWN_GROVE,
+          milestones: createConfigurationRequest.configuration.milestones,
+        });
+
+        return E.succeed(configuration);
+      },
+    });
+
+    const program = E.scoped(
+      E.gen(function* () {
+        const httpServer = yield* HttpServer.HttpServer;
+        const baseUrl = getHttpUrl(httpServer.address);
+
+        const response = yield* request(`${baseUrl}${ROUTES.configurations}`, {
+          body: JSON.stringify(createConfigurationRequest),
+          headers: {
+            "content-type": "application/json",
+          },
+          method: "POST",
+        });
+
+        const json = yield* parseResponseJson(response);
+
+        const body = yield* Schema.decodeUnknownEffect(
+          ConfigurationApiConfigurationSchema,
+        )(json);
+
+        expect(response.status).toBe(201);
+        expect(body).toEqual(configuration);
+      }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
+    );
+
+    await runTest(program);
+  });
+
   test("POST /configurations returns 400 for an invalid request body", async () => {
     const configurationApiServiceTest = makeConfigurationApiServiceTest();
 
@@ -202,6 +261,38 @@ describe("configuration routes", () => {
 
         expect(response.status).toBe(400);
         expect(yield* E.promise(() => response.text())).toBe("Bad Request");
+      }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
+    );
+
+    await runTest(program);
+  });
+
+  test("DELETE /configurations/:id deletes a configuration", async () => {
+    let deletedConfigurationId: string | undefined;
+
+    const configurationApiServiceTest = makeConfigurationApiServiceTest({
+      delete: ({ id }) => {
+        deletedConfigurationId = id;
+
+        return E.void;
+      },
+    });
+
+    const program = E.scoped(
+      E.gen(function* () {
+        const httpServer = yield* HttpServer.HttpServer;
+        const baseUrl = getHttpUrl(httpServer.address);
+
+        const response = yield* request(
+          `${baseUrl}${getConfigurationRoute(CONFIGURATION_ID)}`,
+          {
+            method: "DELETE",
+          },
+        );
+
+        expect(response.status).toBe(204);
+        expect(deletedConfigurationId).toBe(CONFIGURATION_ID);
+        expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(E.provide(makeApiServerTest(configurationApiServiceTest))),
     );
 
