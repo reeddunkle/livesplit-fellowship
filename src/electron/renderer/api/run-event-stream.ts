@@ -19,7 +19,7 @@ export const API_CONNECTION_STATE = {
   DISCONNECTED: "DISCONNECTED",
 } as const;
 
-export type ApiConnectionState =
+type ApiConnectionState =
   (typeof API_CONNECTION_STATE)[keyof typeof API_CONNECTION_STATE];
 
 export type ApiClientEvent =
