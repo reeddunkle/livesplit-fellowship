@@ -1,6 +1,6 @@
 import * as E from "effect/Effect";
 import * as Ref from "effect/Ref";
-import type * as Socket from "effect/unstable/socket/Socket";
+import * as Socket from "effect/unstable/socket/Socket";
 import { describe, expect, test } from "vitest";
 
 import {
@@ -11,7 +11,11 @@ import {
 import { runTest } from "@/tests/common/run-test.ts";
 
 function makeSocketError(): Socket.SocketError {
-  return new Error("WebSocket write failed.") as unknown as Socket.SocketError;
+  return new Socket.SocketError({
+    reason: new Socket.SocketWriteError({
+      cause: new Error("WebSocket write failed."),
+    }),
+  });
 }
 
 describe("WebSocketBroadcaster", () => {
