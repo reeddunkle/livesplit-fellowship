@@ -4,14 +4,20 @@ import * as E from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
 import * as Stream from "effect/Stream";
+import * as HttpRouter from "effect/unstable/http/HttpRouter";
 import * as HttpServer from "effect/unstable/http/HttpServer";
+import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
+import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
+import * as Socket from "effect/unstable/socket/Socket";
 import { describe, expect, test } from "vitest";
 
 import { ApiServer } from "@/api/api-server.ts";
+import { ROUTES } from "@/api/constants/routes.ts";
 import { type RunApiMessage } from "@/api/websocket/run-api-message-schema.ts";
 import {
   API_CONNECTION_STATE,
-  makeApiEventStreamForUrl,
+  makeRunEventStreamForUrl,
+  type RunEventStreamEvent,
 } from "@/electron/renderer/api/run-event-stream.ts";
 import {
   WebSocketBroadcaster,
@@ -21,6 +27,8 @@ import { ConfigurationApiServiceTest } from "@/tests/common/configuration-api-se
 import { runTest } from "@/tests/common/run-test.ts";
 
 const TEST_TIMEOUT = "1 second";
+const TEST_RECONNECT_DELAY = "10 millis";
+const NORMAL_CLOSE_ROUTE = "/normal-close";
 
 const ApiServerTest = ApiServer.pipe(
   Layer.provideMerge(WebSocketBroadcasterLive),
@@ -62,8 +70,70 @@ function getWebSocketUrl(address: HttpServer.Address): string {
   const hostname =
     address.hostname === "0.0.0.0" ? "127.0.0.1" : address.hostname;
 
-  return `ws://${hostname}:${address.port}/events`;
+  return `ws://${hostname}:${address.port}${ROUTES.events}`;
 }
+
+function collectClientEvents(
+  stream: Stream.Stream<RunEventStreamEvent, unknown>,
+  count: number,
+) {
+  return stream.pipe(
+    Stream.take(count),
+    Stream.runCollect,
+    E.map((events) => {
+      return Array.from(events);
+    }),
+    E.timeout(TEST_TIMEOUT),
+  );
+}
+
+const handleNormalCloseRequest = E.gen(function* () {
+  const request = yield* HttpServerRequest.HttpServerRequest;
+
+  yield* E.scoped(
+    E.gen(function* () {
+      const socket = yield* request.upgrade;
+      const writer = yield* socket.writer;
+
+      const closeNormally = writer(
+        new Socket.CloseEvent(1000, "Normal test disconnect."),
+      ).pipe(
+        E.catch(() => {
+          return E.void;
+        }),
+      );
+
+      yield* socket
+        .runRaw(
+          () => {
+            return E.void;
+          },
+          {
+            onOpen: closeNormally,
+          },
+        )
+        .pipe(
+          /*
+           * This route only exists to initiate a normal close. Any error from
+           * the server side of the close handshake is irrelevant to the test.
+           */
+          E.catch(() => {
+            return E.void;
+          }),
+        );
+    }),
+  );
+
+  return HttpServerResponse.empty();
+});
+
+const NormalCloseRoutes = HttpRouter.addAll([
+  HttpRouter.route("GET", NORMAL_CLOSE_ROUTE, handleNormalCloseRequest),
+]);
+
+const NormalCloseServerTest = HttpRouter.serve(NormalCloseRoutes).pipe(
+  Layer.provideMerge(NodeHttpServer.layerTest),
+);
 
 describe("run event stream", () => {
   test("connects and receives the latest API state", async () => {
@@ -76,13 +146,9 @@ describe("run event stream", () => {
 
         yield* webSocketBroadcaster.publish(JSON.stringify(message));
 
-        const clientEvents = yield* makeApiEventStreamForUrl(websocketUrl).pipe(
-          Stream.take(3),
-          Stream.runCollect,
-          E.map((events) => {
-            return Array.from(events);
-          }),
-          E.timeout(TEST_TIMEOUT),
+        const clientEvents = yield* collectClientEvents(
+          makeRunEventStreamForUrl(websocketUrl),
+          3,
         );
 
         expect(clientEvents).toEqual([
@@ -114,7 +180,7 @@ describe("run event stream", () => {
         const websocketUrl = getWebSocketUrl(httpServer.address);
         const connected = yield* Deferred.make<void>();
 
-        const clientFiber = yield* makeApiEventStreamForUrl(websocketUrl).pipe(
+        const clientFiber = yield* makeRunEventStreamForUrl(websocketUrl).pipe(
           Stream.tap((event) => {
             if (
               event.type === "CONNECTION_STATE_CHANGED" &&
@@ -174,7 +240,7 @@ describe("run event stream", () => {
           }),
         );
 
-        const wasDecodeError = yield* makeApiEventStreamForUrl(
+        const wasDecodeError = yield* makeRunEventStreamForUrl(
           websocketUrl,
         ).pipe(
           Stream.runDrain,
@@ -198,20 +264,16 @@ describe("run event stream", () => {
         const httpServer = yield* HttpServer.HttpServer;
 
         const websocketUrl = getWebSocketUrl(httpServer.address);
-        const invalidWebsocketUrl = websocketUrl.replace("/events", "/invalid");
+        const invalidWebsocketUrl = websocketUrl.replace(
+          ROUTES.events,
+          "/invalid",
+        );
 
-        const clientEvents = yield* makeApiEventStreamForUrl(
-          invalidWebsocketUrl,
-          {
-            reconnectDelay: "10 millis",
-          },
-        ).pipe(
-          Stream.take(4),
-          Stream.runCollect,
-          E.map((events) => {
-            return Array.from(events);
+        const clientEvents = yield* collectClientEvents(
+          makeRunEventStreamForUrl(invalidWebsocketUrl, {
+            reconnectDelay: TEST_RECONNECT_DELAY,
           }),
-          E.timeout(TEST_TIMEOUT),
+          4,
         );
 
         expect(clientEvents).toEqual([
@@ -233,6 +295,55 @@ describe("run event stream", () => {
           },
         ]);
       }).pipe(E.provide(ApiServerTest)),
+    );
+
+    await runTest(program);
+  });
+
+  test("reconnects after a normal WebSocket close", async () => {
+    const program = E.scoped(
+      E.gen(function* () {
+        const httpServer = yield* HttpServer.HttpServer;
+
+        const websocketUrl = getWebSocketUrl(httpServer.address).replace(
+          ROUTES.events,
+          NORMAL_CLOSE_ROUTE,
+        );
+
+        const clientEvents = yield* collectClientEvents(
+          makeRunEventStreamForUrl(websocketUrl, {
+            reconnectDelay: TEST_RECONNECT_DELAY,
+          }),
+          6,
+        );
+
+        expect(clientEvents).toEqual([
+          {
+            state: API_CONNECTION_STATE.CONNECTING,
+            type: "CONNECTION_STATE_CHANGED",
+          },
+          {
+            state: API_CONNECTION_STATE.CONNECTED,
+            type: "CONNECTION_STATE_CHANGED",
+          },
+          {
+            state: API_CONNECTION_STATE.DISCONNECTED,
+            type: "CONNECTION_STATE_CHANGED",
+          },
+          {
+            state: API_CONNECTION_STATE.CONNECTING,
+            type: "CONNECTION_STATE_CHANGED",
+          },
+          {
+            state: API_CONNECTION_STATE.CONNECTED,
+            type: "CONNECTION_STATE_CHANGED",
+          },
+          {
+            state: API_CONNECTION_STATE.DISCONNECTED,
+            type: "CONNECTION_STATE_CHANGED",
+          },
+        ]);
+      }).pipe(E.provide(NormalCloseServerTest)),
     );
 
     await runTest(program);

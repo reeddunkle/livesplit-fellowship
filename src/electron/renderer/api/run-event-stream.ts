@@ -19,10 +19,10 @@ export const API_CONNECTION_STATE = {
   DISCONNECTED: "DISCONNECTED",
 } as const;
 
-type ApiConnectionState =
+export type ApiConnectionState =
   (typeof API_CONNECTION_STATE)[keyof typeof API_CONNECTION_STATE];
 
-export type ApiClientEvent =
+export type RunEventStreamEvent =
   | {
       readonly state: ApiConnectionState;
       readonly type: "CONNECTION_STATE_CHANGED";
@@ -32,18 +32,18 @@ export type ApiClientEvent =
       readonly type: "MESSAGE_RECEIVED";
     };
 
-export type ApiClientEventError =
+export type RunEventStreamError =
   | ApiClientMessageDecodeError
   | Socket.SocketError;
 
-export type MakeApiEventStreamOptions = {
+export type MakeRunEventStreamOptions = {
   readonly reconnectDelay?: Duration.Input;
 };
 
 const DEFAULT_RECONNECT_DELAY = "1 second";
 
 function offerConnectionState(
-  queue: Queue.Enqueue<ApiClientEvent>,
+  queue: Queue.Enqueue<RunEventStreamEvent>,
   state: ApiConnectionState,
 ) {
   return Queue.offer(queue, {
@@ -77,13 +77,13 @@ function decodeMessage(
   });
 }
 
-export function makeApiEventStreamForUrl(
+export function makeRunEventStreamForUrl(
   url: string,
-  options: MakeApiEventStreamOptions = {},
-): Stream.Stream<ApiClientEvent, ApiClientEventError> {
+  options: MakeRunEventStreamOptions = {},
+): Stream.Stream<RunEventStreamEvent, RunEventStreamError> {
   const reconnectDelay = options.reconnectDelay ?? DEFAULT_RECONNECT_DELAY;
 
-  return Stream.callback<ApiClientEvent, ApiClientEventError>((queue) => {
+  return Stream.callback<RunEventStreamEvent, RunEventStreamError>((queue) => {
     const connect = E.gen(function* () {
       yield* offerConnectionState(queue, API_CONNECTION_STATE.CONNECTING);
 
@@ -133,9 +133,9 @@ export function makeApiEventStreamForUrl(
   });
 }
 
-export function makeApiEventStream(): Stream.Stream<
-  ApiClientEvent,
-  ApiClientEventError
+export function makeRunEventStream(): Stream.Stream<
+  RunEventStreamEvent,
+  RunEventStreamError
 > {
-  return makeApiEventStreamForUrl(getApiWebSocketUrl());
+  return makeRunEventStreamForUrl(getApiWebSocketUrl());
 }
