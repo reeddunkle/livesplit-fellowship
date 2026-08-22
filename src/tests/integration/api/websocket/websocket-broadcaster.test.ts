@@ -5,18 +5,19 @@ import * as HttpServer from "effect/unstable/http/HttpServer";
 import { describe, expect, test } from "vitest";
 
 import { ApiServer } from "@/api/api-server.ts";
+import { ROUTES } from "@/api/constants/routes.ts";
 import {
-  PushEventServer,
-  PushEventServerLive,
-  type PushEventServerService,
-} from "@/services/api/push-event-server-service.ts";
+  WebSocketBroadcaster,
+  WebSocketBroadcasterLive,
+  type WebSocketBroadcasterService,
+} from "@/services/api/websocket-broadcaster-service.ts";
 import { ConfigurationApiServiceTest } from "@/tests/common/configuration-api-service-test.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
 const TEST_TIMEOUT = "1 second";
 
 const ApiServerTest = ApiServer.pipe(
-  Layer.provideMerge(PushEventServerLive),
+  Layer.provideMerge(WebSocketBroadcasterLive),
   Layer.provideMerge(ConfigurationApiServiceTest),
   Layer.provideMerge(NodeHttpServer.layerTest),
 );
@@ -87,6 +88,7 @@ function closeWebSocket(websocket: WebSocket): E.Effect<void> {
   return E.callback<void>((resume) => {
     if (websocket.readyState === WebSocket.CLOSED) {
       resume(E.void);
+
       return;
     }
 
@@ -108,30 +110,30 @@ function closeWebSocket(websocket: WebSocket): E.Effect<void> {
 
 function waitForClientCount({
   clientCount,
-  pushEventServer,
+  webSocketBroadcaster,
 }: {
   readonly clientCount: number;
-  readonly pushEventServer: PushEventServerService;
+  readonly webSocketBroadcaster: WebSocketBroadcasterService;
 }): E.Effect<void> {
   return E.gen(function* () {
-    while ((yield* pushEventServer.clientCount) !== clientCount) {
+    while ((yield* webSocketBroadcaster.clientCount) !== clientCount) {
       yield* E.sleep("1 millis");
     }
   });
 }
 
-describe("PushEventServer WebSocket integration", () => {
+describe("WebSocketBroadcaster integration", () => {
   test("registers, publishes to, and unregisters a WebSocket client", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const pushEventServer = yield* PushEventServer;
+        const webSocketBroadcaster = yield* WebSocketBroadcaster;
         const httpServer = yield* HttpServer.HttpServer;
 
         const address = HttpServer.formatAddress(httpServer.address);
 
         const websocketUrl = `${address
           .replace(/^http:/, "ws:")
-          .replace("0.0.0.0", "127.0.0.1")}/events`;
+          .replace("0.0.0.0", "127.0.0.1")}${ROUTES.events}`;
 
         const websocket = yield* E.acquireRelease(
           E.sync(() => {
@@ -144,10 +146,10 @@ describe("PushEventServer WebSocket integration", () => {
 
         yield* waitForClientCount({
           clientCount: 1,
-          pushEventServer,
+          webSocketBroadcaster,
         }).pipe(E.timeout(TEST_TIMEOUT));
 
-        expect(yield* pushEventServer.clientCount).toBe(1);
+        expect(yield* webSocketBroadcaster.clientCount).toBe(1);
 
         /*
          * Register the native message listener before publishing so the
@@ -157,7 +159,9 @@ describe("PushEventServer WebSocket integration", () => {
           return createWebSocketMessagePromise(websocket);
         });
 
-        yield* pushEventServer.publish("hello").pipe(E.timeout(TEST_TIMEOUT));
+        yield* webSocketBroadcaster
+          .publish("hello")
+          .pipe(E.timeout(TEST_TIMEOUT));
 
         const message = yield* waitForWebSocketMessage(messagePromise).pipe(
           E.timeout(TEST_TIMEOUT),
@@ -169,10 +173,10 @@ describe("PushEventServer WebSocket integration", () => {
 
         yield* waitForClientCount({
           clientCount: 0,
-          pushEventServer,
+          webSocketBroadcaster,
         }).pipe(E.timeout(TEST_TIMEOUT));
 
-        expect(yield* pushEventServer.clientCount).toBe(0);
+        expect(yield* webSocketBroadcaster.clientCount).toBe(0);
       }).pipe(E.provide(ApiServerTest)),
     );
 

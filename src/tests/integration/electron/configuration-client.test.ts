@@ -15,7 +15,7 @@ import {
 import { ConfigurationStoreError } from "@/errors/configuration-store-error.ts";
 import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
-import { PushEventServerLive } from "@/services/api/push-event-server-service.ts";
+import { WebSocketBroadcasterLive } from "@/services/api/websocket-broadcaster-service.ts";
 import { FELLOWSHIP_DUNGEON } from "@/services/fellowship/constants/fellowship-dungeon.ts";
 import { makeConfigurationApiServiceTest } from "@/tests/common/configuration-api-service-test.ts";
 import { runTest } from "@/tests/common/run-test.ts";
@@ -65,7 +65,7 @@ function makeApiServerTest(
   configurationApiServiceTest: Layer.Layer<ConfigurationApiService>,
 ) {
   return ApiServer.pipe(
-    Layer.provideMerge(PushEventServerLive),
+    Layer.provideMerge(WebSocketBroadcasterLive),
     Layer.provideMerge(configurationApiServiceTest),
     Layer.provideMerge(NodeHttpServer.layerTest),
   );

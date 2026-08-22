@@ -14,16 +14,16 @@ import {
   makeApiEventStreamForUrl,
 } from "@/electron/renderer/api/run-event-stream.ts";
 import {
-  PushEventServer,
-  PushEventServerLive,
-} from "@/services/api/push-event-server-service.ts";
+  WebSocketBroadcaster,
+  WebSocketBroadcasterLive,
+} from "@/services/api/websocket-broadcaster-service.ts";
 import { ConfigurationApiServiceTest } from "@/tests/common/configuration-api-service-test.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
 const TEST_TIMEOUT = "1 second";
 
 const ApiServerTest = ApiServer.pipe(
-  Layer.provideMerge(PushEventServerLive),
+  Layer.provideMerge(WebSocketBroadcasterLive),
   Layer.provideMerge(ConfigurationApiServiceTest),
   Layer.provideMerge(NodeHttpServer.layerTest),
 );
@@ -69,12 +69,12 @@ describe("run event stream", () => {
   test("connects and receives the latest API state", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const pushEventServer = yield* PushEventServer;
+        const webSocketBroadcaster = yield* WebSocketBroadcaster;
         const httpServer = yield* HttpServer.HttpServer;
 
         const websocketUrl = getWebSocketUrl(httpServer.address);
 
-        yield* pushEventServer.publish(JSON.stringify(message));
+        yield* webSocketBroadcaster.publish(JSON.stringify(message));
 
         const clientEvents = yield* makeApiEventStreamForUrl(websocketUrl).pipe(
           Stream.take(3),
@@ -108,7 +108,7 @@ describe("run event stream", () => {
   test("receives API state published after connecting", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const pushEventServer = yield* PushEventServer;
+        const webSocketBroadcaster = yield* WebSocketBroadcaster;
         const httpServer = yield* HttpServer.HttpServer;
 
         const websocketUrl = getWebSocketUrl(httpServer.address);
@@ -136,7 +136,7 @@ describe("run event stream", () => {
 
         yield* Deferred.await(connected).pipe(E.timeout(TEST_TIMEOUT));
 
-        yield* pushEventServer.publish(JSON.stringify(message));
+        yield* webSocketBroadcaster.publish(JSON.stringify(message));
 
         const clientEvents = yield* Fiber.join(clientFiber);
 
@@ -163,12 +163,12 @@ describe("run event stream", () => {
   test("fails when the API sends an invalid message", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const pushEventServer = yield* PushEventServer;
+        const webSocketBroadcaster = yield* WebSocketBroadcaster;
         const httpServer = yield* HttpServer.HttpServer;
 
         const websocketUrl = getWebSocketUrl(httpServer.address);
 
-        yield* pushEventServer.publish(
+        yield* webSocketBroadcaster.publish(
           JSON.stringify({
             invalid: true,
           }),

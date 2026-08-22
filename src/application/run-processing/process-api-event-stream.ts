@@ -2,7 +2,7 @@ import * as E from "effect/Effect";
 import * as Stream from "effect/Stream";
 
 import { publishRunApiState } from "@/api/websocket/publish-run-api-state.ts";
-import { PushEventServer } from "@/services/api/push-event-server-service.ts";
+import { WebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { processRunEventStream } from "@/services/fellowship/runs/process-run-event-stream.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
@@ -19,7 +19,7 @@ export function processApiEventStream<Error>({
   events,
 }: ProcessApiEventStreamOptions<Error>) {
   return E.gen(function* () {
-    const pushEventServer = yield* PushEventServer;
+    const webSocketBroadcaster = yield* WebSocketBroadcaster;
 
     return yield* processRunEventStream({
       configuration,
@@ -40,8 +40,8 @@ export function processApiEventStream<Error>({
         const publishState = result.isStateUpdated
           ? publishRunApiState({
               configuration: result.configuration,
-              pushEventServer,
               state: result.state,
+              webSocketBroadcaster,
             })
           : E.void;
 

@@ -17,8 +17,8 @@ import {
 } from "@/services/fellowship/runs/track-dungeon-run.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
-import { makePushEventServerTestHarness } from "@/tests/common/push-event-server-test-harness.ts";
 import { runTest } from "@/tests/common/run-test.ts";
+import { makeWebSocketBroadcasterTestHarness } from "@/tests/common/websocket-broadcaster-test-harness.ts";
 
 import { publishRunApiState } from "./publish-run-api-state.ts";
 
@@ -78,7 +78,8 @@ function createRunProcessingState({
 describe("publishRunApiState", () => {
   test("publishes an active run state", async () => {
     const program = E.gen(function* () {
-      const harness = yield* makePushEventServerTestHarness();
+      const webSocketBroadcasterHarness =
+        yield* makeWebSocketBroadcasterTestHarness();
 
       const state = createRunProcessingState({
         runTracker: {
@@ -89,11 +90,11 @@ describe("publishRunApiState", () => {
 
       yield* publishRunApiState({
         configuration,
-        pushEventServer: harness.pushEventServer,
         state,
+        webSocketBroadcaster: webSocketBroadcasterHarness.webSocketBroadcaster,
       });
 
-      const messages = yield* harness.getParsedMessages();
+      const messages = yield* webSocketBroadcasterHarness.getParsedMessages();
 
       expect(messages).toEqual([
         {
@@ -129,7 +130,8 @@ describe("publishRunApiState", () => {
 
   test("publishes requirement observations and completed milestone state", async () => {
     const program = E.gen(function* () {
-      const harness = yield* makePushEventServerTestHarness();
+      const webSocketBroadcasterHarness =
+        yield* makeWebSocketBroadcasterTestHarness();
 
       const requirementTimestamp = DateTime.makeUnsafe(13_345);
 
@@ -166,11 +168,11 @@ describe("publishRunApiState", () => {
 
       yield* publishRunApiState({
         configuration,
-        pushEventServer: harness.pushEventServer,
         state,
+        webSocketBroadcaster: webSocketBroadcasterHarness.webSocketBroadcaster,
       });
 
-      const messages = yield* harness.getParsedMessages();
+      const messages = yield* webSocketBroadcasterHarness.getParsedMessages();
 
       expect(messages).toEqual([
         {
@@ -210,15 +212,16 @@ describe("publishRunApiState", () => {
 
   test("publishes an idle run state", async () => {
     const program = E.gen(function* () {
-      const harness = yield* makePushEventServerTestHarness();
+      const webSocketBroadcasterHarness =
+        yield* makeWebSocketBroadcasterTestHarness();
 
       yield* publishRunApiState({
         configuration,
-        pushEventServer: harness.pushEventServer,
         state: createRunProcessingState(),
+        webSocketBroadcaster: webSocketBroadcasterHarness.webSocketBroadcaster,
       });
 
-      const messages = yield* harness.getParsedMessages();
+      const messages = yield* webSocketBroadcasterHarness.getParsedMessages();
 
       expect(messages).toEqual([
         {

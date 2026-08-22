@@ -2,28 +2,29 @@ import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 
 import { makeAppServicesLive } from "@/layers/app-layer.ts";
-import { PushEventServer } from "@/services/api/push-event-server-service.ts";
-import { makePushEventServerTestHarness } from "@/tests/common/push-event-server-test-harness.ts";
+import { WebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
+import { makeWebSocketBroadcasterTestHarness } from "@/tests/common/websocket-broadcaster-test-harness.ts";
 
 export function makeApiAppMock(databaseFilename = ":memory:") {
   return E.gen(function* () {
-    const harness = yield* makePushEventServerTestHarness();
+    const webSocketBroadcasterHarness =
+      yield* makeWebSocketBroadcasterTestHarness();
 
-    const pushEventServerLayer = Layer.succeed(
-      PushEventServer,
-      harness.pushEventServer,
+    const webSocketBroadcasterLayer = Layer.succeed(
+      WebSocketBroadcaster,
+      webSocketBroadcasterHarness.webSocketBroadcaster,
     );
 
     const layer = Layer.mergeAll(
       makeAppServicesLive({
         databaseFilename,
       }),
-      pushEventServerLayer,
+      webSocketBroadcasterLayer,
     );
 
     return {
-      harness,
       layer,
+      webSocketBroadcasterHarness,
     };
   });
 }

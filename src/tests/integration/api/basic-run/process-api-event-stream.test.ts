@@ -15,7 +15,7 @@ describe("processApiEventStream", () => {
   test("publishes API state updates for the run", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const { harness, layer } = yield* makeApiAppMock();
+        const { layer, webSocketBroadcasterHarness } = yield* makeApiAppMock();
 
         yield* E.gen(function* () {
           const fellowship = yield* Fellowship;
@@ -28,7 +28,7 @@ describe("processApiEventStream", () => {
           });
         }).pipe(E.provide(layer));
 
-        const messages = yield* harness.getParsedMessages();
+        const messages = yield* webSocketBroadcasterHarness.getParsedMessages();
 
         expect(messages.length).toBeGreaterThan(0);
 

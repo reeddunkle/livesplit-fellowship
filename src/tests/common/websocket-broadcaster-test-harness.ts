@@ -2,20 +2,20 @@ import * as E from "effect/Effect";
 import * as Ref from "effect/Ref";
 
 import {
-  type PushEventServerService,
-  type PushEventWriter,
-} from "@/services/api/push-event-server-service.ts";
+  type WebSocketBroadcasterService,
+  type WebSocketWriter,
+} from "@/services/api/websocket-broadcaster-service.ts";
 
-export function makePushEventServerTestHarness() {
+export function makeWebSocketBroadcasterTestHarness() {
   return E.gen(function* () {
     const clientCount = yield* Ref.make(0);
     const latestMessage = yield* Ref.make<string | undefined>(undefined);
     const messages = yield* Ref.make<ReadonlyArray<string>>([]);
 
-    const pushEventServer: PushEventServerService = {
+    const webSocketBroadcaster = {
       clientCount: Ref.get(clientCount),
 
-      publish: (message) => {
+      publish: (message: string) => {
         return E.gen(function* () {
           yield* Ref.set(latestMessage, message);
 
@@ -38,7 +38,7 @@ export function makePushEventServerTestHarness() {
         );
       },
 
-      sendLatestToClient: (writer: PushEventWriter) => {
+      sendLatestToClient: (writer: WebSocketWriter) => {
         return E.gen(function* () {
           const message = yield* Ref.get(latestMessage);
 
@@ -46,10 +46,10 @@ export function makePushEventServerTestHarness() {
             return;
           }
 
-          yield* writer(message);
+          yield* writer(message).pipe(E.catch(() => E.void));
         });
       },
-    };
+    } satisfies WebSocketBroadcasterService;
 
     const getMessages = () => {
       return Ref.get(messages);
@@ -68,7 +68,7 @@ export function makePushEventServerTestHarness() {
     return {
       getMessages,
       getParsedMessages,
-      pushEventServer,
+      webSocketBroadcaster,
     };
   });
 }
