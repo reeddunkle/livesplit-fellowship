@@ -4,18 +4,14 @@ import * as Queue from "effect/Queue";
 import * as Schedule from "effect/Schedule";
 import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
-import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
-import * as HttpApiClient from "effect/unstable/httpapi/HttpApiClient";
 import * as Socket from "effect/unstable/socket/Socket";
 
-import { ROUTES } from "@/api/constants/routes.ts";
-import { AppHttpApi } from "@/api/http/http-api.ts";
 import {
   type RunApiMessage,
   RunApiMessageSchema,
 } from "@/api/websocket/run-api-message-schema.ts";
+import { getApiWebSocketUrl } from "@/electron/renderer/api/api-url.ts";
 import { ApiClientMessageDecodeError } from "@/errors/api-client-error.ts";
-import { type CreateConfigurationApiRequest } from "@/services/api/configuration/configuration-api-schema.ts";
 
 export const API_CONNECTION_STATE = {
   CONNECTED: "CONNECTED",
@@ -23,7 +19,7 @@ export const API_CONNECTION_STATE = {
   DISCONNECTED: "DISCONNECTED",
 } as const;
 
-type ApiConnectionState =
+export type ApiConnectionState =
   (typeof API_CONNECTION_STATE)[keyof typeof API_CONNECTION_STATE];
 
 export type ApiClientEvent =
@@ -45,20 +41,6 @@ export type MakeApiEventStreamOptions = {
 };
 
 const DEFAULT_RECONNECT_DELAY = "1 second";
-
-function getApiBaseUrl(): string {
-  return `http://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}`;
-}
-
-function getApiWebSocketUrl(): string {
-  return `ws://${import.meta.env.API_HOST}:${import.meta.env.API_PORT}${ROUTES.events}`;
-}
-
-function makeHttpApiClientForUrl(baseUrl: string) {
-  return HttpApiClient.make(AppHttpApi, {
-    baseUrl,
-  }).pipe(E.provide(FetchHttpClient.layer));
-}
 
 function offerConnectionState(
   queue: Queue.Enqueue<ApiClientEvent>,
@@ -92,51 +74,6 @@ function decodeMessage(
         });
       }),
     );
-  });
-}
-
-export function getConfigurationsForUrl(baseUrl: string) {
-  return E.gen(function* () {
-    const client = yield* makeHttpApiClientForUrl(baseUrl);
-
-    return yield* client.configurations.getConfigurations();
-  });
-}
-
-export function getConfigurationForUrl(baseUrl: string, id: string) {
-  return E.gen(function* () {
-    const client = yield* makeHttpApiClientForUrl(baseUrl);
-
-    return yield* client.configurations.getConfiguration({
-      params: {
-        id,
-      },
-    });
-  });
-}
-
-export function createConfigurationForUrl(
-  baseUrl: string,
-  createConfigurationRequest: CreateConfigurationApiRequest,
-) {
-  return E.gen(function* () {
-    const client = yield* makeHttpApiClientForUrl(baseUrl);
-
-    return yield* client.configurations.createConfiguration({
-      payload: createConfigurationRequest,
-    });
-  });
-}
-
-export function deleteConfigurationForUrl(baseUrl: string, id: string) {
-  return E.gen(function* () {
-    const client = yield* makeHttpApiClientForUrl(baseUrl);
-
-    yield* client.configurations.deleteConfiguration({
-      params: {
-        id,
-      },
-    });
   });
 }
 
@@ -179,50 +116,21 @@ export function makeApiEventStreamForUrl(
     );
 
     return connect.pipe(
-      /*
-       * Retry socket failures indefinitely. Message decoding failures indicate
-       * a protocol/schema problem and should fail the stream instead.
-       */
       E.retry({
         schedule: Schedule.spaced(reconnectDelay),
         while: (error) => {
           return !(error instanceof ApiClientMessageDecodeError);
         },
       }),
-
-      /*
-       * A socket can also close successfully, such as with WebSocket close
-       * code 1000. Reconnect after normal completion as well.
-       */
       E.repeat(Schedule.spaced(reconnectDelay)),
-
       E.catchCause((cause) => {
         return E.sync(() => {
           Queue.failCauseUnsafe(queue, cause);
         });
       }),
-
       E.provide(Socket.layerWebSocketConstructorGlobal),
     );
   });
-}
-
-export function getConfigurations() {
-  return getConfigurationsForUrl(getApiBaseUrl());
-}
-
-export function getConfiguration(id: string) {
-  return getConfigurationForUrl(getApiBaseUrl(), id);
-}
-
-export function createConfiguration(
-  createConfigurationRequest: CreateConfigurationApiRequest,
-) {
-  return createConfigurationForUrl(getApiBaseUrl(), createConfigurationRequest);
-}
-
-export function deleteConfiguration(id: string) {
-  return deleteConfigurationForUrl(getApiBaseUrl(), id);
 }
 
 export function makeApiEventStream(): Stream.Stream<
