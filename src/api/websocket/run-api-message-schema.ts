@@ -1,34 +1,40 @@
 import * as Schema from "effect/Schema";
 
 import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import {
+  NonEmptyStringSchema,
+  PositiveIntegerSchema,
+} from "@/validation/common.ts";
+
+const TimestampMillisecondsSchema = PositiveIntegerSchema;
 
 const RunApiRequirementObservationSchema = Schema.Struct({
-  timestampMilliseconds: Schema.Number,
+  timestampMilliseconds: TimestampMillisecondsSchema,
 });
 
 const RunApiRequirementSchema = Schema.Struct({
   observations: Schema.Array(RunApiRequirementObservationSchema),
-  requiredCount: Schema.Number,
-  startOccurrence: Schema.Number,
-  targetId: Schema.String,
+  requiredCount: PositiveIntegerSchema,
+  startOccurrence: PositiveIntegerSchema,
+  targetId: NonEmptyStringSchema,
   type: MilestoneRequirementEventTypeSchema,
 });
 
 const RunApiMilestoneSchema = Schema.Struct({
-  completedAtMilliseconds: Schema.NullOr(Schema.Number),
-  elapsedMilliseconds: Schema.NullOr(Schema.Number),
-  label: Schema.String,
-  milestoneId: Schema.String,
+  completedAtMilliseconds: Schema.NullOr(TimestampMillisecondsSchema),
+  elapsedMilliseconds: Schema.NullOr(TimestampMillisecondsSchema),
+  label: NonEmptyStringSchema,
+  milestoneId: NonEmptyStringSchema,
   requirements: Schema.Array(RunApiRequirementSchema),
+});
+
+const RunApiRunSchema = Schema.Struct({
+  startedAtMilliseconds: TimestampMillisecondsSchema,
 });
 
 const RunApiStateSchema = Schema.Struct({
   milestones: Schema.Array(RunApiMilestoneSchema),
-  run: Schema.NullOr(
-    Schema.Struct({
-      startedAtMilliseconds: Schema.Number,
-    }),
-  ),
+  run: Schema.NullOr(RunApiRunSchema),
 });
 
 export const RunApiMessageSchema = Schema.Struct({

@@ -11,7 +11,7 @@ import {
   RunApiMessageSchema,
 } from "@/api/websocket/run-api-message-schema.ts";
 import { getApiWebSocketUrl } from "@/electron/renderer/api/api-url.ts";
-import { ApiClientMessageDecodeError } from "@/errors/api-client-error.ts";
+import { RunEventMessageDecodeError } from "@/errors/run-event-stream-error.ts";
 
 export const API_CONNECTION_STATE = {
   CONNECTED: "CONNECTED",
@@ -33,7 +33,7 @@ export type RunEventStreamEvent =
     };
 
 export type RunEventStreamError =
-  | ApiClientMessageDecodeError
+  | RunEventMessageDecodeError
   | Socket.SocketError;
 
 export type MakeRunEventStreamOptions = {
@@ -54,11 +54,11 @@ function offerConnectionState(
 
 function decodeMessage(
   message: string,
-): E.Effect<RunApiMessage, ApiClientMessageDecodeError> {
+): E.Effect<RunApiMessage, RunEventMessageDecodeError> {
   return E.gen(function* () {
     const parsed = yield* E.try({
       catch: (cause) => {
-        return new ApiClientMessageDecodeError({
+        return new RunEventMessageDecodeError({
           cause,
         });
       },
@@ -69,7 +69,7 @@ function decodeMessage(
 
     return yield* Schema.decodeUnknownEffect(RunApiMessageSchema)(parsed).pipe(
       E.mapError((cause) => {
-        return new ApiClientMessageDecodeError({
+        return new RunEventMessageDecodeError({
           cause,
         });
       }),
@@ -119,7 +119,7 @@ export function makeRunEventStreamForUrl(
       E.retry({
         schedule: Schedule.spaced(reconnectDelay),
         while: (error) => {
-          return !(error instanceof ApiClientMessageDecodeError);
+          return !(error instanceof RunEventMessageDecodeError);
         },
       }),
       E.repeat(Schedule.spaced(reconnectDelay)),

@@ -1,7 +1,10 @@
 import * as Data from "effect/Data";
 
+export const INVALID_LIVE_SPLIT_RESPONSE_ERROR =
+  "InvalidLiveSplitResponseError" as const;
+
 export class InvalidLiveSplitResponseError extends Data.TaggedError(
-  "InvalidLiveSplitResponseError",
+  INVALID_LIVE_SPLIT_RESPONSE_ERROR,
 )<{
   readonly command: string;
   readonly response: string;
@@ -14,8 +17,11 @@ export class InvalidLiveSplitResponseError extends Data.TaggedError(
   }
 }
 
+export const LIVE_SPLIT_CLIENT_UNAVAILABLE_ERROR =
+  "LiveSplitClientUnavailableError" as const;
+
 export class LiveSplitClientUnavailableError extends Data.TaggedError(
-  "LiveSplitClientUnavailableError",
+  LIVE_SPLIT_CLIENT_UNAVAILABLE_ERROR,
 )<{
   readonly reason: string;
 }> {

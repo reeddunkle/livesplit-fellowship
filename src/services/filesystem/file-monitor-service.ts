@@ -7,7 +7,10 @@ import * as Path from "effect/Path";
 import type * as PlatformError from "effect/PlatformError";
 import * as Stream from "effect/Stream";
 
-import { FileNotFoundError } from "@/errors/file-not-found-error.ts";
+import {
+  FILE_NOT_FOUND_ERROR,
+  FileNotFoundError,
+} from "@/errors/file-not-found-error.ts";
 import { getDateEpochMilliseconds } from "@/util/get-date-epoch-milliseconds.ts";
 
 import {
@@ -149,7 +152,7 @@ const makeFileMonitor = E.gen(function* () {
       directoryPath,
       matches,
     }).pipe(
-      E.catchTag("FileNotFoundError", () => {
+      E.catchTag(FILE_NOT_FOUND_ERROR, () => {
         return E.gen(function* () {
           yield* E.logInfo("Waiting for a matching file.", {
             directoryPath,

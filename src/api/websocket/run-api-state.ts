@@ -68,13 +68,15 @@ export function createRunApiState({
 
   const runStart = state.runTracker.currentStart;
 
+  const milestones = analysis.milestones.map((progress) => {
+    return createRunApiMilestone({
+      progress,
+      runStart,
+    });
+  });
+
   return {
-    milestones: analysis.milestones.map((progress) => {
-      return createRunApiMilestone({
-        progress,
-        runStart,
-      });
-    }),
+    milestones,
     run:
       runStart === undefined
         ? null

@@ -19,6 +19,7 @@ import {
   makeRunEventStreamForUrl,
   type RunEventStreamEvent,
 } from "@/electron/renderer/api/run-event-stream.ts";
+import { RUN_EVENT_MESSAGE_DECODE_ERROR } from "@/errors/run-event-stream-error.ts";
 import {
   WebSocketBroadcaster,
   WebSocketBroadcasterLive,
@@ -245,7 +246,7 @@ describe("run event stream", () => {
         ).pipe(
           Stream.runDrain,
           E.as(false),
-          E.catchTag("ApiClientMessageDecodeError", () => {
+          E.catchTag(RUN_EVENT_MESSAGE_DECODE_ERROR, () => {
             return E.succeed(true);
           }),
           E.timeout(TEST_TIMEOUT),

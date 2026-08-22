@@ -1,6 +1,7 @@
 import * as E from "effect/Effect";
 import * as Stream from "effect/Stream";
 
+import { FELLOWSHIP_LOG_PARSE_ERROR } from "@/errors/fellowship-log-parse-error.ts";
 import { getEventType } from "@/services/fellowship/parsing/get-event-type.ts";
 import {
   type FellowshipEvent,
@@ -18,7 +19,7 @@ export function parseFellowshipEventStream<E, R>(
     }),
     Stream.mapEffect((line) => {
       return parseFellowshipLogLine(line).pipe(
-        E.catchTag("FellowshipLogParseError", (error) => {
+        E.catchTag(FELLOWSHIP_LOG_PARSE_ERROR, (error) => {
           return E.logError("Failed to parse Fellowship log line.", {
             error,
           }).pipe(E.as(undefined));
