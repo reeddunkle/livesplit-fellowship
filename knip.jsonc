@@ -1,0 +1,16 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
+  "entry": [
+    "src/**/*.test.{ts,tsx}",
+    "src/electron/**/*.{ts,tsx}"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx,css}",
+    "!src/electron/renderer/components/ui/input-group.tsx",
+    "!src/electron/renderer/components/ui/item.tsx",
+    "!src/electron/renderer/components/ui/select.tsx",
+    "!src/electron/renderer/components/ui/textarea.tsx",
+    "!src/electron/renderer/components/run-state.tsx",
+    "!src/electron/renderer/stores/run-event-store.ts",
+  ]
+}

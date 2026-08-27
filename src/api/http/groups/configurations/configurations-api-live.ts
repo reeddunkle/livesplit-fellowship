@@ -1,0 +1,88 @@
+import * as E from "effect/Effect";
+import type * as Layer from "effect/Layer";
+import * as Option from "effect/Option";
+import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
+import * as HttpApiError from "effect/unstable/httpapi/HttpApiError";
+
+import { AppHttpApi } from "@/api/http/http-api.ts";
+import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
+import { ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+
+function mapConfigurationError(
+  error: ConfigurationDAOError,
+): E.Effect<never, HttpApiError.InternalServerError> {
+  return E.gen(function* () {
+    yield* E.logError("Configuration persistence operation failed.", {
+      error,
+    });
+
+    return yield* E.fail(new HttpApiError.InternalServerError());
+  });
+}
+
+function mapCreateConfigurationError(
+  error: ConfigurationDAOError,
+): E.Effect<never, HttpApiError.Conflict | HttpApiError.InternalServerError> {
+  if (error.details._tag === "DuplicateConfiguration") {
+    return E.fail(new HttpApiError.Conflict());
+  }
+
+  return mapConfigurationError(error);
+}
+
+const ConfigurationsApiHandlersInferred = HttpApiBuilder.group(
+  AppHttpApi,
+  "configurations",
+  E.fn(function* (handlers) {
+    const configurationApiService = yield* ConfigurationApiService;
+
+    return handlers
+      .handle("getConfigurations", () => {
+        return configurationApiService
+          .getAll()
+          .pipe(E.catch(mapConfigurationError));
+      })
+      .handle("getConfiguration", ({ params }) => {
+        return E.gen(function* () {
+          const configuration = yield* configurationApiService
+            .getById({
+              id: params.id,
+            })
+            .pipe(E.catch(mapConfigurationError));
+
+          if (Option.isNone(configuration)) {
+            return yield* E.fail(new HttpApiError.NotFound());
+          }
+
+          return configuration.value;
+        });
+      })
+      .handle("createConfiguration", ({ payload }) => {
+        const configuration = {
+          dungeonId: payload.configuration.dungeonId,
+          dungeonLevel: payload.configuration.dungeonLevel,
+          milestones: payload.configuration.milestones,
+        } satisfies FellowshipMilestoneConfiguration;
+
+        return configurationApiService
+          .create({
+            configuration,
+          })
+          .pipe(E.catch(mapCreateConfigurationError));
+      })
+      .handle("deleteConfiguration", ({ params }) => {
+        return configurationApiService
+          .delete({
+            id: params.id,
+          })
+          .pipe(E.catch(mapConfigurationError));
+      });
+  }),
+);
+
+export const ConfigurationsApiLive: Layer.Layer<
+  Layer.Success<typeof ConfigurationsApiHandlersInferred>,
+  Layer.Error<typeof ConfigurationsApiHandlersInferred>,
+  ConfigurationApiService
+> = ConfigurationsApiHandlersInferred;

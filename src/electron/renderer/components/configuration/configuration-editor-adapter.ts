@@ -1,0 +1,110 @@
+import * as A from "effect/Array";
+import * as Match from "effect/Match";
+
+import {
+  type ConfigurationApiConfiguration,
+  type CreateConfigurationApiRequest,
+} from "@/services/api/configuration/configuration-api-schema.ts";
+import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
+import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+
+import {
+  type ConfigurationEditorValue,
+  type DecodedConfigurationEditorValue,
+} from "./configuration-form-schema.ts";
+
+function createEditorRequirement(
+  requirement: ConfigurationApiConfiguration["milestones"][number]["requirements"][number],
+) {
+  return {
+    id: crypto.randomUUID(),
+    requiredCount: String(requirement.requiredCount),
+    startOccurrence: String(requirement.startOccurrence),
+    targetId: requirement.targetId,
+    type: requirement.type,
+  };
+}
+
+export function createConfigurationEditorValue(
+  configuration: ConfigurationApiConfiguration,
+): ConfigurationEditorValue {
+  return {
+    dungeonId: configuration.dungeonId,
+    dungeonLevel: String(configuration.dungeonLevel),
+    milestones: configuration.milestones.map((milestone) => {
+      return {
+        id: crypto.randomUUID(),
+        label: milestone.label,
+        requirements: milestone.requirements.map(createEditorRequirement),
+      };
+    }),
+  };
+}
+
+function createMilestoneRequirement(
+  requirement: DecodedConfigurationEditorValue["milestones"][number]["requirements"][number],
+): FellowshipMilestoneRequirement {
+  const occurrence = {
+    requiredCount: requirement.requiredCount,
+    startOccurrence: requirement.startOccurrence,
+  };
+
+  return Match.value(requirement).pipe(
+    Match.when({ type: FELLOWSHIP_EVENT.ABILITY_ACTIVATED }, (requirement) => {
+      return {
+        abilityId: requirement.targetId,
+        ...occurrence,
+        type: requirement.type,
+      };
+    }),
+    Match.whenOr(
+      { type: FELLOWSHIP_EVENT.DUNGEON_START },
+      { type: FELLOWSHIP_EVENT.DUNGEON_END },
+      (requirement) => {
+        return {
+          ...occurrence,
+          type: requirement.type,
+        };
+      },
+    ),
+    Match.whenOr(
+      { type: FELLOWSHIP_EVENT.ENCOUNTER_START },
+      { type: FELLOWSHIP_EVENT.ENCOUNTER_END },
+      (requirement) => {
+        return {
+          encounterId: requirement.targetId,
+          ...occurrence,
+          type: requirement.type,
+        };
+      },
+    ),
+    Match.when({ type: FELLOWSHIP_EVENT.UNIT_DEATH }, (requirement) => {
+      return {
+        ...occurrence,
+        type: requirement.type,
+        unitTypeId: requirement.targetId,
+      };
+    }),
+    Match.exhaustive,
+  );
+}
+
+export function createConfigurationApiRequest(
+  value: DecodedConfigurationEditorValue,
+): CreateConfigurationApiRequest {
+  return {
+    configuration: {
+      dungeonId: value.dungeonId,
+      dungeonLevel: value.dungeonLevel,
+      milestones: value.milestones.map((milestone) => {
+        return {
+          label: milestone.label,
+          requirements: A.map(
+            milestone.requirements,
+            createMilestoneRequirement,
+          ),
+        };
+      }),
+    },
+  };
+}

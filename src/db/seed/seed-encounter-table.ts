@@ -1,0 +1,23 @@
+import * as E from "effect/Effect";
+import * as SqlClient from "effect/unstable/sql/SqlClient";
+
+import { FELLOWSHIP_ENCOUNTER } from "@/catalogs/fellowship-encounters-catalog.ts";
+
+export const seedEncounterTable = E.gen(function* () {
+  const sql = yield* SqlClient.SqlClient;
+
+  for (const encounter of Object.values(FELLOWSHIP_ENCOUNTER)) {
+    yield* sql`
+      INSERT INTO encounter (
+        dungeon_id,
+        id,
+        name
+      )
+      VALUES (
+        ${encounter.dungeonId},
+        ${encounter.encounterId},
+        ${encounter.name}
+      )
+    `;
+  }
+});

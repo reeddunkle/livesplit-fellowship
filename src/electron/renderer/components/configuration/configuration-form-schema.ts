@@ -1,0 +1,87 @@
+import { type StandardSchemaV1 } from "@standard-schema/spec";
+import * as Schema from "effect/Schema";
+
+import {
+  DungeonIdSchema,
+  DungeonLevelSchema,
+} from "@/services/fellowship/validation/fellowship-common.ts";
+import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import {
+  IntegerFromStringSchema,
+  NonEmptyStringSchema,
+  PositiveIntegerSchema,
+} from "@/validation/common.ts";
+
+const PositiveIntegerFromStringSchema = IntegerFromStringSchema.pipe(
+  Schema.decodeTo(PositiveIntegerSchema),
+);
+
+const DungeonLevelFromStringSchema = IntegerFromStringSchema.pipe(
+  Schema.decodeTo(DungeonLevelSchema),
+);
+
+const RequirementEditorSchema = Schema.Struct({
+  id: Schema.String,
+  requiredCount: PositiveIntegerFromStringSchema,
+  startOccurrence: PositiveIntegerFromStringSchema,
+  targetId: NonEmptyStringSchema,
+  type: MilestoneRequirementEventTypeSchema,
+});
+
+const MilestoneEditorSchema = Schema.Struct({
+  id: Schema.String,
+  label: NonEmptyStringSchema,
+  requirements: Schema.NonEmptyArray(RequirementEditorSchema),
+});
+
+export const ConfigurationEditorSchema = Schema.Struct({
+  dungeonId: DungeonIdSchema,
+  dungeonLevel: DungeonLevelFromStringSchema,
+  milestones: Schema.Array(MilestoneEditorSchema),
+});
+
+type EncodedRequirementEditorValue = typeof RequirementEditorSchema.Encoded;
+
+type EncodedMilestoneEditorValue = typeof MilestoneEditorSchema.Encoded;
+
+export type RequirementEditorValue = EncodedRequirementEditorValue;
+
+export type MilestoneEditorValue = Omit<
+  EncodedMilestoneEditorValue,
+  "requirements"
+> & {
+  requirements: Array<RequirementEditorValue>;
+};
+
+export type ConfigurationEditorValue = Omit<
+  typeof ConfigurationEditorSchema.Encoded,
+  "dungeonId" | "milestones"
+> & {
+  dungeonId: string;
+  milestones: Array<MilestoneEditorValue>;
+};
+
+export type DecodedConfigurationEditorValue =
+  typeof ConfigurationEditorSchema.Type;
+
+const effectStandardSchema = Schema.toStandardSchemaV1(
+  ConfigurationEditorSchema,
+);
+
+export const ConfigurationEditorStandardSchema: StandardSchemaV1<
+  ConfigurationEditorValue,
+  DecodedConfigurationEditorValue
+> = {
+  "~standard": {
+    ...effectStandardSchema["~standard"],
+
+    types: {
+      input: undefined as unknown as ConfigurationEditorValue,
+      output: undefined as unknown as DecodedConfigurationEditorValue,
+    },
+
+    validate: (value) => {
+      return effectStandardSchema["~standard"].validate(value);
+    },
+  },
+};

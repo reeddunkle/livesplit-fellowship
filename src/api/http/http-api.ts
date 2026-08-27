@@ -1,0 +1,17 @@
+import * as HttpApi from "effect/unstable/httpapi/HttpApi";
+
+import { AbilitiesApi } from "@/api/http/groups/abilities/abilities-api.ts";
+import { ConfigurationsApi } from "@/api/http/groups/configurations/configurations-api.ts";
+import { DungeonsApi } from "@/api/http/groups/dungeons/dungeons-api.ts";
+import { EncountersApi } from "@/api/http/groups/encounters/encounters-api.ts";
+import { TrackingApi } from "@/api/http/groups/tracking/tracking-api.ts";
+import { UnitsApi } from "@/api/http/groups/units/units-api.ts";
+
+export const AppHttpApi = HttpApi.make("app").add(
+  AbilitiesApi,
+  ConfigurationsApi,
+  DungeonsApi,
+  EncountersApi,
+  TrackingApi,
+  UnitsApi,
+);
