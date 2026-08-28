@@ -57,7 +57,7 @@ export function ConfigurationEditor({
   });
 
   return (
-    <main className="mx-auto grid w-full max-w-7xl gap-8 p-6">
+    <main className="mx-auto grid w-full gap-8 p-6">
       <header className="grid gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">
           Fellowship Configuration
@@ -180,7 +180,7 @@ export function ConfigurationEditor({
         <form.Field name="milestones" mode="array">
           {(milestonesField) => {
             return (
-              <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <section className="grid grid-cols-[repeat(auto-fit,minmax(22rem,1fr))] gap-4">
                 {milestonesField.state.value.map(
                   (milestone, milestoneIndex) => {
                     return (
