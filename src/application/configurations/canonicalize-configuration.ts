@@ -20,10 +20,18 @@ type CanonicalMilestone = {
   readonly requirements: ReadonlyArray<CanonicalMilestoneRequirement>;
 };
 
-type CanonicalMilestoneConfiguration = {
+type CanonicalConfiguration = {
   readonly dungeonId: DungeonId;
   readonly dungeonLevel: number;
   readonly milestones: ReadonlyArray<CanonicalMilestone>;
+};
+
+export type CanonicalConfigurationInput = {
+  readonly dungeonId: DungeonId;
+  readonly dungeonLevel: number;
+  readonly milestones: ReadonlyArray<{
+    readonly requirements: ReadonlyArray<CanonicalMilestoneRequirement>;
+  }>;
 };
 
 const CanonicalMilestoneRequirementOrder = Order.Struct({
@@ -57,18 +65,32 @@ function canonicalizeRequirement({
   };
 }
 
-function canonicalizeMilestoneConfiguration(
+function canonicalizeConfiguration(
   configuration: FellowshipMilestoneConfiguration,
-): CanonicalMilestoneConfiguration {
+): CanonicalConfiguration {
+  return canonicalizeNormalizedConfiguration({
+    dungeonId: configuration.dungeonId,
+    dungeonLevel: configuration.dungeonLevel,
+    milestones: configuration.milestones.map((milestone) => {
+      return {
+        requirements: milestone.requirements.map((requirement) => {
+          return canonicalizeRequirement({
+            configuration,
+            requirement,
+          });
+        }),
+      };
+    }),
+  });
+}
+
+function canonicalizeNormalizedConfiguration(
+  configuration: CanonicalConfigurationInput,
+): CanonicalConfiguration {
   const milestones = configuration.milestones.map((milestone) => {
-    const requirements = milestone.requirements
-      .map((requirement) => {
-        return canonicalizeRequirement({
-          configuration,
-          requirement,
-        });
-      })
-      .sort(CanonicalMilestoneRequirementOrder);
+    const requirements = [...milestone.requirements].sort(
+      CanonicalMilestoneRequirementOrder,
+    );
 
     return {
       requirements,
@@ -84,8 +106,14 @@ function canonicalizeMilestoneConfiguration(
   };
 }
 
-export function serializeCanonicalMilestoneConfiguration(
+export function serializeCanonicalConfiguration(
   configuration: FellowshipMilestoneConfiguration,
 ): string {
-  return JSON.stringify(canonicalizeMilestoneConfiguration(configuration));
+  return JSON.stringify(canonicalizeConfiguration(configuration));
+}
+
+export function serializeNormalizedCanonicalConfiguration(
+  configuration: CanonicalConfigurationInput,
+): string {
+  return JSON.stringify(canonicalizeNormalizedConfiguration(configuration));
 }

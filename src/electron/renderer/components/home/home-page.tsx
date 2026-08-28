@@ -1,6 +1,6 @@
 import * as E from "effect/Effect";
 import * as R from "effect/Record";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { saveConfiguration } from "@/electron/renderer/api/configuration-client.ts";
 import { ConfigurationEditor } from "@/electron/renderer/components/configuration/configuration-editor.tsx";
@@ -14,17 +14,22 @@ import {
 } from "@/electron/renderer/components/configuration/configuration-editor-types.ts";
 import { EMPTY_CONFIGURATION_EDITOR_VALUE } from "@/electron/renderer/components/configuration/configuration-form.ts";
 import { type DecodedConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-form-schema.ts";
+import { makeConfigurationSaveStateLookup } from "@/electron/renderer/components/configuration/configuration-save-state.ts";
 import {
   FellowshipDataProvider,
   useFellowshipDataStore,
 } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
 import { type AbilityApiAbilityList } from "@/services/api/ability/ability-api-schema.ts";
-import { type ConfigurationApiConfigurationList } from "@/services/api/configuration/configuration-api-schema.ts";
+import {
+  type ConfigurationApiConfiguration,
+  type ConfigurationApiConfigurationList,
+} from "@/services/api/configuration/configuration-api-schema.ts";
 import { type DungeonApiDungeonList } from "@/services/api/dungeon/dungeon-api-schema.ts";
 import { type EncounterApiEncounterList } from "@/services/api/encounter/encounter-api-schema.ts";
 import { type UnitApiUnitList } from "@/services/api/unit/unit-api-schema.ts";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
 const eventTypes = [
   FELLOWSHIP_EVENT.ABILITY_ACTIVATED,
@@ -69,35 +74,34 @@ export function HomePage({
 function HomePageContent({ configurations }: HomePageContentProps) {
   const dungeons = useFellowshipDataStore((state) => state.dungeons);
 
-  const [selectedConfigurationId, setSelectedConfigurationId] = useState<
-    string | null
-  >(null);
+  const [selectedConfigurationId, setSelectedConfigurationId] =
+    useState<ConfigurationId | null>(null);
 
   const configurationsById = R.fromIterableBy(
     configurations,
     (configuration) => configuration.id,
   );
 
+  const configurationSaveState = useMemo(() => {
+    return makeConfigurationSaveStateLookup(configurations);
+  }, [configurations]);
+
   const selectedConfiguration =
     selectedConfigurationId === null
       ? undefined
       : configurationsById[selectedConfigurationId];
 
-  const dungeonsById = new Map(
-    dungeons.map((dungeon) => {
-      return [dungeon.id, dungeon] as const;
-    }),
-  );
+  const dungeonsById = R.fromIterableBy(dungeons, (dungeon) => dungeon.id);
 
   const configurationOptions: ReadonlyArray<ConfigurationOption> =
     configurations.map((configuration) => {
-      const dungeon = dungeonsById.get(configuration.dungeonId);
+      const dungeon = dungeonsById[configuration.dungeonId];
 
       return {
         id: configuration.id,
-        label: `${dungeon?.name ?? configuration.dungeonId} — Level ${
-          configuration.dungeonLevel
-        }`,
+        label: `${configuration.label} — ${
+          dungeon?.name ?? configuration.dungeonId
+        } ${configuration.dungeonLevel}`,
       };
     });
 
@@ -118,11 +122,9 @@ function HomePageContent({ configurations }: HomePageContentProps) {
   const handleSubmit = async (
     value: DecodedConfigurationEditorValue,
   ): Promise<void> => {
-    if (selectedConfigurationId !== null) {
-      throw new Error("Updating configurations is not implemented yet.");
-    }
+    const savedConfiguration = await saveConfigurationValue(value);
 
-    yieldCreateConfiguration(value);
+    setSelectedConfigurationId(savedConfiguration.id);
   };
 
   return (
@@ -132,6 +134,7 @@ function HomePageContent({ configurations }: HomePageContentProps) {
       defaultValue={defaultValue}
       dungeonOptions={dungeonOptions}
       eventTypes={eventTypes}
+      getSaveState={configurationSaveState.get}
       onSelectConfiguration={setSelectedConfigurationId}
       onSubmit={handleSubmit}
       selectedConfigurationId={selectedConfigurationId}
@@ -139,12 +142,12 @@ function HomePageContent({ configurations }: HomePageContentProps) {
   );
 }
 
-async function yieldCreateConfiguration(
+async function saveConfigurationValue(
   value: DecodedConfigurationEditorValue,
-): Promise<void> {
+): Promise<ConfigurationApiConfiguration> {
   const request = saveConfigurationApiRequest(value);
 
-  await E.runPromise(
+  return E.runPromise(
     saveConfiguration({
       request,
     }),

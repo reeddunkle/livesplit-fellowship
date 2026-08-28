@@ -1,7 +1,9 @@
+import * as E from "effect/Effect";
 import { describe, expect, test } from "vitest";
 
-import { createConfigurationFingerprint } from "@/db/daos/configuration/configuration-fingerprint.ts";
+import { createConfigurationFingerprint } from "@/application/configurations/configuration-fingerprint.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { runTest } from "@/tests/common/run-test.ts";
 
 const firstDesecratorMilestone = {
   label: "First Desecrator",
@@ -34,7 +36,7 @@ const configuration = {
 } satisfies FellowshipMilestoneConfiguration;
 
 describe("createConfigurationFingerprint", () => {
-  test("creates the same fingerprint when labels change", () => {
+  test("creates the same fingerprint when labels change", async () => {
     const renamedConfiguration = {
       ...configuration,
       milestones: [
@@ -49,27 +51,40 @@ describe("createConfigurationFingerprint", () => {
       ],
     } satisfies FellowshipMilestoneConfiguration;
 
-    const first = createConfigurationFingerprint(configuration);
-    const second = createConfigurationFingerprint(renamedConfiguration);
+    const program = E.gen(function* () {
+      const first = yield* createConfigurationFingerprint(configuration);
 
-    expect(second.fingerprint).toBe(first.fingerprint);
-    expect(second.canonicalJson).toBe(first.canonicalJson);
+      const second =
+        yield* createConfigurationFingerprint(renamedConfiguration);
+
+      expect(second.fingerprint).toBe(first.fingerprint);
+      expect(second.canonicalJson).toBe(first.canonicalJson);
+    });
+
+    await runTest(program);
   });
 
-  test("creates the same fingerprint when milestone order changes", () => {
+  test("creates the same fingerprint when milestone order changes", async () => {
     const reorderedConfiguration = {
       ...configuration,
       milestones: [secondDesecratorMilestone, firstDesecratorMilestone],
     } satisfies FellowshipMilestoneConfiguration;
 
-    const first = createConfigurationFingerprint(configuration);
-    const second = createConfigurationFingerprint(reorderedConfiguration);
+    const program = E.gen(function* () {
+      const first = yield* createConfigurationFingerprint(configuration);
 
-    expect(second.fingerprint).toBe(first.fingerprint);
-    expect(second.canonicalJson).toBe(first.canonicalJson);
+      const second = yield* createConfigurationFingerprint(
+        reorderedConfiguration,
+      );
+
+      expect(second.fingerprint).toBe(first.fingerprint);
+      expect(second.canonicalJson).toBe(first.canonicalJson);
+    });
+
+    await runTest(program);
   });
 
-  test("creates the same fingerprint when requirement order changes", () => {
+  test("creates the same fingerprint when requirement order changes", async () => {
     const unitDeathRequirement = {
       requiredCount: 1,
       startOccurrence: 1,
@@ -106,17 +121,23 @@ describe("createConfigurationFingerprint", () => {
       ],
     } satisfies FellowshipMilestoneConfiguration;
 
-    const first = createConfigurationFingerprint(
-      configurationWithMultipleRequirements,
-    );
+    const program = E.gen(function* () {
+      const first = yield* createConfigurationFingerprint(
+        configurationWithMultipleRequirements,
+      );
 
-    const second = createConfigurationFingerprint(reorderedConfiguration);
+      const second = yield* createConfigurationFingerprint(
+        reorderedConfiguration,
+      );
 
-    expect(second.fingerprint).toBe(first.fingerprint);
-    expect(second.canonicalJson).toBe(first.canonicalJson);
+      expect(second.fingerprint).toBe(first.fingerprint);
+      expect(second.canonicalJson).toBe(first.canonicalJson);
+    });
+
+    await runTest(program);
   });
 
-  test("creates a different fingerprint when requirement semantics change", () => {
+  test("creates a different fingerprint when requirement semantics change", async () => {
     const changedConfiguration = {
       ...configuration,
       milestones: [
@@ -135,22 +156,34 @@ describe("createConfigurationFingerprint", () => {
       ],
     } satisfies FellowshipMilestoneConfiguration;
 
-    const first = createConfigurationFingerprint(configuration);
-    const second = createConfigurationFingerprint(changedConfiguration);
+    const program = E.gen(function* () {
+      const first = yield* createConfigurationFingerprint(configuration);
 
-    expect(second.fingerprint).not.toBe(first.fingerprint);
-    expect(second.canonicalJson).not.toBe(first.canonicalJson);
+      const second =
+        yield* createConfigurationFingerprint(changedConfiguration);
+
+      expect(second.fingerprint).not.toBe(first.fingerprint);
+      expect(second.canonicalJson).not.toBe(first.canonicalJson);
+    });
+
+    await runTest(program);
   });
 
-  test("creates a different fingerprint for a different dungeon", () => {
+  test("creates a different fingerprint for a different dungeon", async () => {
     const changedConfiguration = {
       ...configuration,
       dungeonId: "7",
     } satisfies FellowshipMilestoneConfiguration;
 
-    const first = createConfigurationFingerprint(configuration);
-    const second = createConfigurationFingerprint(changedConfiguration);
+    const program = E.gen(function* () {
+      const first = yield* createConfigurationFingerprint(configuration);
 
-    expect(second.fingerprint).not.toBe(first.fingerprint);
+      const second =
+        yield* createConfigurationFingerprint(changedConfiguration);
+
+      expect(second.fingerprint).not.toBe(first.fingerprint);
+    });
+
+    await runTest(program);
   });
 });

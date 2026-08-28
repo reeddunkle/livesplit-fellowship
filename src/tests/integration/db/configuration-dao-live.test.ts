@@ -5,11 +5,11 @@ import * as E from "effect/Effect";
 import * as Option from "effect/Option";
 import { describe, expect, test } from "vitest";
 
+import { createConfigurationFingerprint } from "@/application/configurations/configuration-fingerprint.ts";
 import {
   ConfigurationDAO,
   type PersistedConfiguration,
 } from "@/db/daos/configuration/configuration-dao.ts";
-import { createConfigurationFingerprint } from "@/db/daos/configuration/configuration-fingerprint.ts";
 import { makePersistenceLayer } from "@/layers/persistence-layer.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { runTest } from "@/tests/common/run-test.ts";
@@ -134,9 +134,10 @@ describe("ConfigurationDAOLive", () => {
       expect(persisted.label).toBe(CONFIGURATION_LABEL);
       expect(persisted.configuration.dungeonLevel).toBe(DUNGEON_LEVEL);
 
-      const originalFingerprint = createConfigurationFingerprint(configuration);
+      const originalFingerprint =
+        yield* createConfigurationFingerprint(configuration);
 
-      const persistedFingerprint = createConfigurationFingerprint(
+      const persistedFingerprint = yield* createConfigurationFingerprint(
         persisted.configuration,
       );
 
@@ -275,9 +276,16 @@ describe("ConfigurationDAOLive", () => {
       expect(persisted.id).toBe(first.id);
       expect(persisted.label).toBe(UPDATED_CONFIGURATION_LABEL);
 
-      expect(
-        createConfigurationFingerprint(persisted.configuration).fingerprint,
-      ).toBe(createConfigurationFingerprint(configuration).fingerprint);
+      const persistedFingerprint = yield* createConfigurationFingerprint(
+        persisted.configuration,
+      );
+
+      const originalFingerprint =
+        yield* createConfigurationFingerprint(configuration);
+
+      expect(persistedFingerprint.fingerprint).toBe(
+        originalFingerprint.fingerprint,
+      );
     }).pipe(E.provide(makeTestLayer()));
 
     await runTest(program);
@@ -308,10 +316,15 @@ describe("ConfigurationDAOLive", () => {
 
       expect(persistedConfigurations).toHaveLength(2);
 
-      expect(
-        createConfigurationFingerprint(configuration).fingerprint,
-      ).not.toBe(
-        createConfigurationFingerprint(differentLevelConfiguration).fingerprint,
+      const firstFingerprint =
+        yield* createConfigurationFingerprint(configuration);
+
+      const secondFingerprint = yield* createConfigurationFingerprint(
+        differentLevelConfiguration,
+      );
+
+      expect(firstFingerprint.fingerprint).not.toBe(
+        secondFingerprint.fingerprint,
       );
     }).pipe(E.provide(makeTestLayer()));
 
@@ -394,15 +407,25 @@ describe("ConfigurationDAOLive", () => {
         ]),
       );
 
-      expect(
-        persistedConfigurations.map((persisted) => {
-          return createConfigurationFingerprint(persisted.configuration)
-            .fingerprint;
-        }),
-      ).toEqual(
+      const persistedFingerprints = yield* E.forEach(
+        persistedConfigurations,
+        (persisted) => {
+          return createConfigurationFingerprint(persisted.configuration).pipe(
+            E.map((result) => result.fingerprint),
+          );
+        },
+      );
+
+      const firstFingerprint =
+        yield* createConfigurationFingerprint(configuration);
+
+      const secondFingerprint =
+        yield* createConfigurationFingerprint(secondConfiguration);
+
+      expect(persistedFingerprints).toEqual(
         expect.arrayContaining([
-          createConfigurationFingerprint(configuration).fingerprint,
-          createConfigurationFingerprint(secondConfiguration).fingerprint,
+          firstFingerprint.fingerprint,
+          secondFingerprint.fingerprint,
         ]),
       );
     }).pipe(E.provide(makeTestLayer()));
@@ -461,9 +484,16 @@ describe("ConfigurationDAOLive", () => {
         expect(persisted.label).toBe(CONFIGURATION_LABEL);
         expect(persisted.configuration.dungeonLevel).toBe(DUNGEON_LEVEL);
 
-        expect(
-          createConfigurationFingerprint(persisted.configuration).fingerprint,
-        ).toBe(createConfigurationFingerprint(configuration).fingerprint);
+        const persistedFingerprint = yield* createConfigurationFingerprint(
+          persisted.configuration,
+        );
+
+        const originalFingerprint =
+          yield* createConfigurationFingerprint(configuration);
+
+        expect(persistedFingerprint.fingerprint).toBe(
+          originalFingerprint.fingerprint,
+        );
       }).pipe(
         E.provide(
           makePersistenceLayer({

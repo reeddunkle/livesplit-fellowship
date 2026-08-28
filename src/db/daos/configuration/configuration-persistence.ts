@@ -1,7 +1,8 @@
 import * as A from "effect/Array";
+import * as E from "effect/Effect";
 import * as Match from "effect/Match";
 
-import { createConfigurationFingerprint } from "@/db/daos/configuration/configuration-fingerprint.ts";
+import { createConfigurationFingerprint } from "@/application/configurations/configuration-fingerprint.ts";
 import { ConfigurationModel } from "@/db/models/configuration-model.ts";
 import {
   type MilestoneId,
@@ -105,35 +106,50 @@ function createMilestoneRequirement(
 export function createConfigurationPersistenceRecords({
   configuration,
   label,
-}: CreateConfigurationPersistenceRecordsOptions): ConfigurationPersistenceRecords {
-  const { canonicalJson, fingerprint } =
-    createConfigurationFingerprint(configuration);
-  const configurationRecord = ConfigurationModel.insert.make({
-    canonicalJson,
-    dungeonId: configuration.dungeonId,
-    dungeonLevel: configuration.dungeonLevel,
-    fingerprint,
-    label,
-  });
-  const milestones: Array<MilestoneInsert> = [];
-  const requirements: Array<RequirementInsert> = [];
-  configuration.milestones.forEach((milestone) => {
-    const milestoneRecord = MilestoneModel.insert.make({
-      configurationId: configurationRecord.id,
-      label: milestone.label,
+}: CreateConfigurationPersistenceRecordsOptions): E.Effect<
+  ConfigurationPersistenceRecords,
+  Error
+> {
+  return E.gen(function* () {
+    const { canonicalJson, fingerprint } =
+      yield* createConfigurationFingerprint(configuration);
+
+    const configurationRecord = ConfigurationModel.insert.make({
+      canonicalJson,
+      dungeonId: configuration.dungeonId,
+      dungeonLevel: configuration.dungeonLevel,
+      fingerprint,
+      label,
     });
-    milestones.push(milestoneRecord);
-    milestone.requirements.forEach((requirement) => {
-      requirements.push(
-        createRequirementInsert({
-          configuration,
-          milestoneId: milestoneRecord.id,
-          requirement,
-        }),
-      );
+
+    const milestones: Array<MilestoneInsert> = [];
+    const requirements: Array<RequirementInsert> = [];
+
+    configuration.milestones.forEach((milestone) => {
+      const milestoneRecord = MilestoneModel.insert.make({
+        configurationId: configurationRecord.id,
+        label: milestone.label,
+      });
+
+      milestones.push(milestoneRecord);
+
+      milestone.requirements.forEach((requirement) => {
+        requirements.push(
+          createRequirementInsert({
+            configuration,
+            milestoneId: milestoneRecord.id,
+            requirement,
+          }),
+        );
+      });
     });
+
+    return {
+      configuration: configurationRecord,
+      milestones,
+      requirements,
+    };
   });
-  return { configuration: configurationRecord, milestones, requirements };
 }
 
 export function createPersistedConfiguration({

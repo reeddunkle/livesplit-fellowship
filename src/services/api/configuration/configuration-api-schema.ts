@@ -9,8 +9,8 @@ import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/valid
 import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
-  UUID7Schema,
 } from "@/validation/common.ts";
+import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
 import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label.ts";
 
 export const SaveConfigurationApiRequestSchema = Schema.Struct({
@@ -42,7 +42,7 @@ export type ConfigurationApiMilestone =
 export const ConfigurationApiConfigurationSchema = Schema.Struct({
   dungeonId: DungeonIdSchema,
   dungeonLevel: DungeonLevelSchema,
-  id: UUID7Schema,
+  id: ConfigurationIdSchema,
   label: ConfigurationLabelSchema,
   milestones: Schema.Array(ConfigurationApiMilestoneSchema),
 });

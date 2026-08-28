@@ -191,15 +191,10 @@ const make = E.gen(function* () {
 
   const save: ConfigurationDAOShape["save"] = ({ configuration, label }) => {
     return E.gen(function* () {
-      const records = yield* E.try({
-        catch: mapConfigurationDAOError,
-        try: () => {
-          return createConfigurationPersistenceRecords({
-            configuration,
-            label,
-          });
-        },
-      });
+      const records = yield* createConfigurationPersistenceRecords({
+        configuration,
+        label,
+      }).pipe(E.mapError(mapConfigurationDAOError));
 
       const configurationInsert = yield* Schema.encodeEffect(
         ConfigurationModel.insert,
