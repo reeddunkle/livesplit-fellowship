@@ -3,7 +3,7 @@ import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
 import * as HttpApiClient from "effect/unstable/httpapi/HttpApiClient";
 
 import { AppHttpApi } from "@/api/http/http-api.ts";
-// import { getApiBaseUrl } from "@/electron/renderer/api/api-url.ts";
+import { getApiBaseUrl } from "@/electron/renderer/api/api-url.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
 
 type EncounterIdArgs = {
@@ -42,9 +42,9 @@ export function getEncounterBase(baseUrl: string) {
   };
 }
 
-// function getEncounters() {
-//   return getEncountersBase(getApiBaseUrl())();
-// }
+export function getEncounters() {
+  return getEncountersBase(getApiBaseUrl())();
+}
 
 // function getEncounter(args: EncounterIdArgs) {
 //   return getEncounterBase(getApiBaseUrl())(args);

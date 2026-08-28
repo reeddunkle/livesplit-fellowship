@@ -1,0 +1,75 @@
+import {
+  createContext,
+  type PropsWithChildren,
+  useContext,
+  useState,
+} from "react";
+import { createStore, useStore } from "zustand";
+
+import { type AbilityApiAbilityList } from "@/services/api/ability/ability-api-schema.ts";
+import { type DungeonApiDungeonList } from "@/services/api/dungeon/dungeon-api-schema.ts";
+import { type EncounterApiEncounterList } from "@/services/api/encounter/encounter-api-schema.ts";
+import { type UnitApiUnitList } from "@/services/api/unit/unit-api-schema.ts";
+
+export type FellowshipDataStoreProps = {
+  readonly abilities: AbilityApiAbilityList;
+  readonly dungeons: DungeonApiDungeonList;
+  readonly encounters: EncounterApiEncounterList;
+  readonly units: UnitApiUnitList;
+};
+
+export type FellowshipDataStoreState = FellowshipDataStoreProps;
+
+export function createFellowshipDataStore(props: FellowshipDataStoreProps) {
+  return createStore<FellowshipDataStoreState>()(() => {
+    return {
+      ...props,
+    };
+  });
+}
+
+export type FellowshipDataStore = ReturnType<typeof createFellowshipDataStore>;
+
+export const FellowshipDataContext = createContext<FellowshipDataStore | null>(
+  null,
+);
+
+export type FellowshipDataProviderProps =
+  PropsWithChildren<FellowshipDataStoreProps>;
+
+export function FellowshipDataProvider({
+  abilities,
+  children,
+  dungeons,
+  encounters,
+  units,
+}: FellowshipDataProviderProps) {
+  const [store] = useState(() => {
+    return createFellowshipDataStore({
+      abilities,
+      dungeons,
+      encounters,
+      units,
+    });
+  });
+
+  return (
+    <FellowshipDataContext.Provider value={store}>
+      {children}
+    </FellowshipDataContext.Provider>
+  );
+}
+
+export function useFellowshipDataStore<T>(
+  selector: (state: FellowshipDataStoreState) => T,
+): T {
+  const store = useContext(FellowshipDataContext);
+
+  if (store === null) {
+    throw new Error(
+      "Missing FellowshipDataContext.Provider in the component tree.",
+    );
+  }
+
+  return useStore(store, selector);
+}

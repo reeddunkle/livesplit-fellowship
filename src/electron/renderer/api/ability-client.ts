@@ -3,8 +3,7 @@ import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
 import * as HttpApiClient from "effect/unstable/httpapi/HttpApiClient";
 
 import { AppHttpApi } from "@/api/http/http-api.ts";
-
-// import { getApiBaseUrl } from "@/electron/renderer/api/api-url.ts";
+import { getApiBaseUrl } from "@/electron/renderer/api/api-url.ts";
 
 type AbilityIdArgs = {
   readonly id: string;
@@ -40,9 +39,9 @@ export function getAbilityBase(baseUrl: string) {
   };
 }
 
-// function getAbilities() {
-//   return getAbilitiesBase(getApiBaseUrl())();
-// }
+export function getAbilities() {
+  return getAbilitiesBase(getApiBaseUrl())();
+}
 
 // function getAbility(args: AbilityIdArgs) {
 //   return getAbilityBase(getApiBaseUrl())(args);

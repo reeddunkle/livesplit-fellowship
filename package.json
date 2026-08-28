@@ -43,7 +43,8 @@
     "lucide-react": "catalog:ui",
     "react": "catalog:react",
     "react-dom": "catalog:react",
-    "tailwind-merge": "catalog:tailwind"
+    "tailwind-merge": "catalog:tailwind",
+    "zustand": "catalog:state-management"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:biome",

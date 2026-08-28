@@ -3,8 +3,7 @@ import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
 import * as HttpApiClient from "effect/unstable/httpapi/HttpApiClient";
 
 import { AppHttpApi } from "@/api/http/http-api.ts";
-
-// import { getApiBaseUrl } from "@/electron/renderer/api/api-url.ts";
+import { getApiBaseUrl } from "@/electron/renderer/api/api-url.ts";
 
 type UnitIdArgs = {
   readonly id: string;
@@ -40,9 +39,9 @@ export function getUnitBase(baseUrl: string) {
   };
 }
 
-// function getUnits() {
-//   return getUnitsBase(getApiBaseUrl())();
-// }
+export function getUnits() {
+  return getUnitsBase(getApiBaseUrl())();
+}
 
 // function getUnit(args: UnitIdArgs) {
 //   return getUnitBase(getApiBaseUrl())(args);

@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import * as E from "effect/Effect";
 
+import { getAbilities } from "@/electron/renderer/api/ability-client.ts";
 import { getConfigurations } from "@/electron/renderer/api/configuration-client.ts";
 import { getDungeons } from "@/electron/renderer/api/dungeon-client.ts";
+import { getEncounters } from "@/electron/renderer/api/encounter-client.ts";
+import { getUnits } from "@/electron/renderer/api/unit-client.ts";
 import { HomePage } from "@/electron/renderer/components/home/home-page";
 
 export const Route = createFileRoute("/")({
@@ -10,15 +13,27 @@ export const Route = createFileRoute("/")({
   loader: () => {
     return E.runPromise(
       E.all({
+        abilities: getAbilities(),
         configurations: getConfigurations(),
         dungeons: getDungeons(),
+        encounters: getEncounters(),
+        units: getUnits(),
       }),
     );
   },
 });
 
 function HomeRoute() {
-  const { configurations, dungeons } = Route.useLoaderData();
+  const { abilities, configurations, dungeons, encounters, units } =
+    Route.useLoaderData();
 
-  return <HomePage configurations={configurations} dungeons={dungeons} />;
+  return (
+    <HomePage
+      abilities={abilities}
+      configurations={configurations}
+      dungeons={dungeons}
+      encounters={encounters}
+      units={units}
+    />
+  );
 }

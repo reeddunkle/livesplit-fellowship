@@ -1,4 +1,5 @@
 import * as E from "effect/Effect";
+import * as R from "effect/Record";
 import { useState } from "react";
 
 import { createConfiguration } from "@/electron/renderer/api/configuration-client.ts";
@@ -13,8 +14,15 @@ import {
 } from "@/electron/renderer/components/configuration/configuration-editor-types.ts";
 import { EMPTY_CONFIGURATION_EDITOR_VALUE } from "@/electron/renderer/components/configuration/configuration-form.ts";
 import { type DecodedConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-form-schema.ts";
+import {
+  FellowshipDataProvider,
+  useFellowshipDataStore,
+} from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
+import { type AbilityApiAbilityList } from "@/services/api/ability/ability-api-schema.ts";
 import { type ConfigurationApiConfigurationList } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type DungeonApiDungeonList } from "@/services/api/dungeon/dungeon-api-schema.ts";
+import { type EncounterApiEncounterList } from "@/services/api/encounter/encounter-api-schema.ts";
+import { type UnitApiUnitList } from "@/services/api/unit/unit-api-schema.ts";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
@@ -28,18 +36,52 @@ const eventTypes = [
 ] satisfies ReadonlyArray<MilestoneRequirementEventType>;
 
 type HomePageProps = {
+  readonly abilities: AbilityApiAbilityList;
   readonly configurations: ConfigurationApiConfigurationList;
   readonly dungeons: DungeonApiDungeonList;
+  readonly encounters: EncounterApiEncounterList;
+  readonly units: UnitApiUnitList;
 };
 
-export function HomePage({ configurations, dungeons }: HomePageProps) {
+type HomePageContentProps = {
+  readonly configurations: ConfigurationApiConfigurationList;
+};
+
+export function HomePage({
+  abilities,
+  configurations,
+  dungeons,
+  encounters,
+  units,
+}: HomePageProps) {
+  return (
+    <FellowshipDataProvider
+      abilities={abilities}
+      dungeons={dungeons}
+      encounters={encounters}
+      units={units}
+    >
+      <HomePageContent configurations={configurations} />
+    </FellowshipDataProvider>
+  );
+}
+
+function HomePageContent({ configurations }: HomePageContentProps) {
+  const dungeons = useFellowshipDataStore((state) => state.dungeons);
+
   const [selectedConfigurationId, setSelectedConfigurationId] = useState<
     string | null
   >(null);
 
-  const selectedConfiguration = configurations.find((configuration) => {
-    return configuration.id === selectedConfigurationId;
-  });
+  const configurationsById = R.fromIterableBy(
+    configurations,
+    (configuration) => configuration.id,
+  );
+
+  const selectedConfiguration =
+    selectedConfigurationId === null
+      ? undefined
+      : configurationsById[selectedConfigurationId];
 
   const dungeonsById = new Map(
     dungeons.map((dungeon) => {
