@@ -262,6 +262,7 @@ export function RequirementEditor({
                 </Field>
 
                 <RequirementTargetField
+                  key={field.state.value}
                   eventType={field.state.value}
                   form={form}
                   requirementPath={requirementPath}
