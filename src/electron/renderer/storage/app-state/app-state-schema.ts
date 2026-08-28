@@ -8,6 +8,6 @@ export const AppStateSchema = Schema.Struct({
 
 export type AppState = typeof AppStateSchema.Type;
 
-export const DEFAULT_APP_STATE = {
+export const DEFAULT_APP_STATE: AppState = {
   selectedConfigurationId: null,
 } satisfies AppState;

@@ -4,43 +4,44 @@ import * as Option from "effect/Option";
 import type * as Schema from "effect/Schema";
 import * as KeyValueStore from "effect/unstable/persistence/KeyValueStore";
 
+import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+
 import {
   type AppState,
   AppStateSchema,
   DEFAULT_APP_STATE,
-} from "@/electron/renderer/stores/app-state/app-state-schema.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+} from "./app-state-schema.ts";
 
 const APP_STATE_KEY = "app-state";
 
-export type AppStateStoreError =
+export type AppStateStorageError =
   | KeyValueStore.KeyValueStoreError
   | Schema.SchemaError;
 
-export type AppStateStoreShape = {
-  readonly get: E.Effect<AppState, AppStateStoreError>;
+export type AppStateStorageShape = {
+  readonly get: E.Effect<AppState, AppStateStorageError>;
 
-  readonly set: (state: AppState) => E.Effect<void, AppStateStoreError>;
+  readonly set: (state: AppState) => E.Effect<void, AppStateStorageError>;
 
   readonly setSelectedConfigurationId: (
     configurationId: ConfigurationId | null,
-  ) => E.Effect<void, AppStateStoreError>;
+  ) => E.Effect<void, AppStateStorageError>;
 };
 
-export class AppStateStore extends Context.Service<
-  AppStateStore,
-  AppStateStoreShape
->()("app/AppStateStore") {}
+export class AppStateStorage extends Context.Service<
+  AppStateStorage,
+  AppStateStorageShape
+>()("app/AppStateStorage") {}
 
-export const makeAppStateStore = E.gen(function* () {
+export const makeAppStateStorage = E.gen(function* () {
   const keyValueStore = yield* KeyValueStore.KeyValueStore;
 
-  const appStateStore = KeyValueStore.toSchemaStore(
+  const appStateStorage = KeyValueStore.toSchemaStore(
     keyValueStore,
     AppStateSchema,
   );
 
-  const get = appStateStore.get(APP_STATE_KEY).pipe(
+  const get = appStateStorage.get(APP_STATE_KEY).pipe(
     E.map(
       Option.getOrElse(() => {
         return DEFAULT_APP_STATE;
@@ -48,11 +49,11 @@ export const makeAppStateStore = E.gen(function* () {
     ),
   );
 
-  const set: AppStateStoreShape["set"] = (state) => {
-    return appStateStore.set(APP_STATE_KEY, state);
+  const set: AppStateStorageShape["set"] = (state) => {
+    return appStateStorage.set(APP_STATE_KEY, state);
   };
 
-  const setSelectedConfigurationId: AppStateStoreShape["setSelectedConfigurationId"] =
+  const setSelectedConfigurationId: AppStateStorageShape["setSelectedConfigurationId"] =
     (configurationId) => {
       return E.gen(function* () {
         const state = yield* get;
@@ -68,5 +69,5 @@ export const makeAppStateStore = E.gen(function* () {
     get,
     set,
     setSelectedConfigurationId,
-  } satisfies AppStateStoreShape;
+  } satisfies AppStateStorageShape;
 });

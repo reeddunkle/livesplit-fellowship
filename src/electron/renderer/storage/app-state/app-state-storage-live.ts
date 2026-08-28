@@ -2,15 +2,15 @@ import * as Layer from "effect/Layer";
 import * as KeyValueStore from "effect/unstable/persistence/KeyValueStore";
 
 import {
-  AppStateStore,
-  makeAppStateStore,
-} from "@/electron/renderer/stores/app-state/app-state-store.ts";
+  AppStateStorage,
+  makeAppStateStorage,
+} from "@/electron/storage/app-state/app-state-storage.ts";
 
 const LocalStorageLive = KeyValueStore.layerStorage(() => {
   return localStorage;
 });
 
-export const AppStateStoreLive = Layer.effect(
-  AppStateStore,
-  makeAppStateStore,
+export const AppStateStorageLive = Layer.effect(
+  AppStateStorage,
+  makeAppStateStorage,
 ).pipe(Layer.provide(LocalStorageLive));

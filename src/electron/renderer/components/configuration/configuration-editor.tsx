@@ -1,3 +1,5 @@
+import * as Result from "effect/Result";
+import * as Schema from "effect/Schema";
 import { PlusIcon } from "lucide-react";
 
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
@@ -12,7 +14,12 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/electron/renderer/components/ui/native-select.tsx";
+import { useAppStore } from "@/electron/renderer/stores/app-state-store/use-app-store.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import {
+  type ConfigurationId,
+  ConfigurationIdSchema,
+} from "@/validation/configuration/configuration-id.ts";
 
 import {
   type ConfigurationOption,
@@ -56,6 +63,13 @@ export function ConfigurationEditor({
     onSubmit,
   });
 
+  const appStore = useAppStore();
+
+  const selectConfiguration = (configurationId: ConfigurationId | null) => {
+    onSelectConfiguration(configurationId);
+    appStore.setSelectedConfigurationId(configurationId);
+  };
+
   return (
     <main className="mx-auto grid w-full gap-8 p-6">
       <header className="grid gap-1">
@@ -72,28 +86,49 @@ export function ConfigurationEditor({
       <div className="grid gap-2">
         <FieldLabel htmlFor="configuration-selection">Configuration</FieldLabel>
 
-        <NativeSelect
-          id="configuration-selection"
-          value={selectedConfigurationId ?? ""}
-          onChange={(event) => {
-            onSelectConfiguration(
-              event.target.value === "" ? null : event.target.value,
-            );
-          }}
-        >
-          <NativeSelectOption value="">New configuration</NativeSelectOption>
+        <div className="flex gap-2">
+          <NativeSelect
+            className="flex-1"
+            id="configuration-selection"
+            value={selectedConfigurationId ?? ""}
+            onChange={(event) => {
+              const result = Schema.decodeUnknownResult(ConfigurationIdSchema)(
+                event.target.value,
+              );
 
-          {configurationOptions.map((configuration) => {
-            return (
-              <NativeSelectOption
-                key={configuration.id}
-                value={configuration.id}
-              >
-                {configuration.label}
-              </NativeSelectOption>
-            );
-          })}
-        </NativeSelect>
+              Result.match(result, {
+                onFailure: (error) => {
+                  console.error("Invalid configuration ID.", error);
+                },
+                onSuccess: (configurationId) => {
+                  selectConfiguration(configurationId);
+                },
+              });
+            }}
+          >
+            {configurationOptions.map((configuration) => {
+              return (
+                <NativeSelectOption
+                  key={configuration.id}
+                  value={configuration.id}
+                >
+                  {configuration.label}
+                </NativeSelectOption>
+              );
+            })}
+          </NativeSelect>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              selectConfiguration(null);
+            }}
+          >
+            <PlusIcon />
+            New configuration
+          </Button>
+        </div>
       </div>
 
       <form
