@@ -32,7 +32,7 @@
     "ignoreUnknown": false,
     "includes": [
       "**/*.{js,cjs,mjs,ts,tsx,json,md}",
-      "!src/electron/renderer/routeTree.gen.ts"
+      "!src/electron/renderer/router/routeTree.gen.ts"
     ]
   },
   "formatter": {
