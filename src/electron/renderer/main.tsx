@@ -2,7 +2,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { router } from "@/electron/renderer/router.ts";
+import { router } from "@/electron/renderer/router/router";
 
 import "./styles.css";
 

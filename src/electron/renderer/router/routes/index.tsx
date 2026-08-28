@@ -7,21 +7,7 @@ import { getDungeons } from "@/electron/renderer/api/dungeon-client.ts";
 import { getEncounters } from "@/electron/renderer/api/encounter-client.ts";
 import { getUnits } from "@/electron/renderer/api/unit-client.ts";
 import { HomePage } from "@/electron/renderer/components/home/home-page";
-
-export const Route = createFileRoute("/")({
-  component: HomeRoute,
-  loader: () => {
-    return E.runPromise(
-      E.all({
-        abilities: getAbilities(),
-        configurations: getConfigurations(),
-        dungeons: getDungeons(),
-        encounters: getEncounters(),
-        units: getUnits(),
-      }),
-    );
-  },
-});
+import { AppStateStore } from "@/electron/renderer/stores/app-state/app-state-store";
 
 function HomeRoute() {
   const { abilities, configurations, dungeons, encounters, units } =
@@ -37,3 +23,39 @@ function HomeRoute() {
     />
   );
 }
+
+export const Route = createFileRoute("/")({
+  component: HomeRoute,
+  loader: ({ context }) => {
+    return context.browserRuntime.runPromise(
+      E.gen(function* () {
+        const appStateStore = yield* AppStateStore;
+
+        const [
+          appState,
+          abilities,
+          configurations,
+          dungeons,
+          encounters,
+          units,
+        ] = yield* E.all([
+          appStateStore.get,
+          getAbilities(),
+          getConfigurations(),
+          getDungeons(),
+          getEncounters(),
+          getUnits(),
+        ]);
+
+        return {
+          abilities,
+          appState,
+          configurations,
+          dungeons,
+          encounters,
+          units,
+        };
+      }),
+    );
+  },
+});
