@@ -156,6 +156,7 @@ describe("DatabaseLayer", () => {
           id,
           dungeon_id,
           dungeon_level,
+          label,
           fingerprint,
           canonical_json,
           created_at_milliseconds
@@ -164,6 +165,7 @@ describe("DatabaseLayer", () => {
           'configuration-1',
           '11',
           63,
+          'Test Configuration',
           'fingerprint-1',
           '{}',
           1000
