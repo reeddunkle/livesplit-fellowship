@@ -1,8 +1,8 @@
 import * as Layer from "effect/Layer";
 import * as ManagedRuntime from "effect/ManagedRuntime";
 
-import { AppStateStoreLive } from "@/electron/renderer/stores/app-state/app-state-store-live.ts";
+import { AppStateStorageLive } from "@/electron/renderer/storage/app-state/app-state-storage-live.ts";
 
-const BrowserLive = Layer.mergeAll(AppStateStoreLive);
+const BrowserLive = Layer.mergeAll(AppStateStorageLive);
 
 export const browserRuntime = ManagedRuntime.make(BrowserLive);

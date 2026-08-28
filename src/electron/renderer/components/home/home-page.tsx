@@ -2,11 +2,11 @@ import * as E from "effect/Effect";
 import * as R from "effect/Record";
 import { useState } from "react";
 
-import { createConfiguration } from "@/electron/renderer/api/configuration-client.ts";
+import { saveConfiguration } from "@/electron/renderer/api/configuration-client.ts";
 import { ConfigurationEditor } from "@/electron/renderer/components/configuration/configuration-editor.tsx";
 import {
-  createConfigurationApiRequest,
   createConfigurationEditorValue,
+  saveConfigurationApiRequest,
 } from "@/electron/renderer/components/configuration/configuration-editor-adapter.ts";
 import {
   type ConfigurationOption,
@@ -142,10 +142,10 @@ function HomePageContent({ configurations }: HomePageContentProps) {
 async function yieldCreateConfiguration(
   value: DecodedConfigurationEditorValue,
 ): Promise<void> {
-  const request = createConfigurationApiRequest(value);
+  const request = saveConfigurationApiRequest(value);
 
   await E.runPromise(
-    createConfiguration({
+    saveConfiguration({
       request,
     }),
   );

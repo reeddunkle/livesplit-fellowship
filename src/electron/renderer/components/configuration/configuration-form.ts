@@ -13,6 +13,7 @@ import {
 export const EMPTY_CONFIGURATION_EDITOR_VALUE: ConfigurationEditorValue = {
   dungeonId: "",
   dungeonLevel: "",
+  label: "",
   milestones: [],
 };
 

@@ -11,6 +11,7 @@ import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
 } from "@/validation/common.ts";
+import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label.ts";
 
 const PositiveIntegerFromStringSchema = IntegerFromStringSchema.pipe(
   Schema.decodeTo(PositiveIntegerSchema),
@@ -37,6 +38,7 @@ const MilestoneEditorSchema = Schema.Struct({
 export const ConfigurationEditorSchema = Schema.Struct({
   dungeonId: DungeonIdSchema,
   dungeonLevel: DungeonLevelFromStringSchema,
+  label: ConfigurationLabelSchema,
   milestones: Schema.Array(MilestoneEditorSchema),
 });
 

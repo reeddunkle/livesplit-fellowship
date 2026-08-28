@@ -3,7 +3,7 @@ import * as Match from "effect/Match";
 
 import {
   type ConfigurationApiConfiguration,
-  type CreateConfigurationApiRequest,
+  type SaveConfigurationApiRequest,
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
@@ -31,6 +31,7 @@ export function createConfigurationEditorValue(
   return {
     dungeonId: configuration.dungeonId,
     dungeonLevel: String(configuration.dungeonLevel),
+    label: configuration.label,
     milestones: configuration.milestones.map((milestone) => {
       return {
         id: crypto.randomUUID(),
@@ -89,9 +90,9 @@ function createMilestoneRequirement(
   );
 }
 
-export function createConfigurationApiRequest(
+export function saveConfigurationApiRequest(
   value: DecodedConfigurationEditorValue,
-): CreateConfigurationApiRequest {
+): SaveConfigurationApiRequest {
   return {
     configuration: {
       dungeonId: value.dungeonId,
@@ -106,5 +107,6 @@ export function createConfigurationApiRequest(
         };
       }),
     },
+    label: value.label,
   };
 }

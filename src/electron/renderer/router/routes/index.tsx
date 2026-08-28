@@ -7,7 +7,7 @@ import { getDungeons } from "@/electron/renderer/api/dungeon-client.ts";
 import { getEncounters } from "@/electron/renderer/api/encounter-client.ts";
 import { getUnits } from "@/electron/renderer/api/unit-client.ts";
 import { HomePage } from "@/electron/renderer/components/home/home-page";
-import { AppStateStore } from "@/electron/renderer/stores/app-state/app-state-store";
+import { AppStateStorage } from "@/electron/renderer/storage/app-state/app-state-storage";
 
 function HomeRoute() {
   const { abilities, configurations, dungeons, encounters, units } =
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
   loader: ({ context }) => {
     return context.browserRuntime.runPromise(
       E.gen(function* () {
-        const appStateStore = yield* AppStateStore;
+        const appStateStore = yield* AppStateStorage;
 
         const [
           appState,
