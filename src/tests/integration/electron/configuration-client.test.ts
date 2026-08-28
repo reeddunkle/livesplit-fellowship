@@ -7,12 +7,11 @@ import * as HttpServer from "effect/unstable/http/HttpServer";
 import { describe, expect, test } from "vitest";
 
 import {
-  createConfigurationBase,
   deleteConfigurationBase,
   getConfigurationBase,
   getConfigurationsBase,
+  saveConfigurationBase,
 } from "@/electron/renderer/api/configuration-client.ts";
-import { ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
 import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
 import { makeApiServerTestLayer } from "@/tests/common/layers/api-server-test-layer.ts";
@@ -33,6 +32,8 @@ const UNKNOWN_CONFIGURATION_ID = Schema.decodeUnknownSync(
   ConfigurationIdSchema,
 )("0198d56c-5678-7abc-8def-1234567890ab");
 
+const CONFIGURATION_LABEL = "Everdawn Grove Route";
+const UPDATED_CONFIGURATION_LABEL = "Updated Everdawn Grove Route";
 const DUNGEON_ID = "11";
 const DUNGEON_LEVEL = 63;
 
@@ -40,6 +41,7 @@ const configuration = {
   dungeonId: DUNGEON_ID,
   dungeonLevel: DUNGEON_LEVEL,
   id: CONFIGURATION_ID,
+  label: CONFIGURATION_LABEL,
   milestones: [
     {
       label: "Desecrator 1 Killed",
@@ -55,7 +57,7 @@ const configuration = {
   ],
 } satisfies ConfigurationApiConfiguration;
 
-const createConfigurationRequest = {
+const saveConfigurationRequest = {
   configuration: {
     dungeonId: DUNGEON_ID,
     dungeonLevel: DUNGEON_LEVEL,
@@ -73,6 +75,7 @@ const createConfigurationRequest = {
       },
     ],
   },
+  label: CONFIGURATION_LABEL,
 } as const;
 
 function makeConfigurationApiServerTestLayer(
@@ -191,14 +194,16 @@ describe("configuration client", () => {
     await runTest(program);
   });
 
-  test("creates a configuration", async () => {
+  test("saves a configuration", async () => {
     const configurationApiServiceTest = makeConfigurationApiServiceMock({
-      create: ({ configuration: createdConfiguration }) => {
-        expect(createdConfiguration).toEqual({
-          dungeonId: createConfigurationRequest.configuration.dungeonId,
-          dungeonLevel: createConfigurationRequest.configuration.dungeonLevel,
-          milestones: createConfigurationRequest.configuration.milestones,
+      save: ({ configuration: savedConfiguration, label }) => {
+        expect(savedConfiguration).toEqual({
+          dungeonId: saveConfigurationRequest.configuration.dungeonId,
+          dungeonLevel: saveConfigurationRequest.configuration.dungeonLevel,
+          milestones: saveConfigurationRequest.configuration.milestones,
         });
+
+        expect(label).toBe(CONFIGURATION_LABEL);
 
         return E.succeed(configuration);
       },
@@ -209,10 +214,10 @@ describe("configuration client", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const createConfiguration = createConfigurationBase(baseUrl);
+        const saveConfiguration = saveConfigurationBase(baseUrl);
 
-        const result = yield* createConfiguration({
-          request: createConfigurationRequest,
+        const result = yield* saveConfiguration({
+          request: saveConfigurationRequest,
         });
 
         expect(result).toEqual(configuration);
@@ -226,17 +231,23 @@ describe("configuration client", () => {
     await runTest(program);
   });
 
-  test("returns Conflict when creating a duplicate configuration", async () => {
+  test("saves a semantically duplicate configuration as an update", async () => {
+    const updatedConfiguration = {
+      ...configuration,
+      label: UPDATED_CONFIGURATION_LABEL,
+    } satisfies ConfigurationApiConfiguration;
+
+    const updatedRequest = {
+      ...saveConfigurationRequest,
+      label: UPDATED_CONFIGURATION_LABEL,
+    } as const;
+
     const configurationApiServiceTest = makeConfigurationApiServiceMock({
-      create: () => {
-        return E.fail(
-          new ConfigurationDAOError({
-            details: {
-              _tag: "DuplicateConfiguration",
-              fingerprint: "duplicate-fingerprint",
-            },
-          }),
-        );
+      save: ({ configuration: savedConfiguration, label }) => {
+        expect(savedConfiguration).toEqual(updatedRequest.configuration);
+        expect(label).toBe(UPDATED_CONFIGURATION_LABEL);
+
+        return E.succeed(updatedConfiguration);
       },
     });
 
@@ -245,18 +256,14 @@ describe("configuration client", () => {
         const httpServer = yield* HttpServer.HttpServer;
         const baseUrl = getHttpUrl(httpServer.address);
 
-        const createConfiguration = createConfigurationBase(baseUrl);
+        const saveConfiguration = saveConfigurationBase(baseUrl);
 
-        const wasConflict = yield* createConfiguration({
-          request: createConfigurationRequest,
-        }).pipe(
-          E.as(false),
-          E.catchTag("Conflict", () => {
-            return E.succeed(true);
-          }),
-        );
+        const result = yield* saveConfiguration({
+          request: updatedRequest,
+        });
 
-        expect(wasConflict).toBe(true);
+        expect(result.id).toBe(CONFIGURATION_ID);
+        expect(result.label).toBe(UPDATED_CONFIGURATION_LABEL);
       }).pipe(
         E.provide(
           makeConfigurationApiServerTestLayer(configurationApiServiceTest),

@@ -1,3 +1,4 @@
+import * as A from "effect/Array";
 import * as Match from "effect/Match";
 
 import { createConfigurationFingerprint } from "@/db/daos/configuration/configuration-fingerprint.ts";
@@ -12,6 +13,7 @@ import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 import { isNonEmptyArray } from "@/util/is-non-empty-array.ts";
+import { type ConfigurationLabel } from "@/validation/configuration/configuration-label.ts";
 
 import { type PersistedConfiguration } from "./configuration-dao.ts";
 
@@ -27,6 +29,7 @@ export type ConfigurationPersistenceRecords = {
 
 export type CreateConfigurationPersistenceRecordsOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
+  readonly label: ConfigurationLabel;
 };
 
 export type CreatePersistedConfigurationOptions = {
@@ -101,28 +104,25 @@ function createMilestoneRequirement(
 
 export function createConfigurationPersistenceRecords({
   configuration,
+  label,
 }: CreateConfigurationPersistenceRecordsOptions): ConfigurationPersistenceRecords {
   const { canonicalJson, fingerprint } =
     createConfigurationFingerprint(configuration);
-
   const configurationRecord = ConfigurationModel.insert.make({
     canonicalJson,
     dungeonId: configuration.dungeonId,
     dungeonLevel: configuration.dungeonLevel,
     fingerprint,
+    label,
   });
-
   const milestones: Array<MilestoneInsert> = [];
   const requirements: Array<RequirementInsert> = [];
-
   configuration.milestones.forEach((milestone) => {
     const milestoneRecord = MilestoneModel.insert.make({
       configurationId: configurationRecord.id,
       label: milestone.label,
     });
-
     milestones.push(milestoneRecord);
-
     milestone.requirements.forEach((requirement) => {
       requirements.push(
         createRequirementInsert({
@@ -133,12 +133,7 @@ export function createConfigurationPersistenceRecords({
       );
     });
   });
-
-  return {
-    configuration: configurationRecord,
-    milestones,
-    requirements,
-  };
+  return { configuration: configurationRecord, milestones, requirements };
 }
 
 export function createPersistedConfiguration({
@@ -146,7 +141,7 @@ export function createPersistedConfiguration({
   milestones,
   requirements,
 }: CreatePersistedConfigurationOptions): PersistedConfiguration {
-  const configurationMilestones = milestones.map((milestone) => {
+  const configurationMilestones = A.map(milestones, (milestone) => {
     const milestoneRequirements = requirements
       .filter((requirement) => {
         return requirement.milestoneId === milestone.id;
@@ -172,5 +167,6 @@ export function createPersistedConfiguration({
       milestones: configurationMilestones,
     },
     id: configuration.id,
+    label: configuration.label,
   };
 }

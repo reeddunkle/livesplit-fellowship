@@ -17,4 +17,5 @@ export class ConfigurationModel extends Model.Class<ConfigurationModel>(
   dungeonLevel: PositiveIntegerSchema,
   fingerprint: NonEmptyStringSchema,
   id: Model.UuidV7Insert(ConfigurationIdSchema),
+  label: NonEmptyStringSchema,
 }) {}

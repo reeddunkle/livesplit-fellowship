@@ -3,7 +3,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import * as E from "effect/Effect";
 import * as Option from "effect/Option";
-import * as Result from "effect/Result";
 import { describe, expect, test } from "vitest";
 
 import {
@@ -24,6 +23,10 @@ type MilestoneRequirement = MilestoneDefinition["requirements"][number];
 const CITHRELS_FALL_DUNGEON_ID = "7";
 const DUNGEON_LEVEL = 63;
 const EVERDAWN_GROVE_DUNGEON_ID = "11";
+
+const CONFIGURATION_LABEL = "Everdawn Grove Route";
+const UPDATED_CONFIGURATION_LABEL = "Updated Everdawn Grove Route";
+const SECOND_CONFIGURATION_LABEL = "Cithrel's Fall Route";
 
 const firstDesecratorMilestone = {
   label: "First Desecrator",
@@ -112,12 +115,14 @@ describe("ConfigurationDAOLive", () => {
     const program = E.gen(function* () {
       const configurationDAO = yield* ConfigurationDAO;
 
-      const created = yield* configurationDAO.create({
+      const created = yield* configurationDAO.save({
         configuration,
+        label: CONFIGURATION_LABEL,
       });
 
       expect(created.id).toBeDefined();
       expect(created.configuration).toEqual(configuration);
+      expect(created.label).toBe(CONFIGURATION_LABEL);
 
       const result = yield* configurationDAO.getById({
         id: created.id,
@@ -126,6 +131,7 @@ describe("ConfigurationDAOLive", () => {
       const persisted = getPersistedConfiguration(result);
 
       expect(persisted.id).toBe(created.id);
+      expect(persisted.label).toBe(CONFIGURATION_LABEL);
       expect(persisted.configuration.dungeonLevel).toBe(DUNGEON_LEVEL);
 
       const originalFingerprint = createConfigurationFingerprint(configuration);
@@ -210,7 +216,7 @@ describe("ConfigurationDAOLive", () => {
     await runTest(program);
   });
 
-  test("rejects a semantically duplicate configuration", async () => {
+  test("updates the label for a semantically duplicate configuration", async () => {
     const duplicateConfiguration = {
       dungeonId: configuration.dungeonId,
       dungeonLevel: configuration.dungeonLevel,
@@ -238,35 +244,40 @@ describe("ConfigurationDAOLive", () => {
       ],
     } satisfies FellowshipMilestoneConfiguration;
 
-    const expectedFingerprint =
-      createConfigurationFingerprint(configuration).fingerprint;
-
     const program = E.gen(function* () {
       const configurationDAO = yield* ConfigurationDAO;
 
-      yield* configurationDAO.create({
+      const first = yield* configurationDAO.save({
         configuration,
+        label: CONFIGURATION_LABEL,
       });
 
-      const result = yield* configurationDAO
-        .create({
-          configuration: duplicateConfiguration,
-        })
-        .pipe(
-          E.match({
-            onFailure: Result.fail,
-            onSuccess: Result.succeed,
-          }),
-        );
+      const second = yield* configurationDAO.save({
+        configuration: duplicateConfiguration,
+        label: UPDATED_CONFIGURATION_LABEL,
+      });
 
-      expect(Result.isFailure(result)).toBe(true);
+      expect(second.id).toBe(first.id);
+      expect(second.label).toBe(UPDATED_CONFIGURATION_LABEL);
 
-      if (Result.isFailure(result)) {
-        expect(result.failure.details).toEqual({
-          _tag: "DuplicateConfiguration",
-          fingerprint: expectedFingerprint,
-        });
+      const persistedConfigurations = yield* configurationDAO.getAll();
+
+      expect(persistedConfigurations).toHaveLength(1);
+
+      const persisted = persistedConfigurations[0];
+
+      expect(persisted).toBeDefined();
+
+      if (persisted === undefined) {
+        return;
       }
+
+      expect(persisted.id).toBe(first.id);
+      expect(persisted.label).toBe(UPDATED_CONFIGURATION_LABEL);
+
+      expect(
+        createConfigurationFingerprint(persisted.configuration).fingerprint,
+      ).toBe(createConfigurationFingerprint(configuration).fingerprint);
     }).pipe(E.provide(makeTestLayer()));
 
     await runTest(program);
@@ -281,12 +292,14 @@ describe("ConfigurationDAOLive", () => {
     const program = E.gen(function* () {
       const configurationDAO = yield* ConfigurationDAO;
 
-      const first = yield* configurationDAO.create({
+      const first = yield* configurationDAO.save({
         configuration,
+        label: CONFIGURATION_LABEL,
       });
 
-      const second = yield* configurationDAO.create({
+      const second = yield* configurationDAO.save({
         configuration: differentLevelConfiguration,
+        label: UPDATED_CONFIGURATION_LABEL,
       });
 
       expect(second.id).not.toBe(first.id);
@@ -294,6 +307,7 @@ describe("ConfigurationDAOLive", () => {
       const persistedConfigurations = yield* configurationDAO.getAll();
 
       expect(persistedConfigurations).toHaveLength(2);
+
       expect(
         createConfigurationFingerprint(configuration).fingerprint,
       ).not.toBe(
@@ -308,8 +322,9 @@ describe("ConfigurationDAOLive", () => {
     const program = E.gen(function* () {
       const configurationDAO = yield* ConfigurationDAO;
 
-      const created = yield* configurationDAO.create({
+      const created = yield* configurationDAO.save({
         configuration,
+        label: CONFIGURATION_LABEL,
       });
 
       yield* configurationDAO.delete({
@@ -348,12 +363,14 @@ describe("ConfigurationDAOLive", () => {
     const program = E.gen(function* () {
       const configurationDAO = yield* ConfigurationDAO;
 
-      const first = yield* configurationDAO.create({
+      const first = yield* configurationDAO.save({
         configuration,
+        label: CONFIGURATION_LABEL,
       });
 
-      const second = yield* configurationDAO.create({
+      const second = yield* configurationDAO.save({
         configuration: secondConfiguration,
+        label: SECOND_CONFIGURATION_LABEL,
       });
 
       const persistedConfigurations = yield* configurationDAO.getAll();
@@ -365,6 +382,17 @@ describe("ConfigurationDAOLive", () => {
           return persisted.id;
         }),
       ).toEqual(expect.arrayContaining([first.id, second.id]));
+
+      expect(
+        persistedConfigurations.map((persisted) => {
+          return persisted.label;
+        }),
+      ).toEqual(
+        expect.arrayContaining([
+          CONFIGURATION_LABEL,
+          SECOND_CONFIGURATION_LABEL,
+        ]),
+      );
 
       expect(
         persistedConfigurations.map((persisted) => {
@@ -398,8 +426,9 @@ describe("ConfigurationDAOLive", () => {
       const createProgram = E.gen(function* () {
         const configurationDAO = yield* ConfigurationDAO;
 
-        const created = yield* configurationDAO.create({
+        const created = yield* configurationDAO.save({
           configuration,
+          label: CONFIGURATION_LABEL,
         });
 
         configurationId = created.id;
@@ -429,6 +458,7 @@ describe("ConfigurationDAOLive", () => {
         const persisted = getPersistedConfiguration(result);
 
         expect(persisted.id).toBe(persistedConfigurationId);
+        expect(persisted.label).toBe(CONFIGURATION_LABEL);
         expect(persisted.configuration.dungeonLevel).toBe(DUNGEON_LEVEL);
 
         expect(

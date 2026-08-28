@@ -7,7 +7,7 @@ import * as HttpApiSchema from "effect/unstable/httpapi/HttpApiSchema";
 import {
   ConfigurationApiConfigurationListSchema,
   ConfigurationApiConfigurationSchema,
-  CreateConfigurationApiRequestSchema,
+  SaveConfigurationApiRequestSchema,
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
 
@@ -17,7 +17,7 @@ const ConfigurationIdParamsSchema = Schema.Struct({
   id: ConfigurationIdSchema,
 });
 
-const CreatedConfigurationSchema = ConfigurationApiConfigurationSchema.pipe(
+const SavedConfigurationSchema = ConfigurationApiConfigurationSchema.pipe(
   HttpApiSchema.status(201),
 );
 
@@ -43,16 +43,13 @@ const GetConfigurationEndpoint = HttpApiEndpoint.get(
   },
 );
 
-const CreateConfigurationEndpoint = HttpApiEndpoint.post(
-  "createConfiguration",
+const SaveConfigurationEndpoint = HttpApiEndpoint.post(
+  "saveConfiguration",
   CONFIGURATIONS_ROUTE,
   {
-    error: [
-      HttpApiError.ConflictNoContent,
-      HttpApiError.InternalServerErrorNoContent,
-    ],
-    payload: CreateConfigurationApiRequestSchema,
-    success: CreatedConfigurationSchema,
+    error: HttpApiError.InternalServerErrorNoContent,
+    payload: SaveConfigurationApiRequestSchema,
+    success: SavedConfigurationSchema,
   },
 );
 
@@ -68,6 +65,6 @@ const DeleteConfigurationEndpoint = HttpApiEndpoint.delete(
 export const ConfigurationsApi = HttpApiGroup.make("configurations").add(
   GetConfigurationsEndpoint,
   GetConfigurationEndpoint,
-  CreateConfigurationEndpoint,
+  SaveConfigurationEndpoint,
   DeleteConfigurationEndpoint,
 );

@@ -18,14 +18,6 @@ export type MakeConfigurationApiServiceMockOptions =
   Partial<ConfigurationApiServiceShape>;
 
 export function makeConfigurationApiServiceMock({
-  create = ({ configuration }) => {
-    return E.succeed(
-      createConfigurationApiResponse({
-        configuration,
-        id: TEST_CONFIGURATION_ID,
-      }),
-    );
-  },
   delete: deleteConfiguration = () => {
     return E.void;
   },
@@ -35,12 +27,21 @@ export function makeConfigurationApiServiceMock({
   getById = () => {
     return E.succeed(Option.none());
   },
+  save = ({ configuration, label }) => {
+    return E.succeed(
+      createConfigurationApiResponse({
+        configuration,
+        id: TEST_CONFIGURATION_ID,
+        label,
+      }),
+    );
+  },
 }: MakeConfigurationApiServiceMockOptions = {}) {
   return Layer.succeed(ConfigurationApiService, {
-    create,
     delete: deleteConfiguration,
     getAll,
     getById,
+    save,
   } satisfies ConfigurationApiServiceShape);
 }
 

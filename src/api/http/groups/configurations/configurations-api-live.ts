@@ -21,16 +21,6 @@ function mapConfigurationError(
   });
 }
 
-function mapCreateConfigurationError(
-  error: ConfigurationDAOError,
-): E.Effect<never, HttpApiError.Conflict | HttpApiError.InternalServerError> {
-  if (error.details._tag === "DuplicateConfiguration") {
-    return E.fail(new HttpApiError.Conflict());
-  }
-
-  return mapConfigurationError(error);
-}
-
 const ConfigurationsApiHandlersInferred = HttpApiBuilder.group(
   AppHttpApi,
   "configurations",
@@ -58,7 +48,7 @@ const ConfigurationsApiHandlersInferred = HttpApiBuilder.group(
           return configuration.value;
         });
       })
-      .handle("createConfiguration", ({ payload }) => {
+      .handle("saveConfiguration", ({ payload }) => {
         const configuration = {
           dungeonId: payload.configuration.dungeonId,
           dungeonLevel: payload.configuration.dungeonLevel,
@@ -66,10 +56,11 @@ const ConfigurationsApiHandlersInferred = HttpApiBuilder.group(
         } satisfies FellowshipMilestoneConfiguration;
 
         return configurationApiService
-          .create({
+          .save({
             configuration,
+            label: payload.label,
           })
-          .pipe(E.catch(mapCreateConfigurationError));
+          .pipe(E.catch(mapConfigurationError));
       })
       .handle("deleteConfiguration", ({ params }) => {
         return configurationApiService

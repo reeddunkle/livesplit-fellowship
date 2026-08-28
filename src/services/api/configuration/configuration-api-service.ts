@@ -12,9 +12,11 @@ import {
 import { createConfigurationApiResponse } from "@/services/api/configuration/create-configuration-api-response.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationLabel } from "@/validation/configuration/configuration-label.ts";
 
-type CreateConfigurationOptions = {
+type SaveConfigurationOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
+  readonly label: ConfigurationLabel;
 };
 
 type DeleteConfigurationOptions = {
@@ -26,10 +28,6 @@ type GetConfigurationByIdOptions = {
 };
 
 export type ConfigurationApiServiceShape = {
-  readonly create: (
-    options: CreateConfigurationOptions,
-  ) => E.Effect<ConfigurationApiConfiguration, ConfigurationDAOError>;
-
   readonly delete: (
     options: DeleteConfigurationOptions,
   ) => E.Effect<void, ConfigurationDAOError>;
@@ -45,6 +43,10 @@ export type ConfigurationApiServiceShape = {
     Option.Option<ConfigurationApiConfiguration>,
     ConfigurationDAOError
   >;
+
+  readonly save: (
+    options: SaveConfigurationOptions,
+  ) => E.Effect<ConfigurationApiConfiguration, ConfigurationDAOError>;
 };
 
 export class ConfigurationApiService extends Context.Service<
@@ -54,14 +56,6 @@ export class ConfigurationApiService extends Context.Service<
 
 const make = E.gen(function* () {
   const configurationStore = yield* ConfigurationDAO;
-
-  const create: ConfigurationApiServiceShape["create"] = ({
-    configuration,
-  }) => {
-    return configurationStore
-      .create({ configuration })
-      .pipe(E.map(createConfigurationApiResponse));
-  };
 
   const deleteConfiguration: ConfigurationApiServiceShape["delete"] = ({
     id,
@@ -83,11 +77,23 @@ const make = E.gen(function* () {
       .pipe(E.map(Option.map(createConfigurationApiResponse)));
   };
 
+  const save: ConfigurationApiServiceShape["save"] = ({
+    configuration,
+    label,
+  }) => {
+    return configurationStore
+      .save({
+        configuration,
+        label,
+      })
+      .pipe(E.map(createConfigurationApiResponse));
+  };
+
   return {
-    create,
     delete: deleteConfiguration,
     getAll,
     getById,
+    save,
   } satisfies ConfigurationApiServiceShape;
 });
 

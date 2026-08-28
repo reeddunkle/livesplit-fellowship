@@ -39,23 +39,25 @@ function createConfigurationApiMilestone({
 }): ConfigurationApiMilestone {
   return {
     label: milestone.label,
-    requirements: A.map(milestone.requirements, (requirement) =>
-      createConfigurationApiRequirement({
+    requirements: A.map(milestone.requirements, (requirement) => {
+      return createConfigurationApiRequirement({
         dungeonId,
         requirement,
-      }),
-    ),
+      });
+    }),
   };
 }
 
 export function createConfigurationApiResponse({
   configuration,
   id,
+  label,
 }: PersistedConfiguration): ConfigurationApiConfiguration {
   return {
     dungeonId: configuration.dungeonId,
     dungeonLevel: configuration.dungeonLevel,
     id,
+    label,
     milestones: configuration.milestones.map((milestone) => {
       return createConfigurationApiMilestone({
         dungeonId: configuration.dungeonId,

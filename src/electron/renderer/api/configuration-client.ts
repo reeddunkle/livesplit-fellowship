@@ -4,15 +4,15 @@ import * as HttpApiClient from "effect/unstable/httpapi/HttpApiClient";
 
 import { AppHttpApi } from "@/api/http/http-api.ts";
 import { getApiBaseUrl } from "@/electron/renderer/api/api-url.ts";
-import { type CreateConfigurationApiRequest } from "@/services/api/configuration/configuration-api-schema.ts";
+import { type SaveConfigurationApiRequest } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
 type ConfigurationIdArgs = {
   readonly id: ConfigurationId;
 };
 
-type CreateConfigurationArgs = {
-  readonly request: CreateConfigurationApiRequest;
+type SaveConfigurationArgs = {
+  readonly request: SaveConfigurationApiRequest;
 };
 
 function makeHttpApiClient(baseUrl: string) {
@@ -45,12 +45,12 @@ export function getConfigurationBase(baseUrl: string) {
   };
 }
 
-export function createConfigurationBase(baseUrl: string) {
-  return ({ request }: CreateConfigurationArgs) => {
+export function saveConfigurationBase(baseUrl: string) {
+  return ({ request }: SaveConfigurationArgs) => {
     return E.gen(function* () {
       const client = yield* makeHttpApiClient(baseUrl);
 
-      return yield* client.configurations.createConfiguration({
+      return yield* client.configurations.saveConfiguration({
         payload: request,
       });
     });
@@ -79,8 +79,8 @@ export function getConfigurations() {
 //   return getConfigurationBase(getApiBaseUrl())(args);
 // }
 
-export function createConfiguration(args: CreateConfigurationArgs) {
-  return createConfigurationBase(getApiBaseUrl())(args);
+export function saveConfiguration(args: SaveConfigurationArgs) {
+  return saveConfigurationBase(getApiBaseUrl())(args);
 }
 
 // function deleteConfiguration(args: ConfigurationIdArgs) {

@@ -11,13 +11,15 @@ import {
   PositiveIntegerSchema,
   UUID7Schema,
 } from "@/validation/common.ts";
+import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label.ts";
 
-export const CreateConfigurationApiRequestSchema = Schema.Struct({
+export const SaveConfigurationApiRequestSchema = Schema.Struct({
   configuration: FellowshipMilestoneConfigurationFileSchema,
+  label: ConfigurationLabelSchema,
 });
 
-export type CreateConfigurationApiRequest =
-  typeof CreateConfigurationApiRequestSchema.Type;
+export type SaveConfigurationApiRequest =
+  typeof SaveConfigurationApiRequestSchema.Type;
 
 const ConfigurationApiRequirementSchema = Schema.Struct({
   requiredCount: PositiveIntegerSchema,
@@ -41,6 +43,7 @@ export const ConfigurationApiConfigurationSchema = Schema.Struct({
   dungeonId: DungeonIdSchema,
   dungeonLevel: DungeonLevelSchema,
   id: UUID7Schema,
+  label: ConfigurationLabelSchema,
   milestones: Schema.Array(ConfigurationApiMilestoneSchema),
 });
 

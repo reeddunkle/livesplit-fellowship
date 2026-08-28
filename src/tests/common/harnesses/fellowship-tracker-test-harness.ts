@@ -21,6 +21,7 @@ import {
   type ConfigurationId,
   ConfigurationIdSchema,
 } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationLabel } from "@/validation/configuration/configuration-label.ts";
 
 import { makeFellowshipTestHarness } from "./fellowship-test-harness.ts";
 import { makeWebSocketBroadcasterTestHarness } from "./websocket-broadcaster-test-harness.ts";
@@ -29,11 +30,14 @@ const DEFAULT_CONFIGURATION_ID = Schema.decodeUnknownSync(
   ConfigurationIdSchema,
 )("0198f5d8-0000-7000-8000-000000000000");
 
+const DEFAULT_CONFIGURATION_LABEL = "Test Configuration";
+
 type FellowshipLiveEvents = ReturnType<FellowshipService["liveEvents"]>;
 
 type MakeFellowshipTrackerTestHarnessOptions = {
   readonly configuration?: FellowshipMilestoneConfiguration;
   readonly configurationId?: ConfigurationId;
+  readonly configurationLabel?: ConfigurationLabel;
   readonly liveEvents?: FellowshipLiveEvents;
 };
 
@@ -51,9 +55,13 @@ export function makeFellowshipTrackerTestHarness(
 
     const configuration = options.configuration ?? DEFAULT_CONFIGURATION;
 
+    const configurationLabel =
+      options.configurationLabel ?? DEFAULT_CONFIGURATION_LABEL;
+
     const persistedConfiguration = {
       configuration,
       id: configurationId,
+      label: configurationLabel,
     } satisfies PersistedConfiguration;
 
     const trackingStarted = yield* Deferred.make<void>();
@@ -74,9 +82,6 @@ export function makeFellowshipTrackerTestHarness(
       yield* makeWebSocketBroadcasterTestHarness();
 
     const configurationDAO = {
-      create: () => {
-        return E.succeed(persistedConfiguration);
-      },
       delete: () => {
         return E.void;
       },
@@ -89,6 +94,9 @@ export function makeFellowshipTrackerTestHarness(
             ? Option.some(persistedConfiguration)
             : Option.none(),
         );
+      },
+      save: () => {
+        return E.succeed(persistedConfiguration);
       },
     } satisfies ConfigurationDAOShape;
 
@@ -116,6 +124,7 @@ export function makeFellowshipTrackerTestHarness(
     return {
       configuration,
       configurationId,
+      configurationLabel,
       layer: FellowshipTrackerTest,
       trackingInterrupted,
       trackingStarted,

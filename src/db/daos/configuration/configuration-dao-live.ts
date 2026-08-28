@@ -20,7 +20,10 @@ import {
 } from "@/db/models/milestone-model.ts";
 import { RequirementModel } from "@/db/models/requirement-model.ts";
 import { ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import {
+  type ConfigurationId,
+  ConfigurationIdSchema,
+} from "@/validation/configuration/configuration-id.ts";
 
 function mapConfigurationDAOError(cause: unknown): ConfigurationDAOError {
   if (cause instanceof ConfigurationDAOError) {
@@ -31,17 +34,6 @@ function mapConfigurationDAOError(cause: unknown): ConfigurationDAOError {
     details: {
       _tag: "Unexpected",
       cause,
-    },
-  });
-}
-
-function duplicateConfigurationError(
-  fingerprint: string,
-): ConfigurationDAOError {
-  return new ConfigurationDAOError({
-    details: {
-      _tag: "DuplicateConfiguration",
-      fingerprint,
     },
   });
 }
@@ -139,13 +131,72 @@ const make = E.gen(function* () {
     });
   };
 
-  const create: ConfigurationDAOShape["create"] = ({ configuration }) => {
+  const getById: ConfigurationDAOShape["getById"] = ({ id }) => {
+    return E.gen(function* () {
+      const rows = yield* sql`
+        SELECT
+          id,
+          dungeon_id,
+          dungeon_level,
+          label,
+          fingerprint,
+          canonical_json,
+          created_at_milliseconds AS created_at
+        FROM configuration
+        WHERE id = ${id}
+        LIMIT 1
+      `;
+
+      const configurations = yield* decodeConfigurationRows(rows);
+      const configuration = configurations[0];
+
+      if (configuration === undefined) {
+        return Option.none<PersistedConfiguration>();
+      }
+
+      const persistedConfiguration = yield* hydrateConfiguration(configuration);
+
+      return Option.some(persistedConfiguration);
+    }).pipe(E.mapError(mapConfigurationDAOError));
+  };
+
+  const getAll: ConfigurationDAOShape["getAll"] = () => {
+    return E.gen(function* () {
+      const rows = yield* sql`
+        SELECT
+          id,
+          dungeon_id,
+          dungeon_level,
+          label,
+          fingerprint,
+          canonical_json,
+          created_at_milliseconds AS created_at
+        FROM configuration
+        ORDER BY created_at_milliseconds
+      `;
+
+      const configurations = yield* decodeConfigurationRows(rows);
+
+      const persistedConfigurations: Array<PersistedConfiguration> = [];
+
+      for (const configuration of configurations) {
+        persistedConfigurations.push(
+          yield* hydrateConfiguration(configuration),
+        );
+      }
+
+      return persistedConfigurations;
+    }).pipe(E.mapError(mapConfigurationDAOError));
+  };
+
+  const save: ConfigurationDAOShape["save"] = ({ configuration, label }) => {
     return E.gen(function* () {
       const records = yield* E.try({
         catch: mapConfigurationDAOError,
         try: () => {
           return createConfigurationPersistenceRecords({
             configuration,
+            label,
           });
         },
       });
@@ -168,20 +219,33 @@ const make = E.gen(function* () {
         },
       ).pipe(E.mapError(mapConfigurationDAOError));
 
-      yield* sql
+      const configurationId = yield* sql
         .withTransaction(
           E.gen(function* () {
-            const existingConfigurations = yield* sql`
-              SELECT id
+            const existingRows = yield* sql`
+              SELECT
+                id
               FROM configuration
               WHERE fingerprint = ${configurationInsert.fingerprint}
               LIMIT 1
             `;
 
-            if (existingConfigurations.length > 0) {
-              yield* E.fail(
-                duplicateConfigurationError(configurationInsert.fingerprint),
+            const existingConfiguration = existingRows[0];
+
+            if (existingConfiguration !== undefined) {
+              const existingConfigurationId = yield* Schema.decodeUnknownEffect(
+                ConfigurationIdSchema,
+              )(existingConfiguration.id).pipe(
+                E.mapError(mapConfigurationDAOError),
               );
+
+              yield* sql`
+                UPDATE configuration
+                SET label = ${configurationInsert.label}
+                WHERE id = ${existingConfigurationId}
+              `;
+
+              return existingConfigurationId;
             }
 
             yield* sql`
@@ -189,6 +253,7 @@ const make = E.gen(function* () {
                 id,
                 dungeon_id,
                 dungeon_level,
+                label,
                 fingerprint,
                 canonical_json,
                 created_at_milliseconds
@@ -197,6 +262,7 @@ const make = E.gen(function* () {
                 ${configurationInsert.id},
                 ${configurationInsert.dungeonId},
                 ${configurationInsert.dungeonLevel},
+                ${configurationInsert.label},
                 ${configurationInsert.fingerprint},
                 ${configurationInsert.canonicalJson},
                 ${configurationInsert.createdAt}
@@ -238,71 +304,18 @@ const make = E.gen(function* () {
                 )
               `;
             }
+
+            return records.configuration.id;
           }),
         )
         .pipe(E.mapError(mapConfigurationDAOError));
 
       return {
         configuration,
-        id: records.configuration.id,
+        id: configurationId,
+        label,
       };
     });
-  };
-
-  const getById: ConfigurationDAOShape["getById"] = ({ id }) => {
-    return E.gen(function* () {
-      const rows = yield* sql`
-        SELECT
-          id,
-          dungeon_id,
-          dungeon_level,
-          fingerprint,
-          canonical_json,
-          created_at_milliseconds AS created_at
-        FROM configuration
-        WHERE id = ${id}
-        LIMIT 1
-      `;
-
-      const configurations = yield* decodeConfigurationRows(rows);
-      const configuration = configurations[0];
-
-      if (configuration === undefined) {
-        return Option.none<PersistedConfiguration>();
-      }
-
-      const persistedConfiguration = yield* hydrateConfiguration(configuration);
-
-      return Option.some(persistedConfiguration);
-    }).pipe(E.mapError(mapConfigurationDAOError));
-  };
-
-  const getAll: ConfigurationDAOShape["getAll"] = () => {
-    return E.gen(function* () {
-      const rows = yield* sql`
-        SELECT
-          id,
-          dungeon_id,
-          dungeon_level,
-          fingerprint,
-          canonical_json,
-          created_at_milliseconds AS created_at
-        FROM configuration
-        ORDER BY created_at_milliseconds
-      `;
-
-      const configurations = yield* decodeConfigurationRows(rows);
-
-      const persistedConfigurations: Array<PersistedConfiguration> = [];
-
-      for (const configuration of configurations) {
-        persistedConfigurations.push(
-          yield* hydrateConfiguration(configuration),
-        );
-      }
-
-      return persistedConfigurations;
-    }).pipe(E.mapError(mapConfigurationDAOError));
   };
 
   const deleteConfiguration: ConfigurationDAOShape["delete"] = ({ id }) => {
@@ -313,10 +326,10 @@ const make = E.gen(function* () {
   };
 
   return {
-    create,
     delete: deleteConfiguration,
     getAll,
     getById,
+    save,
   } satisfies ConfigurationDAOShape;
 });
 

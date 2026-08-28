@@ -33,6 +33,8 @@ const UNKNOWN_CONFIGURATION_ID = Schema.decodeUnknownSync(
   ConfigurationIdSchema,
 )("0198f5d8-0000-7000-8000-000000000000");
 
+const CONFIGURATION_LABEL = "Everdawn Grove Route";
+const UPDATED_CONFIGURATION_LABEL = "Updated Everdawn Grove Route";
 const DUNGEON_ID = "11";
 const DUNGEON_LEVEL = 63;
 
@@ -40,6 +42,7 @@ const configuration = {
   dungeonId: DUNGEON_ID,
   dungeonLevel: DUNGEON_LEVEL,
   id: CONFIGURATION_ID,
+  label: CONFIGURATION_LABEL,
   milestones: [
     {
       label: "Desecrator 1 Killed",
@@ -55,7 +58,7 @@ const configuration = {
   ],
 } satisfies ConfigurationApiConfiguration;
 
-const createConfigurationRequest = {
+const saveConfigurationRequest = {
   configuration: {
     dungeonId: DUNGEON_ID,
     dungeonLevel: DUNGEON_LEVEL,
@@ -73,6 +76,7 @@ const createConfigurationRequest = {
       },
     ],
   },
+  label: CONFIGURATION_LABEL,
 } as const;
 
 function makeConfigurationApiServerTestLayer(
@@ -254,14 +258,16 @@ describe("configuration routes", () => {
     await runTest(program);
   });
 
-  test("POST /configurations creates a configuration", async () => {
+  test("POST /configurations saves a configuration", async () => {
     const configurationApiServiceTest = makeConfigurationApiServiceMock({
-      create: ({ configuration: createdConfiguration }) => {
-        expect(createdConfiguration).toEqual({
-          dungeonId: createConfigurationRequest.configuration.dungeonId,
-          dungeonLevel: createConfigurationRequest.configuration.dungeonLevel,
-          milestones: createConfigurationRequest.configuration.milestones,
+      save: ({ configuration: savedConfiguration, label }) => {
+        expect(savedConfiguration).toEqual({
+          dungeonId: saveConfigurationRequest.configuration.dungeonId,
+          dungeonLevel: saveConfigurationRequest.configuration.dungeonLevel,
+          milestones: saveConfigurationRequest.configuration.milestones,
         });
+
+        expect(label).toBe(CONFIGURATION_LABEL);
 
         return E.succeed(configuration);
       },
@@ -277,9 +283,9 @@ describe("configuration routes", () => {
         });
 
         const response = yield* request(
-          urls.configurations.createConfiguration(),
+          urls.configurations.saveConfiguration(),
           {
-            body: JSON.stringify(createConfigurationRequest),
+            body: JSON.stringify(saveConfigurationRequest),
             headers: {
               "content-type": "application/json",
             },
@@ -305,54 +311,23 @@ describe("configuration routes", () => {
     await runTest(program);
   });
 
-  test("POST /configurations returns 400 for an invalid request body", async () => {
-    const configurationApiServiceTest = makeConfigurationApiServiceMock();
+  test("POST /configurations updates a semantically duplicate configuration", async () => {
+    const updatedConfiguration = {
+      ...configuration,
+      label: UPDATED_CONFIGURATION_LABEL,
+    } satisfies ConfigurationApiConfiguration;
 
-    const program = E.scoped(
-      E.gen(function* () {
-        const httpServer = yield* HttpServer.HttpServer;
-        const baseUrl = getHttpUrl(httpServer.address);
+    const updatedRequest = {
+      ...saveConfigurationRequest,
+      label: UPDATED_CONFIGURATION_LABEL,
+    } as const;
 
-        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
-          baseUrl,
-        });
-
-        const response = yield* request(
-          urls.configurations.createConfiguration(),
-          {
-            body: JSON.stringify({
-              invalid: true,
-            }),
-            headers: {
-              "content-type": "application/json",
-            },
-            method: "POST",
-          },
-        );
-
-        expect(response.status).toBe(400);
-        expect(yield* E.promise(() => response.text())).toBe("");
-      }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
-      ),
-    );
-
-    await runTest(program);
-  });
-
-  test("POST /configurations returns 409 for a duplicate configuration", async () => {
     const configurationApiServiceTest = makeConfigurationApiServiceMock({
-      create: () => {
-        return E.fail(
-          new ConfigurationDAOError({
-            details: {
-              _tag: "DuplicateConfiguration",
-              fingerprint: "duplicate-fingerprint",
-            },
-          }),
-        );
+      save: ({ configuration: savedConfiguration, label }) => {
+        expect(savedConfiguration).toEqual(updatedRequest.configuration);
+        expect(label).toBe(UPDATED_CONFIGURATION_LABEL);
+
+        return E.succeed(updatedConfiguration);
       },
     });
 
@@ -366,9 +341,9 @@ describe("configuration routes", () => {
         });
 
         const response = yield* request(
-          urls.configurations.createConfiguration(),
+          urls.configurations.saveConfiguration(),
           {
-            body: JSON.stringify(createConfigurationRequest),
+            body: JSON.stringify(updatedRequest),
             headers: {
               "content-type": "application/json",
             },
@@ -376,7 +351,51 @@ describe("configuration routes", () => {
           },
         );
 
-        expect(response.status).toBe(409);
+        const json = yield* parseResponseJson(response);
+
+        const body = yield* Schema.decodeUnknownEffect(
+          ConfigurationApiConfigurationSchema,
+        )(json);
+
+        expect(response.status).toBe(201);
+        expect(body.id).toBe(CONFIGURATION_ID);
+        expect(body.label).toBe(UPDATED_CONFIGURATION_LABEL);
+      }).pipe(
+        E.provide(
+          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
+        ),
+      ),
+    );
+
+    await runTest(program);
+  });
+
+  test("POST /configurations returns 400 for an invalid request body", async () => {
+    const configurationApiServiceTest = makeConfigurationApiServiceMock();
+
+    const program = E.scoped(
+      E.gen(function* () {
+        const httpServer = yield* HttpServer.HttpServer;
+        const baseUrl = getHttpUrl(httpServer.address);
+
+        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
+          baseUrl,
+        });
+
+        const response = yield* request(
+          urls.configurations.saveConfiguration(),
+          {
+            body: JSON.stringify({
+              invalid: true,
+            }),
+            headers: {
+              "content-type": "application/json",
+            },
+            method: "POST",
+          },
+        );
+
+        expect(response.status).toBe(400);
         expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(
         E.provide(

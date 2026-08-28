@@ -76,6 +76,7 @@ export const createTables = E.gen(function* () {
       dungeon_id TEXT NOT NULL,
       dungeon_level INTEGER NOT NULL
         CHECK (dungeon_level >= 1),
+      label TEXT NOT NULL,
       fingerprint TEXT NOT NULL UNIQUE,
       canonical_json TEXT NOT NULL,
       created_at_milliseconds INTEGER NOT NULL,
