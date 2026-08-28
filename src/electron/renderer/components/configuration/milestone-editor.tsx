@@ -59,7 +59,7 @@ export function MilestoneEditor({
         <form.Field name={`${milestonePath}.label` as const}>
           {(field) => {
             const isInvalid =
-              field.state.meta.isTouched && !field.state.meta.isValid;
+              field.state.meta.isBlurred && !field.state.meta.isValid;
 
             return (
               <Field data-invalid={isInvalid}>

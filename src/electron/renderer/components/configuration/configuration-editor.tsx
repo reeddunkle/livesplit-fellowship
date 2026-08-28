@@ -110,7 +110,7 @@ export function ConfigurationEditor({
           <form.Field name="dungeonId">
             {(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
+                field.state.meta.isBlurred && !field.state.meta.isValid;
 
               return (
                 <Field data-invalid={isInvalid}>
@@ -151,7 +151,7 @@ export function ConfigurationEditor({
           <form.Field name="dungeonLevel">
             {(field) => {
               const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
+                field.state.meta.isBlurred && !field.state.meta.isValid;
 
               return (
                 <Field data-invalid={isInvalid}>

@@ -47,6 +47,10 @@ catalogs:
     dotenv:
       specifier: 17.4.2
       version: 17.4.2
+  state-management:
+    zustand:
+      specifier: ^5.0.15
+      version: 5.0.15
   tailwind:
     '@tailwindcss/vite':
       specifier: ^4.3.3
@@ -166,7 +170,7 @@ importers:
         specifier: catalog:tailwind
         version: 3.6.0
       zustand:
-        specifier: ^5.0.15
+        specifier: catalog:state-management
         version: 5.0.15(@types/react@19.2.18)(react@19.2.8)(use-sync-external-store@1.6.0(react@19.2.8))
     devDependencies:
       '@biomejs/biome':
