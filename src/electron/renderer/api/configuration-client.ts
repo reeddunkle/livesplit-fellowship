@@ -4,7 +4,10 @@ import * as HttpApiClient from "effect/unstable/httpapi/HttpApiClient";
 
 import { AppHttpApi } from "@/api/http/http-api.ts";
 import { getApiBaseUrl } from "@/electron/renderer/api/api-url.ts";
-import { type SaveConfigurationApiRequest } from "@/services/api/configuration/configuration-api-schema.ts";
+import {
+  type DeleteConfigurationsByDungeonAndLevelApiRequest,
+  type SaveConfigurationApiRequest,
+} from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
 type ConfigurationIdArgs = {
@@ -13,6 +16,10 @@ type ConfigurationIdArgs = {
 
 export type SaveConfigurationArgs = {
   readonly request: SaveConfigurationApiRequest;
+};
+
+export type DeleteConfigurationsByDungeonAndLevelArgs = {
+  readonly request: DeleteConfigurationsByDungeonAndLevelApiRequest;
 };
 
 function makeHttpApiClient(baseUrl: string) {
@@ -57,6 +64,18 @@ export function saveConfigurationBase(baseUrl: string) {
   };
 }
 
+export function saveReplacingDungeonAndLevelBase(baseUrl: string) {
+  return ({ request }: SaveConfigurationArgs) => {
+    return E.gen(function* () {
+      const client = yield* makeHttpApiClient(baseUrl);
+
+      return yield* client.configurations.saveReplacingDungeonAndLevel({
+        payload: request,
+      });
+    });
+  };
+}
+
 export function deleteConfigurationBase(baseUrl: string) {
   return ({ id }: ConfigurationIdArgs) => {
     return E.gen(function* () {
@@ -66,6 +85,18 @@ export function deleteConfigurationBase(baseUrl: string) {
         params: {
           id,
         },
+      });
+    });
+  };
+}
+
+export function deleteConfigurationsByDungeonAndLevelBase(baseUrl: string) {
+  return ({ request }: DeleteConfigurationsByDungeonAndLevelArgs) => {
+    return E.gen(function* () {
+      const client = yield* makeHttpApiClient(baseUrl);
+
+      yield* client.configurations.deleteConfigurationsByDungeonAndLevel({
+        payload: request,
       });
     });
   };
@@ -83,6 +114,16 @@ export function saveConfiguration(args: SaveConfigurationArgs) {
   return saveConfigurationBase(getApiBaseUrl())(args);
 }
 
+export function saveReplacingDungeonAndLevel(args: SaveConfigurationArgs) {
+  return saveReplacingDungeonAndLevelBase(getApiBaseUrl())(args);
+}
+
 export function deleteConfiguration(args: ConfigurationIdArgs) {
   return deleteConfigurationBase(getApiBaseUrl())(args);
+}
+
+export function deleteConfigurationsByDungeonAndLevel(
+  args: DeleteConfigurationsByDungeonAndLevelArgs,
+) {
+  return deleteConfigurationsByDungeonAndLevelBase(getApiBaseUrl())(args);
 }
