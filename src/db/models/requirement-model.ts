@@ -13,10 +13,12 @@ const RequirementIdSchema = Schema.String.pipe(Schema.brand("RequirementId"));
 export class RequirementModel extends Model.Class<RequirementModel>(
   "RequirementModel",
 )({
+  createdAt: Model.DateTimeInsertFromNumber,
   id: Model.UuidV7Insert(RequirementIdSchema),
   milestoneId: MilestoneIdSchema,
   requiredCount: PositiveIntegerSchema,
   startOccurrence: PositiveIntegerSchema,
   targetId: NonEmptyStringSchema,
   type: MilestoneRequirementEventTypeSchema,
+  updatedAt: Model.DateTimeInsertFromNumber,
 }) {}

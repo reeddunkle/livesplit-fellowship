@@ -70,66 +70,86 @@ describe("DatabaseLayer", () => {
       const sql = yield* SqlClient.SqlClient;
 
       const dungeons = yield* sql<{
+        readonly createdAt: number;
         readonly id: string;
         readonly mapId: string;
         readonly name: string;
+        readonly updatedAt: number;
       }>`
         SELECT
+          created_at,
           id,
           map_id,
-          name
+          name,
+          updated_at
         FROM dungeon
         WHERE id = '11'
       `;
 
       const abilities = yield* sql<{
+        readonly createdAt: number;
         readonly id: string;
         readonly name: string;
+        readonly updatedAt: number;
       }>`
         SELECT
+          created_at,
           id,
-          name
+          name,
+          updated_at
         FROM ability
         WHERE id = '634'
       `;
 
       const abilityUnits = yield* sql<{
         readonly abilityId: string;
+        readonly createdAt: number;
         readonly unitId: string;
+        readonly updatedAt: number;
       }>`
         SELECT
           ability_id,
-          unit_id
+          created_at,
+          unit_id,
+          updated_at
         FROM ability_unit
         WHERE ability_id = '634'
       `;
 
       const encounters = yield* sql<{
+        readonly createdAt: number;
         readonly dungeonId: string;
         readonly id: string;
         readonly name: string;
+        readonly updatedAt: number;
       }>`
         SELECT
+          created_at,
           dungeon_id,
           id,
-          name
+          name,
+          updated_at
         FROM encounter
         WHERE dungeon_id = '24'
           AND id = '33'
       `;
 
       const chicken = yield* sql<{
+        readonly createdAt: number;
         readonly groupKey: string | null;
         readonly id: string;
         readonly name: string;
         readonly status: string;
+        readonly updatedAt: number;
         readonly variant: string | null;
       }>`
         SELECT
+          created_at,
           group_key,
           id,
           name,
           status,
+          updated_at,
           variant
         FROM unit
         WHERE id = '276'
@@ -169,40 +189,50 @@ describe("DatabaseLayer", () => {
 
       expect(dungeons).toEqual([
         {
+          createdAt: expect.any(Number),
           id: "11",
           mapId: "26",
           name: "Everdawn Grove",
+          updatedAt: expect.any(Number),
         },
       ]);
 
       expect(abilities).toEqual([
         {
+          createdAt: expect.any(Number),
           id: "634",
           name: "Stormy Retreat",
+          updatedAt: expect.any(Number),
         },
       ]);
 
       expect(abilityUnits).toEqual([
         {
           abilityId: "634",
+          createdAt: expect.any(Number),
           unitId: "133",
+          updatedAt: expect.any(Number),
         },
       ]);
 
       expect(encounters).toEqual([
         {
+          createdAt: expect.any(Number),
           dungeonId: "24",
           id: "33",
           name: "Vexira",
+          updatedAt: expect.any(Number),
         },
       ]);
 
       expect(chicken).toEqual([
         {
+          createdAt: expect.any(Number),
           groupKey: "CHICKEN",
           id: "276",
           name: "Chicken",
           status: "ACTIVE",
+          updatedAt: expect.any(Number),
           variant: "Small",
         },
       ]);
@@ -234,7 +264,8 @@ describe("DatabaseLayer", () => {
           label,
           fingerprint,
           canonical_json,
-          created_at_milliseconds
+          created_at,
+          updated_at
         )
         VALUES (
           'configuration-1',
@@ -243,6 +274,7 @@ describe("DatabaseLayer", () => {
           'Test Configuration',
           'fingerprint-1',
           '{}',
+          1000,
           1000
         )
       `;
@@ -251,12 +283,16 @@ describe("DatabaseLayer", () => {
         INSERT INTO milestone (
           id,
           configuration_id,
-          label
+          label,
+          created_at,
+          updated_at
         )
         VALUES (
           'milestone-1',
           'configuration-1',
-          'Desecrator 1 Killed'
+          'Desecrator 1 Killed',
+          1000,
+          1000
         )
       `;
 
@@ -267,7 +303,9 @@ describe("DatabaseLayer", () => {
           type,
           target_id,
           start_occurrence,
-          required_count
+          required_count,
+          created_at,
+          updated_at
         )
         VALUES (
           'requirement-1',
@@ -275,7 +313,9 @@ describe("DatabaseLayer", () => {
           'UNIT_DEATH',
           '42',
           1,
-          1
+          1,
+          1000,
+          1000
         )
       `;
 

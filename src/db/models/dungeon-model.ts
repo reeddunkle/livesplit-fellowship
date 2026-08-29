@@ -4,7 +4,9 @@ import { DungeonIdSchema } from "@/services/fellowship/validation/fellowship-com
 import { NonEmptyStringSchema } from "@/validation/common.ts";
 
 export class DungeonModel extends Model.Class<DungeonModel>("DungeonModel")({
+  createdAt: Model.DateTimeInsertFromNumber,
   id: DungeonIdSchema,
   mapId: NonEmptyStringSchema,
   name: NonEmptyStringSchema,
+  updatedAt: Model.DateTimeInsertFromNumber,
 }) {}

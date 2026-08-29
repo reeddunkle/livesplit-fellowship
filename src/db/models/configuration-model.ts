@@ -17,4 +17,5 @@ export class ConfigurationModel extends Model.Class<ConfigurationModel>(
   fingerprint: ConfigurationFingerprintSchema,
   id: Model.UuidV7Insert(ConfigurationIdSchema),
   label: ConfigurationLabelSchema,
+  updatedAt: Model.DateTimeUpdateFromNumber,
 }) {}

@@ -5,18 +5,23 @@ import { FELLOWSHIP_ENCOUNTER } from "@/catalogs/encounters/fellowship-encounter
 
 export const seedEncounterTable = E.gen(function* () {
   const sql = yield* SqlClient.SqlClient;
+  const now = Date.now();
 
   for (const encounter of Object.values(FELLOWSHIP_ENCOUNTER)) {
     yield* sql`
       INSERT INTO encounter (
         dungeon_id,
         id,
-        name
+        name,
+        created_at,
+        updated_at
       )
       VALUES (
         ${encounter.dungeonId},
         ${encounter.encounterId},
-        ${encounter.name}
+        ${encounter.name},
+        ${now},
+        ${now}
       )
     `;
   }

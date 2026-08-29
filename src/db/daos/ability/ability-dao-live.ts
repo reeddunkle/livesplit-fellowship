@@ -21,8 +21,10 @@ const make = E.gen(function* () {
     return E.gen(function* () {
       const rows = yield* sql`
         SELECT
+          ability.created_at AS createdAt,
           ability.id,
           ability.name,
+          ability.updated_at AS updatedAt,
           ability_unit.unit_id AS unitId
         FROM ability
         LEFT JOIN ability_unit
@@ -38,8 +40,10 @@ const make = E.gen(function* () {
     return E.gen(function* () {
       const rows = yield* sql`
         SELECT
+          ability.created_at AS createdAt,
           ability.id,
           ability.name,
+          ability.updated_at AS updatedAt,
           ability_unit.unit_id AS unitId
         FROM ability
         LEFT JOIN ability_unit

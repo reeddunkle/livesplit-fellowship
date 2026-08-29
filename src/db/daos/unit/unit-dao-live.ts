@@ -10,11 +10,13 @@ import { NonEmptyStringSchema } from "@/validation/common.ts";
 import { UnitDAO, type UnitDAOShape } from "./unit-dao.ts";
 
 const UnitRowSchema = Schema.Struct({
+  createdAt: Schema.DateTimeUtcFromMillis,
   dungeonId: Schema.NullOr(NonEmptyStringSchema),
   groupKey: Schema.NullOr(NonEmptyStringSchema),
   id: NonEmptyStringSchema,
   name: NonEmptyStringSchema,
   status: UnitStatusSchema,
+  updatedAt: Schema.DateTimeUtcFromMillis,
   variant: Schema.NullOr(NonEmptyStringSchema),
 });
 
@@ -32,11 +34,13 @@ function createUnitModels(
   const unitsById = new Map<
     string,
     {
+      createdAt: UnitRow["createdAt"];
       dungeonIds: Array<string>;
       groupKey: string | null;
       id: string;
       name: string;
       status: UnitRow["status"];
+      updatedAt: UnitRow["updatedAt"];
       variant: string | null;
     }
   >();
@@ -53,11 +57,13 @@ function createUnitModels(
     }
 
     unitsById.set(row.id, {
+      createdAt: row.createdAt,
       dungeonIds: row.dungeonId === null ? [] : [row.dungeonId],
       groupKey: row.groupKey,
       id: row.id,
       name: row.name,
       status: row.status,
+      updatedAt: row.updatedAt,
       variant: row.variant,
     });
   }
@@ -74,10 +80,12 @@ const make = E.gen(function* () {
     return E.gen(function* () {
       const rows = yield* sql`
         SELECT
+          unit.created_at AS createdAt,
           unit.id,
           unit.group_key AS groupKey,
           unit.name,
           unit.status,
+          unit.updated_at AS updatedAt,
           unit.variant,
           dungeon_unit.dungeon_id AS dungeonId
         FROM unit
@@ -97,10 +105,12 @@ const make = E.gen(function* () {
     return E.gen(function* () {
       const rows = yield* sql`
         SELECT
+          unit.created_at AS createdAt,
           unit.id,
           unit.group_key AS groupKey,
           unit.name,
           unit.status,
+          unit.updated_at AS updatedAt,
           unit.variant,
           dungeon_unit.dungeon_id AS dungeonId
         FROM unit

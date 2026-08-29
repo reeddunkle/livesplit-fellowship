@@ -14,6 +14,8 @@ export class MilestoneModel extends Model.Class<MilestoneModel>(
   "MilestoneModel",
 )({
   configurationId: ConfigurationIdSchema,
+  createdAt: Model.DateTimeInsertFromNumber,
   id: Model.UuidV7Insert(MilestoneIdSchema),
   label: NonEmptyStringSchema,
+  updatedAt: Model.DateTimeInsertFromNumber,
 }) {}

@@ -8,7 +8,9 @@ export const createTables = E.gen(function* () {
     CREATE TABLE dungeon (
       id TEXT PRIMARY KEY NOT NULL,
       map_id TEXT NOT NULL,
-      name TEXT NOT NULL
+      name TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
     ) STRICT
   `;
 
@@ -19,7 +21,9 @@ export const createTables = E.gen(function* () {
       name TEXT NOT NULL,
       status TEXT NOT NULL
         CHECK (status IN ('ACTIVE', 'INACTIVE')),
-      variant TEXT
+      variant TEXT,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
     ) STRICT
   `;
 
@@ -27,6 +31,8 @@ export const createTables = E.gen(function* () {
     CREATE TABLE dungeon_unit (
       dungeon_id TEXT NOT NULL,
       unit_id TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
 
       PRIMARY KEY (
         dungeon_id,
@@ -49,7 +55,9 @@ export const createTables = E.gen(function* () {
   yield* sql`
     CREATE TABLE ability (
       id TEXT PRIMARY KEY NOT NULL,
-      name TEXT NOT NULL
+      name TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
     ) STRICT
   `;
 
@@ -57,6 +65,8 @@ export const createTables = E.gen(function* () {
     CREATE TABLE ability_unit (
       ability_id TEXT PRIMARY KEY NOT NULL,
       unit_id TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
 
       FOREIGN KEY (ability_id)
         REFERENCES ability(id),
@@ -76,6 +86,8 @@ export const createTables = E.gen(function* () {
       dungeon_id TEXT NOT NULL,
       id TEXT NOT NULL,
       name TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
 
       PRIMARY KEY (
         dungeon_id,
@@ -101,7 +113,8 @@ export const createTables = E.gen(function* () {
       label TEXT NOT NULL,
       fingerprint TEXT NOT NULL UNIQUE,
       canonical_json TEXT NOT NULL,
-      created_at_milliseconds INTEGER NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
 
       FOREIGN KEY (dungeon_id)
         REFERENCES dungeon(id)
@@ -118,6 +131,8 @@ export const createTables = E.gen(function* () {
       id TEXT PRIMARY KEY NOT NULL,
       configuration_id TEXT NOT NULL,
       label TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
 
       FOREIGN KEY (configuration_id)
         REFERENCES configuration(id)
@@ -140,6 +155,8 @@ export const createTables = E.gen(function* () {
         CHECK (start_occurrence >= 1),
       required_count INTEGER NOT NULL
         CHECK (required_count >= 1),
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
 
       FOREIGN KEY (milestone_id)
         REFERENCES milestone(id)

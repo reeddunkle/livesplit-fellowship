@@ -6,7 +6,9 @@ import { NonEmptyStringSchema } from "@/validation/common.ts";
 export class EncounterModel extends Model.Class<EncounterModel>(
   "EncounterModel",
 )({
+  createdAt: Model.DateTimeInsertFromNumber,
   dungeonId: DungeonIdSchema,
   id: NonEmptyStringSchema,
   name: NonEmptyStringSchema,
+  updatedAt: Model.DateTimeInsertFromNumber,
 }) {}

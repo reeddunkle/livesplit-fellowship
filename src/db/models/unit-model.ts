@@ -11,10 +11,12 @@ export const UnitStatusSchema = Schema.Union([
 export type UnitStatus = typeof UnitStatusSchema.Type;
 
 export class UnitModel extends Model.Class<UnitModel>("UnitModel")({
+  createdAt: Model.DateTimeInsertFromNumber,
   dungeonIds: Schema.Array(NonEmptyStringSchema),
   groupKey: Schema.NullOr(NonEmptyStringSchema),
   id: NonEmptyStringSchema,
   name: NonEmptyStringSchema,
   status: UnitStatusSchema,
+  updatedAt: Model.DateTimeInsertFromNumber,
   variant: Schema.NullOr(NonEmptyStringSchema),
 }) {}

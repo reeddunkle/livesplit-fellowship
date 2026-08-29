@@ -6,6 +6,7 @@ import { loadFellowshipUnitCatalog } from "@/catalogs/units/load-fellowship-unit
 export const seedUnitTable = E.gen(function* () {
   const sql = yield* SqlClient.SqlClient;
   const catalog = yield* loadFellowshipUnitCatalog();
+  const now = Date.now();
 
   for (const unit of catalog) {
     yield* sql`
@@ -14,14 +15,18 @@ export const seedUnitTable = E.gen(function* () {
         group_key,
         name,
         status,
-        variant
+        variant,
+        created_at,
+        updated_at
       )
       VALUES (
         ${unit.id},
         ${unit.groupKey},
         ${unit.name},
         ${unit.status},
-        ${unit.variant}
+        ${unit.variant},
+        ${now},
+        ${now}
       )
     `;
 
@@ -29,11 +34,15 @@ export const seedUnitTable = E.gen(function* () {
       yield* sql`
         INSERT INTO dungeon_unit (
           dungeon_id,
-          unit_id
+          unit_id,
+          created_at,
+          updated_at
         )
         VALUES (
           ${dungeonId},
-          ${unit.id}
+          ${unit.id},
+          ${now},
+          ${now}
         )
       `;
     }

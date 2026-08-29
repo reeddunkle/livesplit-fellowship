@@ -21,9 +21,11 @@ const make = E.gen(function* () {
     return E.gen(function* () {
       const rows = yield* sql`
         SELECT
+          created_at AS createdAt,
           id,
-          map_id,
-          name
+          map_id AS mapId,
+          name,
+          updated_at AS updatedAt
         FROM dungeon
         ORDER BY name
       `;
@@ -36,9 +38,11 @@ const make = E.gen(function* () {
     return E.gen(function* () {
       const rows = yield* sql`
         SELECT
+          created_at AS createdAt,
           id,
-          map_id,
-          name
+          map_id AS mapId,
+          name,
+          updated_at AS updatedAt
         FROM dungeon
         WHERE id = ${id}
         LIMIT 1

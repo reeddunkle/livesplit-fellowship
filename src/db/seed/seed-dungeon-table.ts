@@ -5,18 +5,23 @@ import { FELLOWSHIP_DUNGEON } from "@/catalogs/dungeons/fellowship-dungeons-cata
 
 export const seedDungeonTable = E.gen(function* () {
   const sql = yield* SqlClient.SqlClient;
+  const now = Date.now();
 
   for (const dungeon of Object.values(FELLOWSHIP_DUNGEON)) {
     yield* sql`
       INSERT INTO dungeon (
         id,
         map_id,
-        name
+        name,
+        created_at,
+        updated_at
       )
       VALUES (
         ${dungeon.dungeonId},
         ${dungeon.mapId},
-        ${dungeon.name}
+        ${dungeon.name},
+        ${now},
+        ${now}
       )
     `;
   }

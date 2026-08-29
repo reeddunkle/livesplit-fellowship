@@ -73,7 +73,9 @@ const make = E.gen(function* () {
         SELECT
           id,
           configuration_id,
-          label
+          label,
+          created_at,
+          updated_at
         FROM milestone
         WHERE configuration_id = ${configurationId}
       `;
@@ -97,7 +99,9 @@ const make = E.gen(function* () {
           type,
           target_id,
           start_occurrence,
-          required_count
+          required_count,
+          created_at,
+          updated_at
         FROM requirement
         WHERE milestone_id IN ${sql.in(milestoneIds)}
       `;
@@ -141,7 +145,8 @@ const make = E.gen(function* () {
           label,
           fingerprint,
           canonical_json,
-          created_at_milliseconds AS created_at
+          created_at,
+          updated_at
         FROM configuration
         WHERE id = ${id}
         LIMIT 1
@@ -170,9 +175,10 @@ const make = E.gen(function* () {
           label,
           fingerprint,
           canonical_json,
-          created_at_milliseconds AS created_at
+          created_at,
+          updated_at
         FROM configuration
-        ORDER BY created_at_milliseconds
+        ORDER BY created_at
       `;
 
       const configurations = yield* decodeConfigurationRows(rows);
@@ -238,12 +244,16 @@ const make = E.gen(function* () {
               INSERT INTO milestone (
                 id,
                 configuration_id,
-                label
+                label,
+                created_at,
+                updated_at
               )
               VALUES (
                 ${milestone.id},
                 ${configurationId},
-                ${milestone.label}
+                ${milestone.label},
+                ${milestone.createdAt},
+                ${milestone.updatedAt}
               )
             `;
           }
@@ -260,7 +270,9 @@ const make = E.gen(function* () {
                 type,
                 target_id,
                 start_occurrence,
-                required_count
+                required_count,
+                created_at,
+                updated_at
               )
               VALUES (
                 ${requirement.id},
@@ -268,7 +280,9 @@ const make = E.gen(function* () {
                 ${requirement.type},
                 ${requirement.targetId},
                 ${requirement.startOccurrence},
-                ${requirement.requiredCount}
+                ${requirement.requiredCount},
+                ${requirement.createdAt},
+                ${requirement.updatedAt}
               )
             `;
           }
@@ -304,7 +318,9 @@ const make = E.gen(function* () {
                */
               yield* sql`
                 UPDATE configuration
-                SET label = ${configurationInsert.label}
+                SET
+                  label = ${configurationInsert.label},
+                  updated_at = ${configurationInsert.updatedAt}
                 WHERE id = ${configurationId}
               `;
 
@@ -333,7 +349,8 @@ const make = E.gen(function* () {
                   label,
                   fingerprint,
                   canonical_json,
-                  created_at_milliseconds
+                  created_at,
+                  updated_at
                 )
                 VALUES (
                   ${configurationInsert.id},
@@ -342,7 +359,8 @@ const make = E.gen(function* () {
                   ${configurationInsert.label},
                   ${configurationInsert.fingerprint},
                   ${configurationInsert.canonicalJson},
-                  ${configurationInsert.createdAt}
+                  ${configurationInsert.createdAt},
+                  ${configurationInsert.updatedAt}
                 )
               `;
 
