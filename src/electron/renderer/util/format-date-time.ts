@@ -1,3 +1,4 @@
+import { formatDistanceToNow } from "date-fns";
 import * as DateTime from "effect/DateTime";
 
 const LocalDateTimeFormatter = new Intl.DateTimeFormat(undefined, {
@@ -5,8 +6,16 @@ const LocalDateTimeFormatter = new Intl.DateTimeFormat(undefined, {
   timeStyle: "short",
 });
 
+function toDate(dateTime: DateTime.Utc): Date {
+  return new Date(DateTime.toEpochMillis(dateTime));
+}
+
 export function formatLocalDateTime(dateTime: DateTime.Utc): string {
-  return LocalDateTimeFormatter.format(
-    new Date(DateTime.toEpochMillis(dateTime)),
-  );
+  return LocalDateTimeFormatter.format(toDate(dateTime));
+}
+
+export function formatRelativeDateTime(dateTime: DateTime.Utc): string {
+  return formatDistanceToNow(toDate(dateTime), {
+    addSuffix: true,
+  });
 }

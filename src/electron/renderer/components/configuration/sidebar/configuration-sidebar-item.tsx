@@ -4,7 +4,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/electron/renderer/components/ui/sidebar.tsx";
-import { formatLocalDateTime } from "@/electron/renderer/util/format-date-time.ts";
+import { formatRelativeDateTime } from "@/electron/renderer/util/format-date-time.ts";
 import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
@@ -43,7 +43,7 @@ export function ConfigurationSidebarItem({
             </span>
           </span>
           <span className="truncate text-xs font-normal text-muted-foreground">
-            {formatLocalDateTime(configuration.updatedAt)}
+            {formatRelativeDateTime(configuration.updatedAt)}
           </span>
         </SidebarMenuSubButton>
         <ConfigurationSidebarItemActions
