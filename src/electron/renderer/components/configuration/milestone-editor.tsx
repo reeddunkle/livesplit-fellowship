@@ -1,4 +1,5 @@
 import { PlusIcon, Trash2Icon } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import {
@@ -37,6 +38,10 @@ export function MilestoneEditor({
   milestoneIndex,
   onRemove,
 }: MilestoneEditorProps) {
+  const [autoFocusRequirementId, setAutoFocusRequirementId] = useState<
+    string | undefined
+  >();
+
   const { getSuggestedRequirementValues } = useConfigurationEditor();
 
   const milestonePath = `milestones[${milestoneIndex}]` as const;
@@ -66,7 +71,6 @@ export function MilestoneEditor({
             return (
               <Field data-invalid={isInvalid}>
                 <FieldLabel htmlFor={field.name}>Label</FieldLabel>
-
                 <Input
                   aria-invalid={isInvalid}
                   id={field.name}
@@ -78,7 +82,6 @@ export function MilestoneEditor({
                     field.handleChange(event.target.value);
                   }}
                 />
-
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
               </Field>
             );
@@ -95,6 +98,7 @@ export function MilestoneEditor({
                   (requirement, requirementIndex) => {
                     return (
                       <RequirementEditor
+                        autoFocus={requirement.id === autoFocusRequirementId}
                         eventTypes={eventTypes}
                         form={form}
                         key={requirement.id}
@@ -123,11 +127,12 @@ export function MilestoneEditor({
                       },
                     });
 
-                    requirementsField.pushValue(
-                      createRequirementEditorValue({
-                        suggestedValues,
-                      }),
-                    );
+                    const requirement = createRequirementEditorValue({
+                      suggestedValues,
+                    });
+
+                    setAutoFocusRequirementId(requirement.id);
+                    requirementsField.pushValue(requirement);
                   }}
                 >
                   <PlusIcon />

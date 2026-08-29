@@ -25,6 +25,7 @@ import { type RequirementLocation } from "./helpers/configuration-editor-metadat
 const CUSTOM_TARGET = "__CUSTOM__" as const;
 
 type RequirementEditorProps = {
+  readonly autoFocus?: boolean;
   readonly eventTypes: ReadonlyArray<MilestoneRequirementEventType>;
   readonly form: ConfigurationFormApi;
   readonly milestoneIndex: number;
@@ -75,7 +76,6 @@ function TargetSelect({
       }}
     >
       <NativeSelectOption value={CUSTOM_TARGET}>Custom</NativeSelectOption>
-
       {options.map((option) => {
         return (
           <NativeSelectOption key={option.value} value={option.value}>
@@ -96,11 +96,8 @@ function RequirementTargetField({
   const [customTargetValue, setCustomTargetValue] = useState<
     string | undefined
   >();
-
   const [isCustomInputBlurred, setIsCustomInputBlurred] = useState(false);
-
   const { getUnitDeathSuggestion } = useConfigurationEditor();
-
   const abilities = useFellowshipDataStore((state) => state.abilities);
   const dungeons = useFellowshipDataStore((state) => state.dungeons);
   const encounters = useFellowshipDataStore((state) => state.encounters);
@@ -197,7 +194,6 @@ function RequirementTargetField({
         return (
           <Field data-invalid={isInvalid}>
             <FieldLabel htmlFor={`${field.name}-select`}>Target</FieldLabel>
-
             <TargetSelect
               id={`${field.name}-select`}
               isInvalid={!isCustom && isInvalid}
@@ -223,7 +219,6 @@ function RequirementTargetField({
                 }
               }}
             />
-
             <Input
               aria-invalid={isInvalid}
               disabled={!isCustom}
@@ -246,7 +241,6 @@ function RequirementTargetField({
                 handleTargetChange(value);
               }}
             />
-
             {isInvalid && <FieldError errors={field.state.meta.errors} />}
           </Field>
         );
@@ -256,13 +250,18 @@ function RequirementTargetField({
 }
 
 export function RequirementEditor({
+  autoFocus = false,
   eventTypes,
   form,
   milestoneIndex,
   onRemove,
   requirementIndex,
 }: RequirementEditorProps) {
-  const { getSuggestedRequirementValues } = useConfigurationEditor();
+  const {
+    focusedRequirementMetadata,
+    getSuggestedRequirementValues,
+    setFocusedRequirement,
+  } = useConfigurationEditor();
 
   const requirementPath =
     `milestones[${milestoneIndex}].requirements[${requirementIndex}]` as const;
@@ -272,6 +271,18 @@ export function RequirementEditor({
     requirementIndex,
   } satisfies RequirementLocation;
 
+  const requirement =
+    form.state.values.milestones[milestoneIndex]?.requirements[
+      requirementIndex
+    ];
+
+  const matchesFocusedRequirement =
+    requirement !== undefined &&
+    focusedRequirementMetadata !== undefined &&
+    focusedRequirementMetadata.targetId !== "" &&
+    requirement.type === focusedRequirementMetadata.eventType &&
+    requirement.targetId === focusedRequirementMetadata.targetId;
+
   const selectableEventTypes = eventTypes.filter((eventType) => {
     return (
       eventType !== FELLOWSHIP_EVENT.DUNGEON_START &&
@@ -280,7 +291,25 @@ export function RequirementEditor({
   });
 
   return (
-    <div className="grid gap-4 rounded-lg border bg-muted/30 p-4">
+    <div
+      className="grid gap-4 rounded-lg border bg-muted/30 p-4 transition-[border-color,box-shadow,background-color] data-[matches-focused-requirement=true]:border-primary/60 data-[matches-focused-requirement=true]:bg-primary/5 data-[matches-focused-requirement=true]:ring-2 data-[matches-focused-requirement=true]:ring-primary/20"
+      data-matches-focused-requirement={matchesFocusedRequirement}
+      onBlurCapture={(event) => {
+        const nextFocusedElement = event.relatedTarget;
+
+        if (
+          nextFocusedElement instanceof Node &&
+          event.currentTarget.contains(nextFocusedElement)
+        ) {
+          return;
+        }
+
+        setFocusedRequirement(undefined);
+      }}
+      onFocusCapture={() => {
+        setFocusedRequirement(location);
+      }}
+    >
       <div className="grid gap-4 sm:grid-cols-2">
         <form.Field name={`${requirementPath}.type` as const}>
           {(field) => {
@@ -294,9 +323,9 @@ export function RequirementEditor({
               <>
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Event type</FieldLabel>
-
                   <NativeSelect
                     aria-invalid={isInvalid}
+                    autoFocus={autoFocus}
                     id={field.name}
                     name={field.name}
                     value={field.state.value}
@@ -349,10 +378,8 @@ export function RequirementEditor({
                       );
                     })}
                   </NativeSelect>
-
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
-
                 <RequirementTargetField
                   eventType={field.state.value}
                   form={form}
@@ -360,7 +387,6 @@ export function RequirementEditor({
                   location={location}
                   requirementPath={requirementPath}
                 />
-
                 {showOccurrenceFields && (
                   <>
                     <form.Field
@@ -376,7 +402,6 @@ export function RequirementEditor({
                             <FieldLabel htmlFor={startOccurrenceField.name}>
                               Start occurrence
                             </FieldLabel>
-
                             <Input
                               aria-invalid={isStartOccurrenceInvalid}
                               id={startOccurrenceField.name}
@@ -392,7 +417,6 @@ export function RequirementEditor({
                                 );
                               }}
                             />
-
                             {isStartOccurrenceInvalid && (
                               <FieldError
                                 errors={startOccurrenceField.state.meta.errors}
@@ -402,7 +426,6 @@ export function RequirementEditor({
                         );
                       }}
                     </form.Field>
-
                     <form.Field
                       name={`${requirementPath}.requiredCount` as const}
                     >
@@ -416,7 +439,6 @@ export function RequirementEditor({
                             <FieldLabel htmlFor={requiredCountField.name}>
                               Required count
                             </FieldLabel>
-
                             <Input
                               aria-invalid={isRequiredCountInvalid}
                               id={requiredCountField.name}
@@ -432,7 +454,6 @@ export function RequirementEditor({
                                 );
                               }}
                             />
-
                             {isRequiredCountInvalid && (
                               <FieldError
                                 errors={requiredCountField.state.meta.errors}
@@ -449,7 +470,6 @@ export function RequirementEditor({
           }}
         </form.Field>
       </div>
-
       <div className="flex justify-end">
         <Button
           aria-label="Remove requirement"

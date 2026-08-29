@@ -30,6 +30,11 @@ export type FocusedRequirement = {
   readonly requirement: ConfigurationEditorRequirement;
 };
 
+export type FocusedRequirementMetadata = {
+  readonly eventType: MilestoneRequirementEventType;
+  readonly targetId: string;
+};
+
 export type EncounterSuggestion = {
   readonly targetId: string;
   readonly unmatchedCount: number;
@@ -54,6 +59,7 @@ type GetUnitDeathSuggestionOptions = {
 
 type ConfigurationEditorContextValue = {
   readonly focusedRequirement: FocusedRequirement | undefined;
+  readonly focusedRequirementMetadata: FocusedRequirementMetadata | undefined;
 
   readonly getEncounterSuggestions: (
     options: GetEncounterSuggestionsOptions,
@@ -274,9 +280,23 @@ function ConfigurationEditorProviderInner({
     };
   }, [focusedRequirementLocation, value]);
 
+  const focusedRequirementMetadata = useMemo<
+    FocusedRequirementMetadata | undefined
+  >(() => {
+    if (focusedRequirement === undefined) {
+      return undefined;
+    }
+
+    return {
+      eventType: focusedRequirement.requirement.type,
+      targetId: focusedRequirement.requirement.targetId,
+    };
+  }, [focusedRequirement]);
+
   const contextValue = useMemo<ConfigurationEditorContextValue>(() => {
     return {
       focusedRequirement,
+      focusedRequirementMetadata,
       getEncounterSuggestions,
       getRequirementMetadata,
       getSuggestedRequirementValues,
@@ -287,6 +307,7 @@ function ConfigurationEditorProviderInner({
     };
   }, [
     focusedRequirement,
+    focusedRequirementMetadata,
     getEncounterSuggestions,
     getRequirementMetadata,
     getSuggestedRequirementValues,
