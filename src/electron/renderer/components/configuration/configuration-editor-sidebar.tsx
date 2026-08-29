@@ -90,7 +90,7 @@ export function ConfigurationEditorSidebar() {
                                       <SidebarMenuSubButton>
                                         <ChevronRightIcon className="transition-transform group-data-[state=open]/level:rotate-90" />
                                         <span>
-                                          Level {levelGroup.dungeonLevel}
+                                          Eternal {levelGroup.dungeonLevel}
                                         </span>
                                       </SidebarMenuSubButton>
                                     }
