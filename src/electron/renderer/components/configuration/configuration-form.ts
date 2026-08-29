@@ -1,6 +1,8 @@
 import { useForm } from "@tanstack/react-form";
 import * as Schema from "effect/Schema";
 
+import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
+
 import {
   ConfigurationEditorSchema,
   ConfigurationEditorStandardSchema,
@@ -9,6 +11,7 @@ import {
   type MilestoneEditorValue,
   type RequirementEditorValue,
 } from "./configuration-form-schema.ts";
+import { getSuggestedRequirementValues } from "./get-suggested-requirement-values.ts";
 
 export const EMPTY_CONFIGURATION_EDITOR_VALUE: ConfigurationEditorValue = {
   dungeonId: "",
@@ -17,13 +20,32 @@ export const EMPTY_CONFIGURATION_EDITOR_VALUE: ConfigurationEditorValue = {
   milestones: [],
 };
 
-export function createRequirementEditorValue(): RequirementEditorValue {
+type CreateRequirementEditorValueOptions = {
+  readonly milestoneIndex: number;
+  readonly requirementIndex: number;
+  readonly value: ConfigurationEditorValue;
+};
+
+export function createRequirementEditorValue({
+  milestoneIndex,
+  requirementIndex,
+  value,
+}: CreateRequirementEditorValueOptions): RequirementEditorValue {
+  const type = FELLOWSHIP_EVENT.UNIT_DEATH;
+
+  const suggestedValues = getSuggestedRequirementValues({
+    eventType: type,
+    milestoneIndex,
+    requirementIndex,
+    value,
+  });
+
   return {
     id: crypto.randomUUID(),
-    requiredCount: "1",
-    startOccurrence: "1",
-    targetId: "",
-    type: "UNIT_DEATH",
+    requiredCount: suggestedValues.requiredCount ?? "1",
+    startOccurrence: suggestedValues.startOccurrence ?? "1",
+    targetId: suggestedValues.targetId ?? "",
+    type,
   };
 }
 

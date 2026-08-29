@@ -19,6 +19,7 @@ import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-eve
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
 import { type ConfigurationFormApi } from "./configuration-form.ts";
+import { getSuggestedRequirementValues } from "./get-suggested-requirement-values.ts";
 
 const CUSTOM_TARGET = "__CUSTOM__" as const;
 
@@ -241,6 +242,13 @@ export function RequirementEditor({
   const requirementPath =
     `milestones[${milestoneIndex}].requirements[${requirementIndex}]` as const;
 
+  const selectableEventTypes = eventTypes.filter((eventType) => {
+    return (
+      eventType !== FELLOWSHIP_EVENT.DUNGEON_START &&
+      eventType !== FELLOWSHIP_EVENT.DUNGEON_END
+    );
+  });
+
   return (
     <div className="grid gap-4 rounded-lg border bg-muted/30 p-4">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -248,6 +256,9 @@ export function RequirementEditor({
           {(field) => {
             const isInvalid =
               field.state.meta.isBlurred && !field.state.meta.isValid;
+
+            const showOccurrenceFields =
+              field.state.value === FELLOWSHIP_EVENT.UNIT_DEATH;
 
             return (
               <>
@@ -261,12 +272,49 @@ export function RequirementEditor({
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(event) => {
-                      field.handleChange(
-                        event.target.value as MilestoneRequirementEventType,
-                      );
+                      const eventType = event.target
+                        .value as MilestoneRequirementEventType;
+
+                      const currentRequirement =
+                        form.state.values.milestones[milestoneIndex]
+                          ?.requirements[requirementIndex];
+
+                      const suggestedValues = getSuggestedRequirementValues({
+                        eventType,
+                        milestoneIndex,
+                        requirementIndex,
+                        value: form.state.values,
+                      });
+
+                      field.handleChange(eventType);
+
+                      if (
+                        currentRequirement?.targetId === "" &&
+                        suggestedValues.targetId !== undefined
+                      ) {
+                        form.setFieldValue(
+                          `${requirementPath}.targetId`,
+                          suggestedValues.targetId,
+                        );
+                      }
+
+                      if (suggestedValues.startOccurrence !== undefined) {
+                        console.log("Setting startOccurrence.");
+                        form.setFieldValue(
+                          `${requirementPath}.startOccurrence`,
+                          suggestedValues.startOccurrence,
+                        );
+                      }
+
+                      if (suggestedValues.requiredCount !== undefined) {
+                        form.setFieldValue(
+                          `${requirementPath}.requiredCount`,
+                          suggestedValues.requiredCount,
+                        );
+                      }
                     }}
                   >
-                    {eventTypes.map((eventType) => {
+                    {selectableEventTypes.map((eventType) => {
                       return (
                         <NativeSelectOption key={eventType} value={eventType}>
                           {eventType}
@@ -284,65 +332,91 @@ export function RequirementEditor({
                   form={form}
                   requirementPath={requirementPath}
                 />
+
+                {showOccurrenceFields && (
+                  <>
+                    <form.Field
+                      name={`${requirementPath}.startOccurrence` as const}
+                    >
+                      {(startOccurrenceField) => {
+                        const isStartOccurrenceInvalid =
+                          startOccurrenceField.state.meta.isBlurred &&
+                          !startOccurrenceField.state.meta.isValid;
+
+                        return (
+                          <Field data-invalid={isStartOccurrenceInvalid}>
+                            <FieldLabel htmlFor={startOccurrenceField.name}>
+                              Start occurrence
+                            </FieldLabel>
+
+                            <Input
+                              aria-invalid={isStartOccurrenceInvalid}
+                              id={startOccurrenceField.name}
+                              inputMode="numeric"
+                              min={1}
+                              name={startOccurrenceField.name}
+                              type="number"
+                              value={startOccurrenceField.state.value}
+                              onBlur={startOccurrenceField.handleBlur}
+                              onChange={(event) => {
+                                startOccurrenceField.handleChange(
+                                  event.target.value,
+                                );
+                              }}
+                            />
+
+                            {isStartOccurrenceInvalid && (
+                              <FieldError
+                                errors={startOccurrenceField.state.meta.errors}
+                              />
+                            )}
+                          </Field>
+                        );
+                      }}
+                    </form.Field>
+
+                    <form.Field
+                      name={`${requirementPath}.requiredCount` as const}
+                    >
+                      {(requiredCountField) => {
+                        const isRequiredCountInvalid =
+                          requiredCountField.state.meta.isBlurred &&
+                          !requiredCountField.state.meta.isValid;
+
+                        return (
+                          <Field data-invalid={isRequiredCountInvalid}>
+                            <FieldLabel htmlFor={requiredCountField.name}>
+                              Required count
+                            </FieldLabel>
+
+                            <Input
+                              aria-invalid={isRequiredCountInvalid}
+                              id={requiredCountField.name}
+                              inputMode="numeric"
+                              min={1}
+                              name={requiredCountField.name}
+                              type="number"
+                              value={requiredCountField.state.value}
+                              onBlur={requiredCountField.handleBlur}
+                              onChange={(event) => {
+                                requiredCountField.handleChange(
+                                  event.target.value,
+                                );
+                              }}
+                            />
+
+                            {isRequiredCountInvalid && (
+                              <FieldError
+                                errors={requiredCountField.state.meta.errors}
+                              />
+                            )}
+                          </Field>
+                        );
+                      }}
+                    </form.Field>
+                  </>
+                )}
               </>
-            );
-          }}
-        </form.Field>
-
-        <form.Field name={`${requirementPath}.startOccurrence` as const}>
-          {(field) => {
-            const isInvalid =
-              field.state.meta.isBlurred && !field.state.meta.isValid;
-
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>Start occurrence</FieldLabel>
-
-                <Input
-                  aria-invalid={isInvalid}
-                  id={field.name}
-                  inputMode="numeric"
-                  min={1}
-                  name={field.name}
-                  type="number"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => {
-                    field.handleChange(event.target.value);
-                  }}
-                />
-
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
-            );
-          }}
-        </form.Field>
-
-        <form.Field name={`${requirementPath}.requiredCount` as const}>
-          {(field) => {
-            const isInvalid =
-              field.state.meta.isBlurred && !field.state.meta.isValid;
-
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>Required count</FieldLabel>
-
-                <Input
-                  aria-invalid={isInvalid}
-                  id={field.name}
-                  inputMode="numeric"
-                  min={1}
-                  name={field.name}
-                  type="number"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => {
-                    field.handleChange(event.target.value);
-                  }}
-                />
-
-                {isInvalid && <FieldError errors={field.state.meta.errors} />}
-              </Field>
             );
           }}
         </form.Field>

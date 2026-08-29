@@ -41,7 +41,6 @@ export function MilestoneEditor({
     <Card className="h-full">
       <CardHeader>
         <CardTitle>Milestone</CardTitle>
-
         <CardAction>
           <Button
             aria-label="Remove milestone"
@@ -54,7 +53,6 @@ export function MilestoneEditor({
           </Button>
         </CardAction>
       </CardHeader>
-
       <CardContent className="grid gap-4">
         <form.Field name={`${milestonePath}.label` as const}>
           {(field) => {
@@ -82,7 +80,6 @@ export function MilestoneEditor({
             );
           }}
         </form.Field>
-
         <form.Field
           name={`${milestonePath}.requirements` as const}
           mode="array"
@@ -106,13 +103,21 @@ export function MilestoneEditor({
                     );
                   },
                 )}
-
                 <Button
                   className="h-auto min-h-24 border-dashed"
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    requirementsField.pushValue(createRequirementEditorValue());
+                    const requirementIndex =
+                      requirementsField.state.value.length;
+
+                    requirementsField.pushValue(
+                      createRequirementEditorValue({
+                        milestoneIndex,
+                        requirementIndex,
+                        value: form.state.values,
+                      }),
+                    );
                   }}
                 >
                   <PlusIcon />
