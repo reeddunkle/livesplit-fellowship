@@ -49,7 +49,6 @@ export function ConfigurationSidebar() {
           </div>
         </div>
       </SidebarHeader>
-
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -75,7 +74,6 @@ export function ConfigurationSidebar() {
                           </SidebarMenuButton>
                         }
                       />
-
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {dungeonGroup.levels.map((levelGroup) => {
@@ -98,7 +96,6 @@ export function ConfigurationSidebar() {
                                       </SidebarMenuSubButton>
                                     }
                                   />
-
                                   <CollapsibleContent className="mt-1">
                                     <SidebarMenuSub>
                                       {levelGroup.configurations.map(
@@ -147,7 +144,6 @@ export function ConfigurationSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
       <SidebarRail />
     </Sidebar>
   );
