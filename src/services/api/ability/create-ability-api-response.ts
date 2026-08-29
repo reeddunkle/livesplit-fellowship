@@ -5,8 +5,10 @@ export function createAbilityApiResponse(
   ability: AbilityModel,
 ): AbilityApiAbility {
   return {
+    createdAt: ability.createdAt,
     id: ability.id,
     name: ability.name,
     unitId: ability.unitId,
+    updatedAt: ability.updatedAt,
   };
 }

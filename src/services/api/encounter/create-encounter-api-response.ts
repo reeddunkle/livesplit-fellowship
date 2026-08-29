@@ -5,8 +5,10 @@ export function createEncounterApiResponse(
   encounter: EncounterModel,
 ): EncounterApiEncounter {
   return {
+    createdAt: encounter.createdAt,
     dungeonId: encounter.dungeonId,
     id: encounter.id,
     name: encounter.name,
+    updatedAt: encounter.updatedAt,
   };
 }

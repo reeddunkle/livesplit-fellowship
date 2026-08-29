@@ -50,11 +50,14 @@ function createConfigurationApiMilestone({
 
 export function createConfigurationApiResponse({
   configuration,
+  createdAt,
   fingerprint,
   id,
   label,
+  updatedAt,
 }: PersistedConfiguration): ConfigurationApiConfiguration {
   return {
+    createdAt,
     dungeonId: configuration.dungeonId,
     dungeonLevel: configuration.dungeonLevel,
     fingerprint,
@@ -66,5 +69,6 @@ export function createConfigurationApiResponse({
         milestone,
       });
     }),
+    updatedAt,
   };
 }

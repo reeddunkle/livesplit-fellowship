@@ -5,8 +5,10 @@ export function createDungeonApiResponse(
   dungeon: DungeonModel,
 ): DungeonApiDungeon {
   return {
+    createdAt: dungeon.createdAt,
     id: dungeon.id,
     mapId: dungeon.mapId,
     name: dungeon.name,
+    updatedAt: dungeon.updatedAt,
   };
 }

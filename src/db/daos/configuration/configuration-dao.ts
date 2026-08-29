@@ -2,6 +2,7 @@ import * as Context from "effect/Context";
 import type * as E from "effect/Effect";
 import type * as Option from "effect/Option";
 
+import { type ConfigurationModel } from "@/db/models/configuration-model.ts";
 import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
@@ -10,9 +11,11 @@ import { type ConfigurationLabel } from "@/validation/configuration/configuratio
 
 export type PersistedConfiguration = {
   readonly configuration: FellowshipMilestoneConfiguration;
+  readonly createdAt: ConfigurationModel["createdAt"];
   readonly fingerprint: ConfigurationFingerprint;
   readonly id: ConfigurationId;
   readonly label: ConfigurationLabel;
+  readonly updatedAt: ConfigurationModel["updatedAt"];
 };
 
 type SaveConfigurationOptions = {

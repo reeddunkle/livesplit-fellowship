@@ -3,9 +3,11 @@ import * as Schema from "effect/Schema";
 import { NonEmptyStringSchema } from "@/validation/common.ts";
 
 export const AbilityApiAbilitySchema = Schema.Struct({
+  createdAt: Schema.DateTimeUtc,
   id: NonEmptyStringSchema,
   name: NonEmptyStringSchema,
   unitId: Schema.NullOr(NonEmptyStringSchema),
+  updatedAt: Schema.DateTimeUtc,
 });
 
 export type AbilityApiAbility = typeof AbilityApiAbilitySchema.Type;

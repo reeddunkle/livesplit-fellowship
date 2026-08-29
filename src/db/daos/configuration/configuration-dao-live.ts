@@ -381,12 +381,21 @@ const make = E.gen(function* () {
         )
         .pipe(E.mapError(mapConfigurationDAOError));
 
-      return {
-        configuration,
-        fingerprint: records.configuration.fingerprint,
+      const persisted = yield* getById({
         id: configurationId,
-        label,
-      };
+      });
+
+      if (Option.isNone(persisted)) {
+        return yield* E.fail(
+          mapConfigurationDAOError(
+            new Error(
+              `Configuration "${configurationId}" was not found after it was persisted.`,
+            ),
+          ),
+        );
+      }
+
+      return persisted.value;
     });
   };
 

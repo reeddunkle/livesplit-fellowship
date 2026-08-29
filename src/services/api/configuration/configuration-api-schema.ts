@@ -50,12 +50,14 @@ export type ConfigurationApiMilestone =
   typeof ConfigurationApiMilestoneSchema.Type;
 
 export const ConfigurationApiConfigurationSchema = Schema.Struct({
+  createdAt: Schema.DateTimeUtc,
   dungeonId: DungeonIdSchema,
   dungeonLevel: DungeonLevelSchema,
   fingerprint: ConfigurationFingerprintSchema,
   id: ConfigurationIdSchema,
   label: ConfigurationLabelSchema,
   milestones: Schema.Array(ConfigurationApiMilestoneSchema),
+  updatedAt: Schema.DateTimeUtc,
 });
 
 export type ConfigurationApiConfiguration =
