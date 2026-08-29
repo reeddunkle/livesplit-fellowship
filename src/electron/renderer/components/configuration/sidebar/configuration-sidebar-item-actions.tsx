@@ -16,11 +16,13 @@ import { type ConfigurationId } from "@/validation/configuration/configuration-i
 
 type ConfigurationSidebarItemActionsProps = {
   readonly configuration: ConfigurationApiConfiguration;
+  readonly isActive: boolean;
   readonly onDelete: (id: ConfigurationId) => void;
 };
 
 export function ConfigurationSidebarItemActions({
   configuration,
+  isActive,
   onDelete,
 }: ConfigurationSidebarItemActionsProps) {
   return (
@@ -29,10 +31,10 @@ export function ConfigurationSidebarItemActions({
         render={
           <Button
             aria-label={`Actions for ${configuration.label}`}
-            className="h-full rounded-l-none"
+            className="rounded-full"
             size="icon-xs"
             type="button"
-            variant="ghost"
+            variant={isActive ? "secondary" : "ghost"}
           />
         }
       >

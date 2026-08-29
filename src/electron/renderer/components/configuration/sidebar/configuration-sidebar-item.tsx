@@ -49,6 +49,7 @@ export function ConfigurationSidebarItem({
         <ConfigurationSidebarItemActions
           configuration={configuration}
           onDelete={onDelete}
+          isActive={isActive}
         />
       </div>
     </SidebarMenuSubItem>
