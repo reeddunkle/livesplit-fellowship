@@ -47,7 +47,7 @@ export function MilestoneEditor({
             aria-label="Remove milestone"
             size="icon-sm"
             type="button"
-            variant="ghost"
+            variant="destructive"
             onClick={onRemove}
           >
             <Trash2Icon />
