@@ -1,18 +1,16 @@
 import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
-import * as Schema from "effect/Schema";
 
 import {
   ConfigurationApiService,
   type ConfigurationApiServiceShape,
 } from "@/services/api/configuration/configuration-api-service.ts";
 import { createConfigurationApiResponse } from "@/services/api/configuration/create-configuration-api-response.ts";
-import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
-
-const TEST_CONFIGURATION_ID = Schema.decodeUnknownSync(ConfigurationIdSchema)(
-  "00000000-0000-7000-8000-000000000000",
-);
+import {
+  TEST_CONFIGURATION_FINGERPRINT,
+  TEST_CONFIGURATION_ID,
+} from "@/tests/common/fixtures/configuration-fixtures.ts";
 
 export type MakeConfigurationApiServiceMockOptions =
   Partial<ConfigurationApiServiceShape>;
@@ -31,6 +29,7 @@ export function makeConfigurationApiServiceMock({
     return E.succeed(
       createConfigurationApiResponse({
         configuration,
+        fingerprint: TEST_CONFIGURATION_FINGERPRINT,
         id: TEST_CONFIGURATION_ID,
         label,
       }),

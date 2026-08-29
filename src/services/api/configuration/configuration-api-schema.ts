@@ -10,6 +10,7 @@ import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
 } from "@/validation/common.ts";
+import { ConfigurationFingerprintSchema } from "@/validation/configuration/configuration-fingerprint.ts";
 import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
 import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label.ts";
 
@@ -42,6 +43,7 @@ export type ConfigurationApiMilestone =
 export const ConfigurationApiConfigurationSchema = Schema.Struct({
   dungeonId: DungeonIdSchema,
   dungeonLevel: DungeonLevelSchema,
+  fingerprint: ConfigurationFingerprintSchema,
   id: ConfigurationIdSchema,
   label: ConfigurationLabelSchema,
   milestones: Schema.Array(ConfigurationApiMilestoneSchema),

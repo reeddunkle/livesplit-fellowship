@@ -6,6 +6,7 @@ import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
 } from "@/validation/common.ts";
+import { ConfigurationFingerprintSchema } from "@/validation/configuration/configuration-fingerprint.ts";
 import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
 
 export class ConfigurationModel extends Model.Class<ConfigurationModel>(
@@ -15,7 +16,7 @@ export class ConfigurationModel extends Model.Class<ConfigurationModel>(
   createdAt: Model.DateTimeInsertFromNumber,
   dungeonId: DungeonIdSchema,
   dungeonLevel: PositiveIntegerSchema,
-  fingerprint: NonEmptyStringSchema,
+  fingerprint: ConfigurationFingerprintSchema,
   id: Model.UuidV7Insert(ConfigurationIdSchema),
   label: NonEmptyStringSchema,
 }) {}

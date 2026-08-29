@@ -1,13 +1,8 @@
-import * as E from "effect/Effect";
 import * as R from "effect/Record";
 import { useMemo, useState } from "react";
 
-import { saveConfiguration } from "@/electron/renderer/api/configuration-client.ts";
 import { ConfigurationEditor } from "@/electron/renderer/components/configuration/configuration-editor.tsx";
-import {
-  createConfigurationEditorValue,
-  saveConfigurationApiRequest,
-} from "@/electron/renderer/components/configuration/configuration-editor-adapter.ts";
+import { createConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-editor-adapter.ts";
 import {
   type ConfigurationOption,
   type DungeonOption,
@@ -16,14 +11,16 @@ import { EMPTY_CONFIGURATION_EDITOR_VALUE } from "@/electron/renderer/components
 import { type DecodedConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-form-schema.ts";
 import { makeConfigurationSaveStateLookup } from "@/electron/renderer/components/configuration/configuration-save-state.ts";
 import {
+  ConfigurationProvider,
+  useConfigurationActions,
+  useConfigurations,
+} from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
+import {
   FellowshipDataProvider,
   useFellowshipDataStore,
 } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
 import { type AbilityApiAbilityList } from "@/services/api/ability/ability-api-schema.ts";
-import {
-  type ConfigurationApiConfiguration,
-  type ConfigurationApiConfigurationList,
-} from "@/services/api/configuration/configuration-api-schema.ts";
+import { type ConfigurationApiConfigurationList } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type DungeonApiDungeonList } from "@/services/api/dungeon/dungeon-api-schema.ts";
 import { type EncounterApiEncounterList } from "@/services/api/encounter/encounter-api-schema.ts";
 import { type UnitApiUnitList } from "@/services/api/unit/unit-api-schema.ts";
@@ -48,10 +45,6 @@ type HomePageProps = {
   readonly units: UnitApiUnitList;
 };
 
-type HomePageContentProps = {
-  readonly configurations: ConfigurationApiConfigurationList;
-};
-
 export function HomePage({
   abilities,
   configurations,
@@ -66,32 +59,41 @@ export function HomePage({
       encounters={encounters}
       units={units}
     >
-      <HomePageContent configurations={configurations} />
+      <ConfigurationProvider configurations={configurations}>
+        <HomePageContent />
+      </ConfigurationProvider>
     </FellowshipDataProvider>
   );
 }
 
-function HomePageContent({ configurations }: HomePageContentProps) {
+function HomePageContent() {
+  const configurations = useConfigurations();
+  const { save } = useConfigurationActions();
+
   const dungeons = useFellowshipDataStore((state) => state.dungeons);
 
   const [selectedConfigurationId, setSelectedConfigurationId] =
     useState<ConfigurationId | null>(null);
 
-  const configurationsById = R.fromIterableBy(
-    configurations,
-    (configuration) => configuration.id,
-  );
+  const configurationsById = useMemo(() => {
+    return R.fromIterableBy(
+      configurations,
+      (configuration) => configuration.id,
+    );
+  }, [configurations]);
 
   const configurationSaveState = useMemo(() => {
     return makeConfigurationSaveStateLookup(configurations);
   }, [configurations]);
 
+  const dungeonsById = useMemo(() => {
+    return R.fromIterableBy(dungeons, (dungeon) => dungeon.id);
+  }, [dungeons]);
+
   const selectedConfiguration =
     selectedConfigurationId === null
       ? undefined
       : configurationsById[selectedConfigurationId];
-
-  const dungeonsById = R.fromIterableBy(dungeons, (dungeon) => dungeon.id);
 
   const configurationOptions: ReadonlyArray<ConfigurationOption> =
     configurations.map((configuration) => {
@@ -119,12 +121,8 @@ function HomePageContent({ configurations }: HomePageContentProps) {
       ? EMPTY_CONFIGURATION_EDITOR_VALUE
       : createConfigurationEditorValue(selectedConfiguration);
 
-  const handleSubmit = async (
-    value: DecodedConfigurationEditorValue,
-  ): Promise<void> => {
-    const savedConfiguration = await saveConfigurationValue(value);
-
-    setSelectedConfigurationId(savedConfiguration.id);
+  const handleSubmit = (value: DecodedConfigurationEditorValue): void => {
+    save(value);
   };
 
   return (
@@ -139,17 +137,5 @@ function HomePageContent({ configurations }: HomePageContentProps) {
       onSubmit={handleSubmit}
       selectedConfigurationId={selectedConfigurationId}
     />
-  );
-}
-
-async function saveConfigurationValue(
-  value: DecodedConfigurationEditorValue,
-): Promise<ConfigurationApiConfiguration> {
-  const request = saveConfigurationApiRequest(value);
-
-  return E.runPromise(
-    saveConfiguration({
-      request,
-    }),
   );
 }

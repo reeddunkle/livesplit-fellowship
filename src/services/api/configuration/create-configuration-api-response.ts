@@ -50,12 +50,14 @@ function createConfigurationApiMilestone({
 
 export function createConfigurationApiResponse({
   configuration,
+  fingerprint,
   id,
   label,
 }: PersistedConfiguration): ConfigurationApiConfiguration {
   return {
     dungeonId: configuration.dungeonId,
     dungeonLevel: configuration.dungeonLevel,
+    fingerprint,
     id,
     label,
     milestones: configuration.milestones.map((milestone) => {

@@ -182,6 +182,7 @@ export function createPersistedConfiguration({
       dungeonLevel: configuration.dungeonLevel,
       milestones: configurationMilestones,
     },
+    fingerprint: configuration.fingerprint,
     id: configuration.id,
     label: configuration.label,
   };

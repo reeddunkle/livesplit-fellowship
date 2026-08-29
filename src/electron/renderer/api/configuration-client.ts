@@ -11,7 +11,7 @@ type ConfigurationIdArgs = {
   readonly id: ConfigurationId;
 };
 
-type SaveConfigurationArgs = {
+export type SaveConfigurationArgs = {
   readonly request: SaveConfigurationApiRequest;
 };
 

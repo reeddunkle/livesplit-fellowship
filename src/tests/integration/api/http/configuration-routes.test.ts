@@ -14,6 +14,15 @@ import {
   ConfigurationApiConfigurationSchema,
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
+import {
+  TEST_CONFIGURATION,
+  TEST_CONFIGURATION_FINGERPRINT,
+  TEST_CONFIGURATION_ID,
+  TEST_CONFIGURATION_LABEL,
+  TEST_SAVE_CONFIGURATION_REQUEST,
+  TEST_UNKNOWN_CONFIGURATION_ID,
+  TEST_UPDATED_CONFIGURATION_LABEL,
+} from "@/tests/common/fixtures/configuration-fixtures.ts";
 import { makeApiServerTestLayer } from "@/tests/common/layers/api-server-test-layer.ts";
 import { AbilityApiServiceMock } from "@/tests/common/mocks/ability-api-service-mock.ts";
 import { makeConfigurationApiServiceMock } from "@/tests/common/mocks/configuration-api-service-mock.ts";
@@ -23,61 +32,6 @@ import { TrackerApiServiceMock } from "@/tests/common/mocks/tracker-api-service-
 import { UnitApiServiceMock } from "@/tests/common/mocks/unit-api-service-mock.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 import { parseJson } from "@/util/parse-json.ts";
-import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
-
-const CONFIGURATION_ID = Schema.decodeUnknownSync(ConfigurationIdSchema)(
-  "0198d56c-1234-7abc-8def-1234567890ab",
-);
-
-const UNKNOWN_CONFIGURATION_ID = Schema.decodeUnknownSync(
-  ConfigurationIdSchema,
-)("0198f5d8-0000-7000-8000-000000000000");
-
-const CONFIGURATION_LABEL = "Everdawn Grove Route";
-const UPDATED_CONFIGURATION_LABEL = "Updated Everdawn Grove Route";
-const DUNGEON_ID = "11";
-const DUNGEON_LEVEL = 63;
-
-const configuration = {
-  dungeonId: DUNGEON_ID,
-  dungeonLevel: DUNGEON_LEVEL,
-  id: CONFIGURATION_ID,
-  label: CONFIGURATION_LABEL,
-  milestones: [
-    {
-      label: "Desecrator 1 Killed",
-      requirements: [
-        {
-          requiredCount: 1,
-          startOccurrence: 1,
-          targetId: "42",
-          type: "UNIT_DEATH",
-        },
-      ],
-    },
-  ],
-} satisfies ConfigurationApiConfiguration;
-
-const saveConfigurationRequest = {
-  configuration: {
-    dungeonId: DUNGEON_ID,
-    dungeonLevel: DUNGEON_LEVEL,
-    milestones: [
-      {
-        label: "Desecrator 1 Killed",
-        requirements: [
-          {
-            requiredCount: 1,
-            startOccurrence: 1,
-            type: "UNIT_DEATH",
-            unitTypeId: "42",
-          },
-        ],
-      },
-    ],
-  },
-  label: CONFIGURATION_LABEL,
-} as const;
 
 function makeConfigurationApiServerTestLayer(
   configurationApiServiceLayer: Layer.Layer<ConfigurationApiService>,
@@ -145,7 +99,7 @@ describe("configuration routes", () => {
   test("GET /configurations returns all configurations", async () => {
     const configurationApiServiceTest = makeConfigurationApiServiceMock({
       getAll: () => {
-        return E.succeed([configuration]);
+        return E.succeed([TEST_CONFIGURATION]);
       },
     });
 
@@ -169,7 +123,7 @@ describe("configuration routes", () => {
         )(json);
 
         expect(response.status).toBe(200);
-        expect(body).toEqual([configuration]);
+        expect(body).toEqual([TEST_CONFIGURATION]);
       }).pipe(
         E.provide(
           makeConfigurationApiServerTestLayer(configurationApiServiceTest),
@@ -183,8 +137,8 @@ describe("configuration routes", () => {
   test("GET /configurations/:id returns a configuration", async () => {
     const configurationApiServiceTest = makeConfigurationApiServiceMock({
       getById: ({ id }) => {
-        if (id === CONFIGURATION_ID) {
-          return E.succeed(Option.some(configuration));
+        if (id === TEST_CONFIGURATION_ID) {
+          return E.succeed(Option.some(TEST_CONFIGURATION));
         }
 
         return E.succeed(Option.none());
@@ -203,7 +157,7 @@ describe("configuration routes", () => {
         const response = yield* request(
           urls.configurations.getConfiguration({
             params: {
-              id: CONFIGURATION_ID,
+              id: TEST_CONFIGURATION_ID,
             },
           }),
         );
@@ -215,7 +169,7 @@ describe("configuration routes", () => {
         )(json);
 
         expect(response.status).toBe(200);
-        expect(body).toEqual(configuration);
+        expect(body).toEqual(TEST_CONFIGURATION);
       }).pipe(
         E.provide(
           makeConfigurationApiServerTestLayer(configurationApiServiceTest),
@@ -241,7 +195,7 @@ describe("configuration routes", () => {
         const response = yield* request(
           urls.configurations.getConfiguration({
             params: {
-              id: UNKNOWN_CONFIGURATION_ID,
+              id: TEST_UNKNOWN_CONFIGURATION_ID,
             },
           }),
         );
@@ -262,14 +216,15 @@ describe("configuration routes", () => {
     const configurationApiServiceTest = makeConfigurationApiServiceMock({
       save: ({ configuration: savedConfiguration, label }) => {
         expect(savedConfiguration).toEqual({
-          dungeonId: saveConfigurationRequest.configuration.dungeonId,
-          dungeonLevel: saveConfigurationRequest.configuration.dungeonLevel,
-          milestones: saveConfigurationRequest.configuration.milestones,
+          dungeonId: TEST_SAVE_CONFIGURATION_REQUEST.configuration.dungeonId,
+          dungeonLevel:
+            TEST_SAVE_CONFIGURATION_REQUEST.configuration.dungeonLevel,
+          milestones: TEST_SAVE_CONFIGURATION_REQUEST.configuration.milestones,
         });
 
-        expect(label).toBe(CONFIGURATION_LABEL);
+        expect(label).toBe(TEST_CONFIGURATION_LABEL);
 
-        return E.succeed(configuration);
+        return E.succeed(TEST_CONFIGURATION);
       },
     });
 
@@ -285,7 +240,7 @@ describe("configuration routes", () => {
         const response = yield* request(
           urls.configurations.saveConfiguration(),
           {
-            body: JSON.stringify(saveConfigurationRequest),
+            body: JSON.stringify(TEST_SAVE_CONFIGURATION_REQUEST),
             headers: {
               "content-type": "application/json",
             },
@@ -300,7 +255,8 @@ describe("configuration routes", () => {
         )(json);
 
         expect(response.status).toBe(201);
-        expect(body).toEqual(configuration);
+        expect(body).toEqual(TEST_CONFIGURATION);
+        expect(body.fingerprint).toBe(TEST_CONFIGURATION_FINGERPRINT);
       }).pipe(
         E.provide(
           makeConfigurationApiServerTestLayer(configurationApiServiceTest),
@@ -313,19 +269,19 @@ describe("configuration routes", () => {
 
   test("POST /configurations updates a semantically duplicate configuration", async () => {
     const updatedConfiguration = {
-      ...configuration,
-      label: UPDATED_CONFIGURATION_LABEL,
+      ...TEST_CONFIGURATION,
+      label: TEST_UPDATED_CONFIGURATION_LABEL,
     } satisfies ConfigurationApiConfiguration;
 
     const updatedRequest = {
-      ...saveConfigurationRequest,
-      label: UPDATED_CONFIGURATION_LABEL,
+      ...TEST_SAVE_CONFIGURATION_REQUEST,
+      label: TEST_UPDATED_CONFIGURATION_LABEL,
     } as const;
 
     const configurationApiServiceTest = makeConfigurationApiServiceMock({
       save: ({ configuration: savedConfiguration, label }) => {
         expect(savedConfiguration).toEqual(updatedRequest.configuration);
-        expect(label).toBe(UPDATED_CONFIGURATION_LABEL);
+        expect(label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
 
         return E.succeed(updatedConfiguration);
       },
@@ -358,8 +314,9 @@ describe("configuration routes", () => {
         )(json);
 
         expect(response.status).toBe(201);
-        expect(body.id).toBe(CONFIGURATION_ID);
-        expect(body.label).toBe(UPDATED_CONFIGURATION_LABEL);
+        expect(body.id).toBe(TEST_CONFIGURATION_ID);
+        expect(body.fingerprint).toBe(TEST_CONFIGURATION_FINGERPRINT);
+        expect(body.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
       }).pipe(
         E.provide(
           makeConfigurationApiServerTestLayer(configurationApiServiceTest),
@@ -430,7 +387,7 @@ describe("configuration routes", () => {
         const response = yield* request(
           urls.configurations.deleteConfiguration({
             params: {
-              id: CONFIGURATION_ID,
+              id: TEST_CONFIGURATION_ID,
             },
           }),
           {
@@ -439,7 +396,7 @@ describe("configuration routes", () => {
         );
 
         expect(response.status).toBe(204);
-        expect(deletedConfigurationId).toBe(CONFIGURATION_ID);
+        expect(deletedConfigurationId).toBe(TEST_CONFIGURATION_ID);
         expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(
         E.provide(

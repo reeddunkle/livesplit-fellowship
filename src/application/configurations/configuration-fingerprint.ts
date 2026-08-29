@@ -1,12 +1,13 @@
 import * as E from "effect/Effect";
 
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
 
 import { serializeCanonicalConfiguration } from "./canonicalize-configuration.ts";
 
-export type ConfigurationFingerprint = {
+export type ConfigurationFingerprintResult = {
   readonly canonicalJson: string;
-  readonly fingerprint: string;
+  readonly fingerprint: ConfigurationFingerprint;
 };
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -15,7 +16,7 @@ function bytesToHex(bytes: Uint8Array): string {
   }).join("");
 }
 
-function sha256(value: string): E.Effect<string, Error> {
+function sha256(value: string): E.Effect<ConfigurationFingerprint, Error> {
   return E.tryPromise({
     catch: (cause) => {
       return cause instanceof Error
@@ -27,14 +28,14 @@ function sha256(value: string): E.Effect<string, Error> {
 
       const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
 
-      return bytesToHex(new Uint8Array(digest));
+      return bytesToHex(new Uint8Array(digest)) as ConfigurationFingerprint;
     },
   });
 }
 
 export function createConfigurationFingerprint(
   configuration: FellowshipMilestoneConfiguration,
-): E.Effect<ConfigurationFingerprint, Error> {
+): E.Effect<ConfigurationFingerprintResult, Error> {
   const canonicalJson = serializeCanonicalConfiguration(configuration);
 
   return E.gen(function* () {

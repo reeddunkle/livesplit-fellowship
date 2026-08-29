@@ -307,6 +307,7 @@ const make = E.gen(function* () {
 
       return {
         configuration,
+        fingerprint: records.configuration.fingerprint,
         id: configurationId,
         label,
       };
