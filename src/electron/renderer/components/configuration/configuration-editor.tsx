@@ -15,7 +15,6 @@ import {
   NativeSelectOption,
 } from "@/electron/renderer/components/ui/native-select.tsx";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
-import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
 
 import {
   createMilestoneEditorValue,
@@ -34,22 +33,18 @@ import { MilestoneEditor } from "./milestone-editor.tsx";
 const CONFIGURATION_FORM_DOM_ID = "configuration-form";
 
 type ConfigurationEditorProps = {
+  readonly canDelete: boolean;
   readonly defaultValue: ConfigurationEditorValue;
   readonly dungeonOptions: ReadonlyArray<DungeonOption>;
   readonly eventTypes: ReadonlyArray<MilestoneRequirementEventType>;
   readonly getSaveState: (
     value: DecodedConfigurationEditorValue,
   ) => ConfigurationSaveState;
-  readonly onDeleteConfiguration: (
-    fingerprint: ConfigurationFingerprint,
-  ) => void | Promise<void>;
-  readonly onSelectConfiguration: (
-    fingerprint: ConfigurationFingerprint | null,
-  ) => void;
+  readonly onDelete: () => void | Promise<void>;
+  readonly onNew: () => void;
   readonly onSubmit: (
     value: DecodedConfigurationEditorValue,
   ) => void | Promise<void>;
-  readonly selectedConfigurationFingerprint: ConfigurationFingerprint | null;
 };
 
 type ConfigurationEditorFormState = {
@@ -101,14 +96,14 @@ function hasUnsavedChanges({
 }
 
 export function ConfigurationEditor({
+  canDelete,
   defaultValue,
   dungeonOptions,
   eventTypes,
   getSaveState,
-  onDeleteConfiguration,
-  onSelectConfiguration,
+  onDelete,
+  onNew,
   onSubmit,
-  selectedConfigurationFingerprint,
 }: ConfigurationEditorProps) {
   const form = useConfigurationForm({
     defaultValues: defaultValue,
@@ -133,22 +128,19 @@ export function ConfigurationEditor({
         <h1 className="text-2xl font-semibold tracking-tight">
           Configure a run
         </h1>
+
         <p className="text-sm text-muted-foreground">
           Select a saved configuration from the sidebar or create a new one.
         </p>
       </header>
+
       <section className="grid gap-2">
         <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              onSelectConfiguration(null);
-            }}
-          >
+          <Button type="button" variant="outline" onClick={onNew}>
             <PlusIcon />
             New
           </Button>
+
           <form.Subscribe selector={selectConfigurationEditorFormState}>
             {(state) => {
               const isResetEnabled = hasUnsavedChanges(state);
@@ -168,21 +160,17 @@ export function ConfigurationEditor({
               );
             }}
           </form.Subscribe>
+
           <Button
-            disabled={selectedConfigurationFingerprint === null}
+            disabled={!canDelete}
             type="button"
             variant="destructive"
-            onClick={() => {
-              if (selectedConfigurationFingerprint === null) {
-                return;
-              }
-
-              onDeleteConfiguration(selectedConfigurationFingerprint);
-            }}
+            onClick={onDelete}
           >
             <Trash2Icon />
             Delete
           </Button>
+
           <form.Subscribe
             selector={(state) => {
               return [state.canSubmit, state.isSubmitting] as const;
@@ -202,6 +190,7 @@ export function ConfigurationEditor({
             }}
           </form.Subscribe>
         </div>
+
         <div className="min-h-6">
           <form.Subscribe selector={selectConfigurationEditorFormState}>
             {(state) => {
@@ -220,6 +209,7 @@ export function ConfigurationEditor({
           </form.Subscribe>
         </div>
       </section>
+
       <form
         className="grid gap-8"
         id={CONFIGURATION_FORM_DOM_ID}
@@ -281,6 +271,7 @@ export function ConfigurationEditor({
                       }}
                     </form.Field>
                   </div>
+
                   <div className="grid justify-start gap-4 md:grid-cols-[minmax(20rem,32rem)_10rem]">
                     <form.Field name="dungeonId">
                       {(field) => {
@@ -327,6 +318,7 @@ export function ConfigurationEditor({
                         );
                       }}
                     </form.Field>
+
                     <form.Field name="dungeonLevel">
                       {(field) => {
                         const isInvalid =
@@ -338,6 +330,7 @@ export function ConfigurationEditor({
                             <FieldLabel htmlFor={field.name}>
                               Eternal level
                             </FieldLabel>
+
                             <Input
                               aria-invalid={isInvalid}
                               id={field.name}
@@ -350,6 +343,7 @@ export function ConfigurationEditor({
                                 field.handleChange(event.target.value);
                               }}
                             />
+
                             {isInvalid && (
                               <FieldError errors={field.state.meta.errors} />
                             )}
@@ -359,6 +353,7 @@ export function ConfigurationEditor({
                     </form.Field>
                   </div>
                 </div>
+
                 <form.Field name="milestones" mode="array">
                   {(milestonesField) => {
                     return (
@@ -378,6 +373,7 @@ export function ConfigurationEditor({
                             );
                           },
                         )}
+
                         <Card className="min-h-64 border-dashed">
                           <CardContent className="flex h-full min-h-64 items-center justify-center">
                             <Button
