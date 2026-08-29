@@ -337,10 +337,6 @@ export function RequirementEditor({
                       const eventType = event.target
                         .value as MilestoneRequirementEventType;
 
-                      const currentRequirement =
-                        form.state.values.milestones[milestoneIndex]
-                          ?.requirements[requirementIndex];
-
                       const suggestedValues = getSuggestedRequirementValues({
                         eventType,
                         location,
@@ -348,15 +344,10 @@ export function RequirementEditor({
 
                       field.handleChange(eventType);
 
-                      if (
-                        currentRequirement?.targetId === "" &&
-                        suggestedValues.targetId !== undefined
-                      ) {
-                        form.setFieldValue(
-                          `${requirementPath}.targetId`,
-                          suggestedValues.targetId,
-                        );
-                      }
+                      form.setFieldValue(
+                        `${requirementPath}.targetId`,
+                        suggestedValues.targetId ?? "",
+                      );
 
                       if (suggestedValues.startOccurrence !== undefined) {
                         form.setFieldValue(
