@@ -81,6 +81,9 @@ export function makeFellowshipTrackerTestHarness(
       delete: () => {
         return E.void;
       },
+      deleteByDungeonAndLevel: () => {
+        return E.void;
+      },
       getAll: () => {
         return E.succeed([persistedConfiguration]);
       },
@@ -92,6 +95,9 @@ export function makeFellowshipTrackerTestHarness(
         );
       },
       save: () => {
+        return E.succeed(persistedConfiguration);
+      },
+      saveReplacingDungeonAndLevel: () => {
         return E.succeed(persistedConfiguration);
       },
     } satisfies ConfigurationDAOShape;

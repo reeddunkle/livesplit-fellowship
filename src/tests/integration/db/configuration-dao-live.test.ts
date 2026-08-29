@@ -330,6 +330,201 @@ describe("ConfigurationDAOLive", () => {
     await runTest(program);
   });
 
+  test("deletes configurations matching a dungeon and level", async () => {
+    const matchingConfiguration = {
+      ...configuration,
+      milestones: [firstDesecratorMilestone, secondDesecratorMilestone],
+    } satisfies FellowshipMilestoneConfiguration;
+
+    const differentLevelConfiguration = {
+      ...configuration,
+      dungeonLevel: configuration.dungeonLevel + 1,
+    } satisfies FellowshipMilestoneConfiguration;
+
+    const differentDungeonConfiguration = {
+      ...configuration,
+      dungeonId: CITHRELS_FALL_DUNGEON_ID,
+    } satisfies FellowshipMilestoneConfiguration;
+
+    const program = E.gen(function* () {
+      const configurationDAO = yield* ConfigurationDAO;
+
+      const first = yield* configurationDAO.save({
+        configuration,
+        label: TEST_CONFIGURATION_LABEL,
+      });
+
+      const second = yield* configurationDAO.save({
+        configuration: matchingConfiguration,
+        label: TEST_UPDATED_CONFIGURATION_LABEL,
+      });
+
+      const differentLevel = yield* configurationDAO.save({
+        configuration: differentLevelConfiguration,
+        label: TEST_CONFIGURATION_LABEL,
+      });
+
+      const differentDungeon = yield* configurationDAO.save({
+        configuration: differentDungeonConfiguration,
+        label: TEST_CONFIGURATION_LABEL,
+      });
+
+      yield* configurationDAO.deleteByDungeonAndLevel({
+        dungeonId: TEST_DUNGEON_ID,
+        dungeonLevel: TEST_DUNGEON_LEVEL,
+      });
+
+      const persistedConfigurations = yield* configurationDAO.getAll();
+
+      expect(persistedConfigurations).toHaveLength(2);
+
+      expect(persistedConfigurations.map((persisted) => persisted.id)).toEqual(
+        expect.arrayContaining([differentLevel.id, differentDungeon.id]),
+      );
+
+      expect(
+        persistedConfigurations.map((persisted) => persisted.id),
+      ).not.toEqual(expect.arrayContaining([first.id, second.id]));
+    }).pipe(E.provide(makeTestLayer()));
+
+    await runTest(program);
+  });
+
+  test("saves a configuration and replaces other configurations for the same dungeon and level", async () => {
+    const existingConfiguration = {
+      ...configuration,
+      milestones: [firstDesecratorMilestone],
+    } satisfies FellowshipMilestoneConfiguration;
+
+    const replacementConfiguration = {
+      ...configuration,
+      milestones: [firstDesecratorMilestone, secondDesecratorMilestone],
+    } satisfies FellowshipMilestoneConfiguration;
+
+    const differentLevelConfiguration = {
+      ...configuration,
+      dungeonLevel: configuration.dungeonLevel + 1,
+    } satisfies FellowshipMilestoneConfiguration;
+
+    const differentDungeonConfiguration = {
+      ...configuration,
+      dungeonId: CITHRELS_FALL_DUNGEON_ID,
+    } satisfies FellowshipMilestoneConfiguration;
+
+    const program = E.gen(function* () {
+      const configurationDAO = yield* ConfigurationDAO;
+
+      const existing = yield* configurationDAO.save({
+        configuration: existingConfiguration,
+        label: TEST_CONFIGURATION_LABEL,
+      });
+
+      const differentLevel = yield* configurationDAO.save({
+        configuration: differentLevelConfiguration,
+        label: TEST_CONFIGURATION_LABEL,
+      });
+
+      const differentDungeon = yield* configurationDAO.save({
+        configuration: differentDungeonConfiguration,
+        label: TEST_CONFIGURATION_LABEL,
+      });
+
+      const replacement = yield* configurationDAO.saveReplacingDungeonAndLevel({
+        configuration: replacementConfiguration,
+        label: TEST_UPDATED_CONFIGURATION_LABEL,
+      });
+
+      expect(replacement.id).not.toBe(existing.id);
+      expect(replacement.configuration).toEqual(replacementConfiguration);
+      expect(replacement.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
+
+      const persistedConfigurations = yield* configurationDAO.getAll();
+
+      expect(persistedConfigurations).toHaveLength(3);
+
+      expect(persistedConfigurations.map((persisted) => persisted.id)).toEqual(
+        expect.arrayContaining([
+          replacement.id,
+          differentLevel.id,
+          differentDungeon.id,
+        ]),
+      );
+
+      expect(
+        persistedConfigurations.some((persisted) => {
+          return persisted.id === existing.id;
+        }),
+      ).toBe(false);
+    }).pipe(E.provide(makeTestLayer()));
+
+    await runTest(program);
+  });
+
+  test("keeps the matching configuration when replacing with a semantic duplicate", async () => {
+    const oldConfiguration = {
+      ...configuration,
+      milestones: [firstDesecratorMilestone],
+    } satisfies FellowshipMilestoneConfiguration;
+
+    const retainedConfiguration = {
+      ...configuration,
+      milestones: [secondDesecratorMilestone],
+    } satisfies FellowshipMilestoneConfiguration;
+
+    const duplicateRetainedConfiguration = {
+      dungeonId: retainedConfiguration.dungeonId,
+      dungeonLevel: retainedConfiguration.dungeonLevel,
+      milestones: [
+        {
+          ...secondDesecratorMilestone,
+          label: "Updated Milestone Label",
+        },
+      ],
+    } satisfies FellowshipMilestoneConfiguration;
+
+    const program = E.gen(function* () {
+      const configurationDAO = yield* ConfigurationDAO;
+
+      const old = yield* configurationDAO.save({
+        configuration: oldConfiguration,
+        label: TEST_CONFIGURATION_LABEL,
+      });
+
+      const retained = yield* configurationDAO.save({
+        configuration: retainedConfiguration,
+        label: TEST_CONFIGURATION_LABEL,
+      });
+
+      const replacement = yield* configurationDAO.saveReplacingDungeonAndLevel({
+        configuration: duplicateRetainedConfiguration,
+        label: TEST_UPDATED_CONFIGURATION_LABEL,
+      });
+
+      expect(replacement.id).toBe(retained.id);
+      expect(replacement.fingerprint).toBe(retained.fingerprint);
+      expect(replacement.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
+
+      const persistedConfigurations = yield* configurationDAO.getAll();
+
+      expect(persistedConfigurations).toHaveLength(1);
+
+      const persisted = persistedConfigurations[0];
+
+      expect(persisted).toBeDefined();
+
+      if (persisted === undefined) {
+        return;
+      }
+
+      expect(persisted.id).toBe(retained.id);
+      expect(persisted.fingerprint).toBe(retained.fingerprint);
+      expect(persisted.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
+      expect(persisted.id).not.toBe(old.id);
+    }).pipe(E.provide(makeTestLayer()));
+
+    await runTest(program);
+  });
+
   test("returns all persisted configurations", async () => {
     const secondConfiguration = {
       dungeonId: CITHRELS_FALL_DUNGEON_ID,

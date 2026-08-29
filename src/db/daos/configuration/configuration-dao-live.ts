@@ -189,7 +189,17 @@ const make = E.gen(function* () {
     }).pipe(E.mapError(mapConfigurationDAOError));
   };
 
-  const save: ConfigurationDAOShape["save"] = ({ configuration, label }) => {
+  const persistConfiguration = ({
+    configuration,
+    label,
+    replaceDungeonAndLevel,
+  }: {
+    readonly configuration: Parameters<
+      ConfigurationDAOShape["save"]
+    >[0]["configuration"];
+    readonly label: Parameters<ConfigurationDAOShape["save"]>[0]["label"];
+    readonly replaceDungeonAndLevel: boolean;
+  }): E.Effect<PersistedConfiguration, ConfigurationDAOError> => {
     return E.gen(function* () {
       const records = yield* createConfigurationPersistenceRecords({
         configuration,
@@ -227,8 +237,10 @@ const make = E.gen(function* () {
 
             const existingConfiguration = existingRows[0];
 
+            let configurationId: ConfigurationId;
+
             if (existingConfiguration !== undefined) {
-              const existingConfigurationId = yield* Schema.decodeUnknownEffect(
+              configurationId = yield* Schema.decodeUnknownEffect(
                 ConfigurationIdSchema,
               )(existingConfiguration.id).pipe(
                 E.mapError(mapConfigurationDAOError),
@@ -237,70 +249,79 @@ const make = E.gen(function* () {
               yield* sql`
                 UPDATE configuration
                 SET label = ${configurationInsert.label}
-                WHERE id = ${existingConfigurationId}
+                WHERE id = ${configurationId}
               `;
+            } else {
+              configurationId = records.configuration.id;
 
-              return existingConfigurationId;
-            }
-
-            yield* sql`
-              INSERT INTO configuration (
-                id,
-                dungeon_id,
-                dungeon_level,
-                label,
-                fingerprint,
-                canonical_json,
-                created_at_milliseconds
-              )
-              VALUES (
-                ${configurationInsert.id},
-                ${configurationInsert.dungeonId},
-                ${configurationInsert.dungeonLevel},
-                ${configurationInsert.label},
-                ${configurationInsert.fingerprint},
-                ${configurationInsert.canonicalJson},
-                ${configurationInsert.createdAt}
-              )
-            `;
-
-            for (const milestone of milestoneInserts) {
               yield* sql`
-                INSERT INTO milestone (
+                INSERT INTO configuration (
                   id,
-                  configuration_id,
-                  label
+                  dungeon_id,
+                  dungeon_level,
+                  label,
+                  fingerprint,
+                  canonical_json,
+                  created_at_milliseconds
                 )
                 VALUES (
-                  ${milestone.id},
-                  ${milestone.configurationId},
-                  ${milestone.label}
+                  ${configurationInsert.id},
+                  ${configurationInsert.dungeonId},
+                  ${configurationInsert.dungeonLevel},
+                  ${configurationInsert.label},
+                  ${configurationInsert.fingerprint},
+                  ${configurationInsert.canonicalJson},
+                  ${configurationInsert.createdAt}
                 )
               `;
+
+              for (const milestone of milestoneInserts) {
+                yield* sql`
+                  INSERT INTO milestone (
+                    id,
+                    configuration_id,
+                    label
+                  )
+                  VALUES (
+                    ${milestone.id},
+                    ${milestone.configurationId},
+                    ${milestone.label}
+                  )
+                `;
+              }
+
+              for (const requirement of requirementInserts) {
+                yield* sql`
+                  INSERT INTO requirement (
+                    id,
+                    milestone_id,
+                    type,
+                    target_id,
+                    start_occurrence,
+                    required_count
+                  )
+                  VALUES (
+                    ${requirement.id},
+                    ${requirement.milestoneId},
+                    ${requirement.type},
+                    ${requirement.targetId},
+                    ${requirement.startOccurrence},
+                    ${requirement.requiredCount}
+                  )
+                `;
+              }
             }
 
-            for (const requirement of requirementInserts) {
+            if (replaceDungeonAndLevel) {
               yield* sql`
-                INSERT INTO requirement (
-                  id,
-                  milestone_id,
-                  type,
-                  target_id,
-                  start_occurrence,
-                  required_count
-                )
-                VALUES (
-                  ${requirement.id},
-                  ${requirement.milestoneId},
-                  ${requirement.type},
-                  ${requirement.targetId},
-                  ${requirement.startOccurrence},
-                  ${requirement.requiredCount}
-                )
+                DELETE FROM configuration
+                WHERE dungeon_id = ${configurationInsert.dungeonId}
+                  AND dungeon_level = ${configurationInsert.dungeonLevel}
+                  AND id <> ${configurationId}
               `;
             }
 
-            return records.configuration.id;
+            return configurationId;
           }),
         )
         .pipe(E.mapError(mapConfigurationDAOError));
@@ -314,6 +335,21 @@ const make = E.gen(function* () {
     });
   };
 
+  const save: ConfigurationDAOShape["save"] = (options) => {
+    return persistConfiguration({
+      ...options,
+      replaceDungeonAndLevel: false,
+    });
+  };
+
+  const saveReplacingDungeonAndLevel: ConfigurationDAOShape["saveReplacingDungeonAndLevel"] =
+    (options) => {
+      return persistConfiguration({
+        ...options,
+        replaceDungeonAndLevel: true,
+      });
+    };
+
   const deleteConfiguration: ConfigurationDAOShape["delete"] = ({ id }) => {
     return sql`
       DELETE FROM configuration
@@ -321,11 +357,22 @@ const make = E.gen(function* () {
     `.pipe(E.asVoid, E.mapError(mapConfigurationDAOError));
   };
 
+  const deleteByDungeonAndLevel: ConfigurationDAOShape["deleteByDungeonAndLevel"] =
+    ({ dungeonId, dungeonLevel }) => {
+      return sql`
+        DELETE FROM configuration
+        WHERE dungeon_id = ${dungeonId}
+          AND dungeon_level = ${dungeonLevel}
+      `.pipe(E.asVoid, E.mapError(mapConfigurationDAOError));
+    };
+
   return {
     delete: deleteConfiguration,
+    deleteByDungeonAndLevel,
     getAll,
     getById,
     save,
+    saveReplacingDungeonAndLevel,
   } satisfies ConfigurationDAOShape;
 });
 

@@ -28,9 +28,18 @@ type DeleteConfigurationOptions = {
   readonly id: ConfigurationId;
 };
 
+type DeleteConfigurationsByDungeonAndLevelOptions = {
+  readonly dungeonId: FellowshipMilestoneConfiguration["dungeonId"];
+  readonly dungeonLevel: FellowshipMilestoneConfiguration["dungeonLevel"];
+};
+
 export type ConfigurationDAOShape = {
   readonly delete: (
     options: DeleteConfigurationOptions,
+  ) => E.Effect<void, ConfigurationDAOError>;
+
+  readonly deleteByDungeonAndLevel: (
+    options: DeleteConfigurationsByDungeonAndLevelOptions,
   ) => E.Effect<void, ConfigurationDAOError>;
 
   readonly getAll: () => E.Effect<
@@ -43,6 +52,10 @@ export type ConfigurationDAOShape = {
   ) => E.Effect<Option.Option<PersistedConfiguration>, ConfigurationDAOError>;
 
   readonly save: (
+    options: SaveConfigurationOptions,
+  ) => E.Effect<PersistedConfiguration, ConfigurationDAOError>;
+
+  readonly saveReplacingDungeonAndLevel: (
     options: SaveConfigurationOptions,
   ) => E.Effect<PersistedConfiguration, ConfigurationDAOError>;
 };
