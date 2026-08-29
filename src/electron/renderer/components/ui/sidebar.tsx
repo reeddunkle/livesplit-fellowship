@@ -26,8 +26,6 @@ import { useIsMobile } from "@/electron/renderer/hooks/use-mobile";
 import { useAppStore } from "@/electron/renderer/stores/app-state-store/use-app-store.ts";
 import { cn } from "@/util/class-names";
 
-const SIDEBAR_COOKIE_NAME = "sidebar_state";
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
