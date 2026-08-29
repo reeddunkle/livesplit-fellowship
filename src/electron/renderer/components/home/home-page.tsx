@@ -1,5 +1,5 @@
 import * as R from "effect/Record";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { ConfigurationEditor } from "@/electron/renderer/components/configuration/configuration-editor.tsx";
 import { createConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-editor-adapter.ts";
@@ -14,6 +14,8 @@ import {
   ConfigurationProvider,
   useConfigurationActions,
   useConfigurations,
+  useSelectedConfiguration,
+  useSelectedConfigurationFingerprint,
 } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import {
   FellowshipDataProvider,
@@ -26,7 +28,7 @@ import { type EncounterApiEncounterList } from "@/services/api/encounter/encount
 import { type UnitApiUnitList } from "@/services/api/unit/unit-api-schema.ts";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
 
 const eventTypes = [
   FELLOWSHIP_EVENT.ABILITY_ACTIVATED,
@@ -68,19 +70,14 @@ export function HomePage({
 
 function HomePageContent() {
   const configurations = useConfigurations();
-  const { save } = useConfigurationActions();
+  const selectedConfiguration = useSelectedConfiguration();
+  const selectedConfigurationFingerprint =
+    useSelectedConfigurationFingerprint();
+
+  const { newConfiguration, save, selectConfiguration } =
+    useConfigurationActions();
 
   const dungeons = useFellowshipDataStore((state) => state.dungeons);
-
-  const [selectedConfigurationId, setSelectedConfigurationId] =
-    useState<ConfigurationId | null>(null);
-
-  const configurationsById = useMemo(() => {
-    return R.fromIterableBy(
-      configurations,
-      (configuration) => configuration.id,
-    );
-  }, [configurations]);
 
   const configurationSaveState = useMemo(() => {
     return makeConfigurationSaveStateLookup(configurations);
@@ -90,17 +87,12 @@ function HomePageContent() {
     return R.fromIterableBy(dungeons, (dungeon) => dungeon.id);
   }, [dungeons]);
 
-  const selectedConfiguration =
-    selectedConfigurationId === null
-      ? undefined
-      : configurationsById[selectedConfigurationId];
-
   const configurationOptions: ReadonlyArray<ConfigurationOption> =
     configurations.map((configuration) => {
       const dungeon = dungeonsById[configuration.dungeonId];
 
       return {
-        id: configuration.id,
+        fingerprint: configuration.fingerprint,
         label: `${configuration.label} — ${
           dungeon?.name ?? configuration.dungeonId
         } ${configuration.dungeonLevel}`,
@@ -121,21 +113,32 @@ function HomePageContent() {
       ? EMPTY_CONFIGURATION_EDITOR_VALUE
       : createConfigurationEditorValue(selectedConfiguration);
 
+  const handleSelectConfiguration = (
+    fingerprint: ConfigurationFingerprint | null,
+  ): void => {
+    if (fingerprint === null) {
+      newConfiguration();
+      return;
+    }
+
+    selectConfiguration(fingerprint);
+  };
+
   const handleSubmit = (value: DecodedConfigurationEditorValue): void => {
     save(value);
   };
 
   return (
     <ConfigurationEditor
-      key={selectedConfigurationId ?? "new"}
+      key={selectedConfigurationFingerprint ?? "new"}
       configurationOptions={configurationOptions}
       defaultValue={defaultValue}
       dungeonOptions={dungeonOptions}
       eventTypes={eventTypes}
       getSaveState={configurationSaveState.get}
-      onSelectConfiguration={setSelectedConfigurationId}
+      onSelectConfiguration={handleSelectConfiguration}
       onSubmit={handleSubmit}
-      selectedConfigurationId={selectedConfigurationId}
+      selectedConfigurationFingerprint={selectedConfigurationFingerprint}
     />
   );
 }

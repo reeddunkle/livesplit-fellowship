@@ -14,12 +14,11 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/electron/renderer/components/ui/native-select.tsx";
-import { useAppStore } from "@/electron/renderer/stores/app-state-store/use-app-store.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 import {
-  type ConfigurationId,
-  ConfigurationIdSchema,
-} from "@/validation/configuration/configuration-id.ts";
+  type ConfigurationFingerprint,
+  ConfigurationFingerprintSchema,
+} from "@/validation/configuration/configuration-fingerprint.ts";
 
 import {
   type ConfigurationOption,
@@ -49,12 +48,12 @@ type ConfigurationEditorProps = {
     value: DecodedConfigurationEditorValue,
   ) => ConfigurationSaveState;
   readonly onSelectConfiguration: (
-    configurationId: ConfigurationId | null,
+    fingerprint: ConfigurationFingerprint | null,
   ) => void;
   readonly onSubmit: (
     value: DecodedConfigurationEditorValue,
   ) => void | Promise<void>;
-  readonly selectedConfigurationId: ConfigurationId | null;
+  readonly selectedConfigurationFingerprint: ConfigurationFingerprint | null;
 };
 
 function decodeConfigurationEditorValue(
@@ -76,19 +75,12 @@ export function ConfigurationEditor({
   getSaveState,
   onSelectConfiguration,
   onSubmit,
-  selectedConfigurationId,
+  selectedConfigurationFingerprint,
 }: ConfigurationEditorProps) {
   const form = useConfigurationForm({
     defaultValues: defaultValue,
     onSubmit,
   });
-
-  const appStore = useAppStore();
-
-  const selectConfiguration = (configurationId: ConfigurationId | null) => {
-    onSelectConfiguration(configurationId);
-    appStore.setSelectedConfigurationId(configurationId);
-  };
 
   const resolveSaveState = (
     value: ConfigurationEditorValue,
@@ -125,27 +117,31 @@ export function ConfigurationEditor({
             <NativeSelect
               className="min-w-0 flex-1"
               id="configuration-selection"
-              value={selectedConfigurationId ?? ""}
+              value={selectedConfigurationFingerprint ?? ""}
               onChange={(event) => {
                 const result = Schema.decodeUnknownResult(
-                  ConfigurationIdSchema,
+                  ConfigurationFingerprintSchema,
                 )(event.target.value);
 
                 Result.match(result, {
                   onFailure: (error) => {
-                    console.error("Invalid configuration ID.", error);
+                    console.error("Invalid configuration fingerprint.", error);
                   },
-                  onSuccess: (configurationId) => {
-                    selectConfiguration(configurationId);
+                  onSuccess: (fingerprint) => {
+                    onSelectConfiguration(fingerprint);
                   },
                 });
               }}
             >
+              <NativeSelectOption value="" disabled>
+                Select a configuration
+              </NativeSelectOption>
+
               {configurationOptions.map((configuration) => {
                 return (
                   <NativeSelectOption
-                    key={configuration.id}
-                    value={configuration.id}
+                    key={configuration.fingerprint}
+                    value={configuration.fingerprint}
                   >
                     {configuration.label}
                   </NativeSelectOption>
@@ -157,7 +153,7 @@ export function ConfigurationEditor({
               type="button"
               variant="outline"
               onClick={() => {
-                selectConfiguration(null);
+                onSelectConfiguration(null);
               }}
             >
               <PlusIcon />

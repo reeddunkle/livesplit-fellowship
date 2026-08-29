@@ -1,5 +1,7 @@
+import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
+
 export type ConfigurationOption = {
-  readonly id: string;
+  readonly fingerprint: ConfigurationFingerprint;
   readonly label: string;
 };
 

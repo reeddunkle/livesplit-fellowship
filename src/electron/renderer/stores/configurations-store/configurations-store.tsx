@@ -10,18 +10,25 @@ import {
   useOptimistic,
 } from "react";
 
+import { createConfigurationFingerprint } from "@/application/configurations/configuration-fingerprint.ts";
 import { saveConfiguration as saveConfigurationApi } from "@/electron/renderer/api/configuration-client.ts";
 import { saveConfigurationApiRequest } from "@/electron/renderer/components/configuration/configuration-editor-adapter.ts";
 import { type DecodedConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-form-schema.ts";
+import { useAppStore } from "@/electron/renderer/stores/app-state-store/use-app-store.ts";
 import {
   type ConfigurationApiConfiguration,
   type ConfigurationApiConfigurationList,
 } from "@/services/api/configuration/configuration-api-schema.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
 
 type ConfigurationOptimisticAction = {
   readonly configuration: ConfigurationApiConfiguration;
   readonly type: "SAVE";
+};
+
+type SaveConfigurationActionInput = {
+  readonly previousSelectedConfigurationFingerprint: ConfigurationFingerprint | null;
+  readonly value: DecodedConfigurationEditorValue;
 };
 
 type ConfigurationSaveActionState = {
@@ -31,13 +38,17 @@ type ConfigurationSaveActionState = {
 
 type ConfigurationStateContextValue = {
   readonly configurations: ConfigurationApiConfigurationList;
+  readonly selectedConfiguration: ConfigurationApiConfiguration | undefined;
+  readonly selectedConfigurationFingerprint: ConfigurationFingerprint | null;
 };
 
 type ConfigurationActionContextValue = {
   readonly error: unknown | undefined;
   readonly isSaving: boolean;
+  readonly newConfiguration: () => void;
   readonly save: (value: DecodedConfigurationEditorValue) => void;
   readonly savedConfiguration: ConfigurationApiConfiguration | undefined;
+  readonly selectConfiguration: (fingerprint: ConfigurationFingerprint) => void;
 };
 
 type ConfigurationProviderProps = {
@@ -65,7 +76,7 @@ function reduceConfigurations(
   switch (action.type) {
     case "SAVE": {
       const exists = configurations.some((configuration) => {
-        return configuration.id === action.configuration.id;
+        return configuration.fingerprint === action.configuration.fingerprint;
       });
 
       if (!exists) {
@@ -73,7 +84,7 @@ function reduceConfigurations(
       }
 
       return configurations.map((configuration) => {
-        return configuration.id === action.configuration.id
+        return configuration.fingerprint === action.configuration.fingerprint
           ? action.configuration
           : configuration;
       });
@@ -87,17 +98,33 @@ export function ConfigurationProvider({
 }: ConfigurationProviderProps) {
   const router = useRouter();
 
+  const {
+    selectedConfigurationFingerprint,
+    setSelectedConfigurationFingerprint,
+  } = useAppStore();
+
   const [optimisticConfigurations, updateOptimisticConfigurations] =
     useOptimistic(configurations, reduceConfigurations);
 
   const [saveState, dispatchSave, isSaving] = useActionState(
     async (
       _previousState: ConfigurationSaveActionState,
-      value: DecodedConfigurationEditorValue,
+      input: SaveConfigurationActionInput,
     ): Promise<ConfigurationSaveActionState> => {
-      const request = saveConfigurationApiRequest(value);
+      const request = saveConfigurationApiRequest(input.value);
 
       try {
+        /*
+         * Calculate only the configuration currently being saved. This lets
+         * the UI identify its semantic configuration before the HTTP
+         * transaction completes without re-hashing the persisted collection.
+         */
+        const candidateFingerprint = await E.runPromise(
+          createConfigurationFingerprint(request.configuration),
+        );
+
+        setSelectedConfigurationFingerprint(candidateFingerprint.fingerprint);
+
         const savedConfiguration = await E.runPromise(
           saveConfigurationApi({
             request,
@@ -105,14 +132,16 @@ export function ConfigurationProvider({
         );
 
         /*
-         * The server has accepted the mutation, so expose its result
-         * immediately while the route loader refreshes its authoritative
-         * configuration snapshot.
+         * The server-returned fingerprint is authoritative. Reconcile the
+         * optimistic collection using that value rather than retaining the
+         * client-calculated fingerprint as source of truth.
          */
         updateOptimisticConfigurations({
           configuration: savedConfiguration,
           type: "SAVE",
         });
+
+        setSelectedConfigurationFingerprint(savedConfiguration.fingerprint);
 
         await router.invalidate({
           sync: true,
@@ -123,6 +152,10 @@ export function ConfigurationProvider({
           savedConfiguration,
         };
       } catch (error) {
+        setSelectedConfigurationFingerprint(
+          input.previousSelectedConfigurationFingerprint,
+        );
+
         return {
           error,
           savedConfiguration: undefined,
@@ -132,24 +165,61 @@ export function ConfigurationProvider({
     INITIAL_SAVE_ACTION_STATE,
   );
 
+  const selectedConfiguration = useMemo(() => {
+    if (selectedConfigurationFingerprint === null) {
+      return undefined;
+    }
+
+    return optimisticConfigurations.find((configuration) => {
+      return configuration.fingerprint === selectedConfigurationFingerprint;
+    });
+  }, [optimisticConfigurations, selectedConfigurationFingerprint]);
+
   const actionContextValue = useMemo<ConfigurationActionContextValue>(() => {
     return {
       error: saveState.error,
       isSaving,
+
+      newConfiguration: () => {
+        setSelectedConfigurationFingerprint(null);
+      },
+
       save: (value) => {
         startTransition(() => {
-          dispatchSave(value);
+          dispatchSave({
+            previousSelectedConfigurationFingerprint:
+              selectedConfigurationFingerprint,
+            value,
+          });
         });
       },
+
       savedConfiguration: saveState.savedConfiguration,
+
+      selectConfiguration: (fingerprint) => {
+        setSelectedConfigurationFingerprint(fingerprint);
+      },
     };
-  }, [dispatchSave, isSaving, saveState.error, saveState.savedConfiguration]);
+  }, [
+    dispatchSave,
+    isSaving,
+    saveState.error,
+    saveState.savedConfiguration,
+    selectedConfigurationFingerprint,
+    setSelectedConfigurationFingerprint,
+  ]);
 
   const stateContextValue = useMemo<ConfigurationStateContextValue>(() => {
     return {
       configurations: optimisticConfigurations,
+      selectedConfiguration,
+      selectedConfigurationFingerprint,
     };
-  }, [optimisticConfigurations]);
+  }, [
+    optimisticConfigurations,
+    selectedConfiguration,
+    selectedConfigurationFingerprint,
+  ]);
 
   return (
     <ConfigurationActionContext.Provider value={actionContextValue}>
@@ -188,16 +258,42 @@ export function useConfigurations(): ConfigurationApiConfigurationList {
   return useConfigurationState().configurations;
 }
 
-export function useConfigurationById(
-  configurationId: ConfigurationId | null,
+export function useConfigurationByFingerprint(
+  fingerprint: ConfigurationFingerprint | null,
 ): ConfigurationApiConfiguration | undefined {
   const configurations = useConfigurations();
 
-  if (configurationId === null) {
+  if (fingerprint === null) {
     return undefined;
   }
 
   return configurations.find((configuration) => {
-    return configuration.id === configurationId;
+    return configuration.fingerprint === fingerprint;
   });
+}
+
+export function useSelectedConfiguration():
+  | ConfigurationApiConfiguration
+  | undefined {
+  return useConfigurationState().selectedConfiguration;
+}
+
+export function useSelectedConfigurationFingerprint(): ConfigurationFingerprint | null {
+  return useConfigurationState().selectedConfigurationFingerprint;
+}
+
+export type ConfigurationSaveStatus = {
+  readonly error: unknown | undefined;
+  readonly isSaving: boolean;
+  readonly savedConfiguration: ConfigurationApiConfiguration | undefined;
+};
+
+export function useConfigurationSaveStatus(): ConfigurationSaveStatus {
+  const { error, isSaving, savedConfiguration } = useConfigurationActions();
+
+  return {
+    error,
+    isSaving,
+    savedConfiguration,
+  };
 }

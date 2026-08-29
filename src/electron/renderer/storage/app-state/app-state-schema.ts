@@ -1,13 +1,15 @@
 import * as Schema from "effect/Schema";
 
-import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
+import { ConfigurationFingerprintSchema } from "@/validation/configuration/configuration-fingerprint";
 
 export const AppStateSchema = Schema.Struct({
-  selectedConfigurationId: Schema.NullOr(ConfigurationIdSchema),
+  selectedConfigurationFingerprint: Schema.NullOr(
+    ConfigurationFingerprintSchema,
+  ),
 });
 
 export type AppState = typeof AppStateSchema.Type;
 
 export const DEFAULT_APP_STATE: AppState = {
-  selectedConfigurationId: null,
+  selectedConfigurationFingerprint: null,
 } satisfies AppState;

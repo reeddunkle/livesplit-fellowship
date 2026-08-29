@@ -6,13 +6,13 @@ import {
   DEFAULT_APP_STATE,
 } from "@/electron/renderer/storage/app-state/app-state-schema.ts";
 import { AppStateStorage } from "@/electron/renderer/storage/app-state/app-state-storage.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
 
 type Listener = () => void;
 
 export type AppStoreActions = {
-  readonly setSelectedConfigurationId: (
-    selectedConfigurationId: ConfigurationId | null,
+  readonly setSelectedConfigurationFingerprint: (
+    selectedConfigurationFingerprint: ConfigurationFingerprint | null,
   ) => void;
 };
 
@@ -73,13 +73,13 @@ export function makeAppStore(): AppStore {
     );
   }
 
-  function setSelectedConfigurationId(
-    selectedConfigurationId: ConfigurationId | null,
+  function setSelectedConfigurationFingerprint(
+    selectedConfigurationFingerprint: ConfigurationFingerprint | null,
   ): void {
     updateSnapshot((state) => {
       return {
         ...state,
-        selectedConfigurationId,
+        selectedConfigurationFingerprint,
       };
     });
 
@@ -102,7 +102,7 @@ export function makeAppStore(): AppStore {
 
   return {
     getSnapshot,
-    setSelectedConfigurationId,
+    setSelectedConfigurationFingerprint,
     subscribe,
   };
 }

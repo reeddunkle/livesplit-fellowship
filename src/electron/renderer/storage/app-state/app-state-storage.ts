@@ -4,7 +4,7 @@ import * as Option from "effect/Option";
 import type * as Schema from "effect/Schema";
 import * as KeyValueStore from "effect/unstable/persistence/KeyValueStore";
 
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
 
 import {
   type AppState,
@@ -23,8 +23,8 @@ export type AppStateStorageShape = {
 
   readonly set: (state: AppState) => E.Effect<void, AppStateStorageError>;
 
-  readonly setSelectedConfigurationId: (
-    configurationId: ConfigurationId | null,
+  readonly setSelectedConfigurationFingerprint: (
+    fingerprint: ConfigurationFingerprint | null,
   ) => E.Effect<void, AppStateStorageError>;
 };
 
@@ -53,14 +53,14 @@ export const makeAppStateStorage = E.gen(function* () {
     return appStateStorage.set(APP_STATE_KEY, state);
   };
 
-  const setSelectedConfigurationId: AppStateStorageShape["setSelectedConfigurationId"] =
-    (configurationId) => {
+  const setSelectedConfigurationFingerprint: AppStateStorageShape["setSelectedConfigurationFingerprint"] =
+    (fingerprint) => {
       return E.gen(function* () {
         const state = yield* get;
 
         yield* set({
           ...state,
-          selectedConfigurationId: configurationId,
+          selectedConfigurationFingerprint: fingerprint,
         });
       });
     };
@@ -68,6 +68,6 @@ export const makeAppStateStorage = E.gen(function* () {
   return {
     get,
     set,
-    setSelectedConfigurationId,
+    setSelectedConfigurationFingerprint,
   } satisfies AppStateStorageShape;
 });
