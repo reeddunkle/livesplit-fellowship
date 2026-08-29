@@ -1,5 +1,5 @@
 import { ConfigurationEditorContainer } from "@/electron/renderer/components/configuration/configuration-editor-container.tsx";
-import { ConfigurationSidebar } from "@/electron/renderer/components/configuration/configuration-sidebar.tsx";
+import { ConfigurationSidebar } from "@/electron/renderer/components/configuration/sidebar/configuration-sidebar";
 import { AppLayout } from "@/electron/renderer/components/core/app-layout.tsx";
 import { ConfigurationProvider } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { FellowshipDataProvider } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";

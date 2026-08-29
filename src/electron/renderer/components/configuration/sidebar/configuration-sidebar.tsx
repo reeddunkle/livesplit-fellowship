@@ -1,15 +1,9 @@
 import * as A from "effect/Array";
 import * as Match from "effect/Match";
 import * as R from "effect/Record";
-import {
-  ChevronRightIcon,
-  FileTextIcon,
-  FolderIcon,
-  Trash2Icon,
-} from "lucide-react";
+import { ChevronRightIcon, FolderIcon } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import {
   Collapsible,
   CollapsibleContent,
@@ -44,8 +38,8 @@ import {
   useSelectedConfigurationId,
 } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { useFellowshipDataStore } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
-import { formatLocalDateTime } from "@/electron/renderer/util/format-date-time.ts";
 
+import { ConfigurationSidebarItem } from "./configuration-sidebar-item.tsx";
 import {
   CONFIGURATION_SORT_OPTIONS,
   type ConfigurationSort,
@@ -184,58 +178,13 @@ export function ConfigurationSidebar() {
                                           selectedConfigurationId;
 
                                         return (
-                                          <SidebarMenuSubItem
+                                          <ConfigurationSidebarItem
+                                            configuration={configuration}
+                                            isActive={isActive}
                                             key={configuration.id}
-                                          >
-                                            <div
-                                              className="grid grid-cols-[auto_minmax(0,1fr)_auto] grid-rows-[auto_auto] items-center gap-x-2 rounded-md px-2 py-1.5 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground"
-                                              data-active={isActive}
-                                            >
-                                              <FileTextIcon className="col-start-1 row-start-1" />
-                                              <SidebarMenuSubButton
-                                                className="col-start-2 row-start-1 h-auto min-w-0 justify-start p-0 text-left hover:bg-transparent active:bg-transparent"
-                                                render={
-                                                  <button type="button" />
-                                                }
-                                                onClick={() => {
-                                                  selectConfiguration(
-                                                    configuration.id,
-                                                  );
-                                                }}
-                                              >
-                                                <span className="truncate">
-                                                  {configuration.label}
-                                                </span>
-                                              </SidebarMenuSubButton>
-                                              <Button
-                                                aria-label={`Delete ${configuration.label}`}
-                                                className="col-start-3 row-start-1 justify-self-end"
-                                                size="icon-xs"
-                                                type="button"
-                                                variant="destructive"
-                                                onClick={() => {
-                                                  deleteConfiguration(
-                                                    configuration.id,
-                                                  );
-                                                }}
-                                              >
-                                                <Trash2Icon />
-                                              </Button>
-                                              <button
-                                                className="col-span-3 col-start-1 row-start-2 min-w-0 truncate text-left text-xs font-normal text-muted-foreground"
-                                                type="button"
-                                                onClick={() => {
-                                                  selectConfiguration(
-                                                    configuration.id,
-                                                  );
-                                                }}
-                                              >
-                                                {formatLocalDateTime(
-                                                  configuration.updatedAt,
-                                                )}
-                                              </button>
-                                            </div>
-                                          </SidebarMenuSubItem>
+                                            onDelete={deleteConfiguration}
+                                            onSelect={selectConfiguration}
+                                          />
                                         );
                                       })}
                                     </SidebarMenuSub>
