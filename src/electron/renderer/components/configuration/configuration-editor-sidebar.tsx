@@ -42,15 +42,14 @@ export function ConfigurationEditorSidebar() {
 
   return (
     <Sidebar collapsible="offcanvas">
-      <SidebarHeader className="border-b">
-        <div className="px-2 py-1">
+      <SidebarHeader className="h-14 shrink-0 justify-center border-b">
+        <div className="px-2">
           <div className="text-sm font-semibold">Configurations</div>
           <div className="text-xs text-muted-foreground">
             Saved dungeon routes
           </div>
         </div>
       </SidebarHeader>
-
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>

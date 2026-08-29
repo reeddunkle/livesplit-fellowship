@@ -1,15 +1,13 @@
-import * as R from "effect/Record";
 import { useMemo } from "react";
 
 import { ConfigurationEditor } from "@/electron/renderer/components/configuration/configuration-editor.tsx";
 import { createConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-editor-adapter.ts";
-import {
-  type ConfigurationOption,
-  type DungeonOption,
-} from "@/electron/renderer/components/configuration/configuration-editor-types.ts";
+import { ConfigurationEditorSidebar } from "@/electron/renderer/components/configuration/configuration-editor-sidebar";
+import { type DungeonOption } from "@/electron/renderer/components/configuration/configuration-editor-types.ts";
 import { EMPTY_CONFIGURATION_EDITOR_VALUE } from "@/electron/renderer/components/configuration/configuration-form.ts";
 import { type DecodedConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-form-schema.ts";
 import { makeConfigurationSaveStateLookup } from "@/electron/renderer/components/configuration/configuration-save-state.ts";
+import { AppLayout } from "@/electron/renderer/components/core/app-layout.tsx";
 import {
   ConfigurationProvider,
   useConfigurationActions,
@@ -62,7 +60,9 @@ export function HomePage({
       units={units}
     >
       <ConfigurationProvider configurations={configurations}>
-        <HomePageContent />
+        <AppLayout sidebar={<ConfigurationEditorSidebar />}>
+          <HomePageContent />
+        </AppLayout>
       </ConfigurationProvider>
     </FellowshipDataProvider>
   );
@@ -82,24 +82,6 @@ function HomePageContent() {
   const configurationSaveState = useMemo(() => {
     return makeConfigurationSaveStateLookup(configurations);
   }, [configurations]);
-
-  const dungeonsById = useMemo(() => {
-    return R.fromIterableBy(dungeons, (dungeon) => dungeon.id);
-  }, [dungeons]);
-
-  const configurationOptions: ReadonlyArray<ConfigurationOption> =
-    configurations.map((configuration) => {
-      const dungeon = dungeonsById[configuration.dungeonId];
-
-      const labelSuffix = `${
-        dungeon?.name ?? configuration.dungeonId
-      } ${configuration.dungeonLevel}`;
-
-      return {
-        fingerprint: configuration.fingerprint,
-        label: `${configuration.label} (${labelSuffix})`,
-      };
-    });
 
   const dungeonOptions: ReadonlyArray<DungeonOption> = dungeons.map(
     (dungeon) => {
@@ -139,7 +121,6 @@ function HomePageContent() {
   return (
     <ConfigurationEditor
       key={selectedConfigurationFingerprint ?? "new"}
-      configurationOptions={configurationOptions}
       defaultValue={defaultValue}
       dungeonOptions={dungeonOptions}
       eventTypes={eventTypes}
