@@ -6,12 +6,29 @@ import { navigationMenuTriggerStyle } from "@/electron/renderer/components/ui/na
 export function NavMenu() {
   return (
     <nav className="flex items-center gap-1">
-      <Link className={navigationMenuTriggerStyle()} to="/">
+      <Link
+        activeOptions={{
+          exact: true,
+        }}
+        activeProps={{
+          className: "bg-muted text-foreground shadow-sm",
+        }}
+        className={navigationMenuTriggerStyle()}
+        to="/"
+      >
         Configurations
       </Link>
-      <Link className={navigationMenuTriggerStyle()} to="/settings">
+
+      <Link
+        activeProps={{
+          className: "bg-muted text-foreground shadow-sm",
+        }}
+        className={navigationMenuTriggerStyle()}
+        to="/settings"
+      >
         Settings
       </Link>
+
       <div className="ml-2">
         <ThemeToggle />
       </div>
