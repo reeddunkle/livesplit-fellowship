@@ -186,13 +186,13 @@ function RequirementTargetField({
           : (existingOption?.value ?? CUSTOM_TARGET);
 
         const isCustom = selectedValue === CUSTOM_TARGET;
-
-        const isInvalid =
-          !field.state.meta.isValid &&
+        const isInvalid = !field.state.meta.isValid;
+        const showError =
+          isInvalid &&
           (isCustom ? isCustomInputBlurred : field.state.meta.isBlurred);
 
         return (
-          <Field data-invalid={isInvalid}>
+          <Field data-invalid={showError}>
             <FieldLabel htmlFor={`${field.name}-select`}>Target</FieldLabel>
             <TargetSelect
               id={`${field.name}-select`}
@@ -220,7 +220,7 @@ function RequirementTargetField({
               }}
             />
             <Input
-              aria-invalid={isInvalid}
+              aria-invalid={isCustom && isInvalid}
               disabled={!isCustom}
               id={field.name}
               inputMode="numeric"
@@ -241,7 +241,7 @@ function RequirementTargetField({
                 handleTargetChange(value);
               }}
             />
-            {isInvalid && <FieldError errors={field.state.meta.errors} />}
+            {showError && <FieldError errors={field.state.meta.errors} />}
           </Field>
         );
       }}
@@ -291,7 +291,7 @@ export function RequirementEditor({
   });
 
   return (
-    <div
+    <fieldset
       className="grid gap-4 rounded-lg border bg-muted/30 p-4 transition-[border-color,box-shadow,background-color] data-[matches-focused-requirement=true]:border-primary/60 data-[matches-focused-requirement=true]:bg-primary/5 data-[matches-focused-requirement=true]:ring-2 data-[matches-focused-requirement=true]:ring-primary/20"
       data-matches-focused-requirement={matchesFocusedRequirement}
       onBlurCapture={(event) => {
@@ -309,19 +309,22 @@ export function RequirementEditor({
       onFocusCapture={() => {
         setFocusedRequirement(location);
       }}
+      onPointerDownCapture={() => {
+        setFocusedRequirement(location);
+      }}
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <form.Field name={`${requirementPath}.type` as const}>
           {(field) => {
-            const isInvalid =
-              field.state.meta.isBlurred && !field.state.meta.isValid;
+            const isInvalid = !field.state.meta.isValid;
+            const showError = isInvalid && field.state.meta.isBlurred;
 
             const showOccurrenceFields =
               field.state.value === FELLOWSHIP_EVENT.UNIT_DEATH;
 
             return (
               <>
-                <Field data-invalid={isInvalid}>
+                <Field data-invalid={showError}>
                   <FieldLabel htmlFor={field.name}>Event type</FieldLabel>
                   <NativeSelect
                     aria-invalid={isInvalid}
@@ -378,7 +381,7 @@ export function RequirementEditor({
                       );
                     })}
                   </NativeSelect>
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  {showError && <FieldError errors={field.state.meta.errors} />}
                 </Field>
                 <RequirementTargetField
                   eventType={field.state.value}
@@ -393,17 +396,19 @@ export function RequirementEditor({
                       name={`${requirementPath}.startOccurrence` as const}
                     >
                       {(startOccurrenceField) => {
-                        const isStartOccurrenceInvalid =
-                          startOccurrenceField.state.meta.isBlurred &&
+                        const isInvalid =
                           !startOccurrenceField.state.meta.isValid;
+                        const showError =
+                          isInvalid &&
+                          startOccurrenceField.state.meta.isBlurred;
 
                         return (
-                          <Field data-invalid={isStartOccurrenceInvalid}>
+                          <Field data-invalid={showError}>
                             <FieldLabel htmlFor={startOccurrenceField.name}>
                               Start occurrence
                             </FieldLabel>
                             <Input
-                              aria-invalid={isStartOccurrenceInvalid}
+                              aria-invalid={isInvalid}
                               id={startOccurrenceField.name}
                               inputMode="numeric"
                               min={1}
@@ -417,7 +422,7 @@ export function RequirementEditor({
                                 );
                               }}
                             />
-                            {isStartOccurrenceInvalid && (
+                            {showError && (
                               <FieldError
                                 errors={startOccurrenceField.state.meta.errors}
                               />
@@ -430,17 +435,18 @@ export function RequirementEditor({
                       name={`${requirementPath}.requiredCount` as const}
                     >
                       {(requiredCountField) => {
-                        const isRequiredCountInvalid =
-                          requiredCountField.state.meta.isBlurred &&
+                        const isInvalid =
                           !requiredCountField.state.meta.isValid;
+                        const showError =
+                          isInvalid && requiredCountField.state.meta.isBlurred;
 
                         return (
-                          <Field data-invalid={isRequiredCountInvalid}>
+                          <Field data-invalid={showError}>
                             <FieldLabel htmlFor={requiredCountField.name}>
                               Required count
                             </FieldLabel>
                             <Input
-                              aria-invalid={isRequiredCountInvalid}
+                              aria-invalid={isInvalid}
                               id={requiredCountField.name}
                               inputMode="numeric"
                               min={1}
@@ -454,7 +460,7 @@ export function RequirementEditor({
                                 );
                               }}
                             />
-                            {isRequiredCountInvalid && (
+                            {showError && (
                               <FieldError
                                 errors={requiredCountField.state.meta.errors}
                               />
@@ -481,6 +487,6 @@ export function RequirementEditor({
           <XIcon />
         </Button>
       </div>
-    </div>
+    </fieldset>
   );
 }

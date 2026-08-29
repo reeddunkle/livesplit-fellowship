@@ -74,7 +74,7 @@ export function useConfigurationForm({
     },
 
     validators: {
-      onBlur: ConfigurationEditorStandardSchema,
+      onChange: ConfigurationEditorStandardSchema,
       onSubmit: ConfigurationEditorStandardSchema,
     },
   });
