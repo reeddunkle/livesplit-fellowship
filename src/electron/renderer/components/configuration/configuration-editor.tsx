@@ -136,144 +136,148 @@ export function ConfigurationEditor({
   };
 
   return (
-    <main className="mx-auto grid w-full gap-8 p-6">
-      <header className="grid gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Configure a run
-        </h1>
+    <main className="mx-auto grid w-full gap-4 p-6">
+      <div className="grid gap-8">
+        <header className="grid gap-1">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Configure a run
+          </h1>
 
-        <p className="text-sm text-muted-foreground">
-          Select an existing configuration or edit the current configuration
-          below.
-        </p>
-      </header>
+          <p className="text-sm text-muted-foreground">
+            Select an existing configuration or edit the current configuration
+            below.
+          </p>
+        </header>
 
-      <div className="grid gap-x-6 gap-y-2 lg:grid-cols-[minmax(20rem,1fr)_auto]">
-        <div className="grid min-w-0 content-start gap-2">
-          <FieldLabel htmlFor="configuration-selection">
-            Configuration
-          </FieldLabel>
+        <div className="grid gap-x-6 gap-y-2 lg:grid-cols-[minmax(20rem,1fr)_auto]">
+          <div className="grid min-w-0 content-start gap-2">
+            <FieldLabel htmlFor="configuration-selection">
+              Configuration
+            </FieldLabel>
 
-          <NativeSelect
-            className="w-full min-w-64"
-            id="configuration-selection"
-            value={selectedConfigurationFingerprint ?? ""}
-            onChange={(event) => {
-              const result = Schema.decodeUnknownResult(
-                ConfigurationFingerprintSchema,
-              )(event.target.value);
+            <NativeSelect
+              className="w-full min-w-64"
+              id="configuration-selection"
+              value={selectedConfigurationFingerprint ?? ""}
+              onChange={(event) => {
+                const result = Schema.decodeUnknownResult(
+                  ConfigurationFingerprintSchema,
+                )(event.target.value);
 
-              Result.match(result, {
-                onFailure: (error) => {
-                  console.error("Invalid configuration fingerprint.", error);
-                },
-                onSuccess: (fingerprint) => {
-                  onSelectConfiguration(fingerprint);
-                },
-              });
-            }}
-          >
-            <NativeSelectOption value="" disabled>
-              Select a configuration
-            </NativeSelectOption>
+                Result.match(result, {
+                  onFailure: (error) => {
+                    console.error("Invalid configuration fingerprint.", error);
+                  },
+                  onSuccess: (fingerprint) => {
+                    onSelectConfiguration(fingerprint);
+                  },
+                });
+              }}
+            >
+              <NativeSelectOption value="" disabled>
+                Select a configuration
+              </NativeSelectOption>
 
-            {configurationOptions.map((configuration) => {
-              return (
-                <NativeSelectOption
-                  key={configuration.fingerprint}
-                  value={configuration.fingerprint}
-                >
-                  {configuration.label}
-                </NativeSelectOption>
-              );
-            })}
-          </NativeSelect>
-        </div>
+              {configurationOptions.map((configuration) => {
+                return (
+                  <NativeSelectOption
+                    key={configuration.fingerprint}
+                    value={configuration.fingerprint}
+                  >
+                    {configuration.label}
+                  </NativeSelectOption>
+                );
+              })}
+            </NativeSelect>
+          </div>
 
-        <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:w-152 lg:self-end">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              onSelectConfiguration(null);
-            }}
-          >
-            <PlusIcon />
-            New
-          </Button>
+          <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:w-152 lg:self-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                onSelectConfiguration(null);
+              }}
+            >
+              <PlusIcon />
+              New
+            </Button>
 
-          <form.Subscribe selector={selectConfigurationEditorFormState}>
-            {(state) => {
-              const isResetEnabled = hasUnsavedChanges(state);
+            <form.Subscribe selector={selectConfigurationEditorFormState}>
+              {(state) => {
+                const isResetEnabled = hasUnsavedChanges(state);
 
-              return (
-                <Button
-                  disabled={!isResetEnabled}
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    form.reset();
-                  }}
-                >
-                  <RotateCcwIcon />
-                  Reset
-                </Button>
-              );
-            }}
-          </form.Subscribe>
+                return (
+                  <Button
+                    disabled={!isResetEnabled}
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      form.reset();
+                    }}
+                  >
+                    <RotateCcwIcon />
+                    Reset
+                  </Button>
+                );
+              }}
+            </form.Subscribe>
 
-          <Button
-            disabled={selectedConfigurationFingerprint === null}
-            type="button"
-            variant="destructive"
-            onClick={() => {
-              if (selectedConfigurationFingerprint === null) {
-                return;
-              }
+            <Button
+              disabled={selectedConfigurationFingerprint === null}
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                if (selectedConfigurationFingerprint === null) {
+                  return;
+                }
 
-              onDeleteConfiguration(selectedConfigurationFingerprint);
-            }}
-          >
-            <Trash2Icon />
-            Delete
-          </Button>
+                onDeleteConfiguration(selectedConfigurationFingerprint);
+              }}
+            >
+              <Trash2Icon />
+              Delete
+            </Button>
 
-          <form.Subscribe
-            selector={(state) => {
-              return [state.canSubmit, state.isSubmitting] as const;
-            }}
-          >
-            {([canSubmit, isSubmitting]) => {
-              return (
-                <Button
-                  disabled={!canSubmit || isSubmitting}
-                  form={CONFIGURATION_FORM_DOM_ID}
-                  type="submit"
-                >
-                  <SaveIcon />
-                  {isSubmitting ? "Saving..." : "Save"}
-                </Button>
-              );
-            }}
-          </form.Subscribe>
-        </div>
+            <form.Subscribe
+              selector={(state) => {
+                return [state.canSubmit, state.isSubmitting] as const;
+              }}
+            >
+              {([canSubmit, isSubmitting]) => {
+                return (
+                  <Button
+                    disabled={!canSubmit || isSubmitting}
+                    form={CONFIGURATION_FORM_DOM_ID}
+                    type="submit"
+                  >
+                    <SaveIcon />
+                    {isSubmitting ? "Saving..." : "Save"}
+                  </Button>
+                );
+              }}
+            </form.Subscribe>
+          </div>
 
-        <div className="min-h-6">
-          <form.Subscribe selector={selectConfigurationEditorFormState}>
-            {(state) => {
-              if (!hasUnsavedChanges(state)) {
-                return null;
-              }
+          <div className="min-h-6">
+            <form.Subscribe selector={selectConfigurationEditorFormState}>
+              {(state) => {
+                if (!hasUnsavedChanges(state)) {
+                  return null;
+                }
 
-              const saveState = resolveSaveState(state.values);
+                const saveState = resolveSaveState(state.values);
 
-              if (saveState === undefined) {
-                return null;
-              }
+                if (saveState === undefined) {
+                  return null;
+                }
 
-              return <ConfigurationSaveStateIndicator saveState={saveState} />;
-            }}
-          </form.Subscribe>
+                return (
+                  <ConfigurationSaveStateIndicator saveState={saveState} />
+                );
+              }}
+            </form.Subscribe>
+          </div>
         </div>
       </div>
 
@@ -304,112 +308,121 @@ export function ConfigurationEditor({
               <div
                 className={`grid gap-8 rounded-xl border-2 p-4 transition-colors ${saveStateClassName}`}
               >
-                <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_10rem]">
-                  <form.Field name="label">
-                    {(field) => {
-                      const isInvalid =
-                        field.state.meta.isBlurred && !field.state.meta.isValid;
+                <div className="grid gap-4">
+                  <div className="w-full max-w-lg">
+                    <form.Field name="label">
+                      {(field) => {
+                        const isInvalid =
+                          field.state.meta.isBlurred &&
+                          !field.state.meta.isValid;
 
-                      return (
-                        <Field data-invalid={isInvalid}>
-                          <FieldLabel htmlFor={field.name}>
-                            Configuration label
-                          </FieldLabel>
+                        return (
+                          <Field data-invalid={isInvalid}>
+                            <FieldLabel htmlFor={field.name}>
+                              Configuration label
+                            </FieldLabel>
 
-                          <Input
-                            aria-invalid={isInvalid}
-                            id={field.name}
-                            name={field.name}
-                            placeholder="My configuration"
-                            value={field.state.value}
-                            onBlur={field.handleBlur}
-                            onChange={(event) => {
-                              field.handleChange(event.target.value);
-                            }}
-                          />
+                            <Input
+                              aria-invalid={isInvalid}
+                              id={field.name}
+                              name={field.name}
+                              placeholder="My configuration"
+                              value={field.state.value}
+                              onBlur={field.handleBlur}
+                              onChange={(event) => {
+                                field.handleChange(event.target.value);
+                              }}
+                            />
 
-                          {isInvalid && (
-                            <FieldError errors={field.state.meta.errors} />
-                          )}
-                        </Field>
-                      );
-                    }}
-                  </form.Field>
+                            {isInvalid && (
+                              <FieldError errors={field.state.meta.errors} />
+                            )}
+                          </Field>
+                        );
+                      }}
+                    </form.Field>
+                  </div>
 
-                  <form.Field name="dungeonId">
-                    {(field) => {
-                      const isInvalid =
-                        field.state.meta.isBlurred && !field.state.meta.isValid;
+                  <div className="grid justify-start gap-4 md:grid-cols-[minmax(20rem,32rem)_10rem]">
+                    <form.Field name="dungeonId">
+                      {(field) => {
+                        const isInvalid =
+                          field.state.meta.isBlurred &&
+                          !field.state.meta.isValid;
 
-                      return (
-                        <Field data-invalid={isInvalid}>
-                          <FieldLabel htmlFor={field.name}>Dungeon</FieldLabel>
+                        return (
+                          <Field data-invalid={isInvalid}>
+                            <FieldLabel htmlFor={field.name}>
+                              Dungeon
+                            </FieldLabel>
 
-                          <NativeSelect
-                            aria-invalid={isInvalid}
-                            id={field.name}
-                            name={field.name}
-                            value={field.state.value}
-                            onBlur={field.handleBlur}
-                            onChange={(event) => {
-                              field.handleChange(event.target.value);
-                            }}
-                          >
-                            <NativeSelectOption value="" disabled>
-                              Select a dungeon
-                            </NativeSelectOption>
+                            <NativeSelect
+                              aria-invalid={isInvalid}
+                              id={field.name}
+                              name={field.name}
+                              value={field.state.value}
+                              onBlur={field.handleBlur}
+                              onChange={(event) => {
+                                field.handleChange(event.target.value);
+                              }}
+                            >
+                              <NativeSelectOption value="" disabled>
+                                Select a dungeon
+                              </NativeSelectOption>
 
-                            {dungeonOptions.map((dungeon) => {
-                              return (
-                                <NativeSelectOption
-                                  key={dungeon.key}
-                                  value={dungeon.key}
-                                >
-                                  {dungeon.label}
-                                </NativeSelectOption>
-                              );
-                            })}
-                          </NativeSelect>
+                              {dungeonOptions.map((dungeon) => {
+                                return (
+                                  <NativeSelectOption
+                                    key={dungeon.key}
+                                    value={dungeon.key}
+                                  >
+                                    {dungeon.label}
+                                  </NativeSelectOption>
+                                );
+                              })}
+                            </NativeSelect>
 
-                          {isInvalid && (
-                            <FieldError errors={field.state.meta.errors} />
-                          )}
-                        </Field>
-                      );
-                    }}
-                  </form.Field>
+                            {isInvalid && (
+                              <FieldError errors={field.state.meta.errors} />
+                            )}
+                          </Field>
+                        );
+                      }}
+                    </form.Field>
 
-                  <form.Field name="dungeonLevel">
-                    {(field) => {
-                      const isInvalid =
-                        field.state.meta.isBlurred && !field.state.meta.isValid;
+                    <form.Field name="dungeonLevel">
+                      {(field) => {
+                        const isInvalid =
+                          field.state.meta.isBlurred &&
+                          !field.state.meta.isValid;
 
-                      return (
-                        <Field data-invalid={isInvalid}>
-                          <FieldLabel htmlFor={field.name}>
-                            Dungeon level
-                          </FieldLabel>
+                        return (
+                          <Field data-invalid={isInvalid}>
+                            <FieldLabel htmlFor={field.name}>
+                              Dungeon level
+                            </FieldLabel>
 
-                          <Input
-                            aria-invalid={isInvalid}
-                            id={field.name}
-                            min={1}
-                            name={field.name}
-                            type="number"
-                            value={field.state.value}
-                            onBlur={field.handleBlur}
-                            onChange={(event) => {
-                              field.handleChange(event.target.value);
-                            }}
-                          />
+                            <Input
+                              aria-invalid={isInvalid}
+                              id={field.name}
+                              min={1}
+                              name={field.name}
+                              type="number"
+                              value={field.state.value}
+                              onBlur={field.handleBlur}
+                              onChange={(event) => {
+                                field.handleChange(event.target.value);
+                              }}
+                            />
 
-                          {isInvalid && (
-                            <FieldError errors={field.state.meta.errors} />
-                          )}
-                        </Field>
-                      );
-                    }}
-                  </form.Field>
+                            {isInvalid && (
+                              <FieldError errors={field.state.meta.errors} />
+                            )}
+                          </Field>
+                        );
+                      }}
+                    </form.Field>
+                  </div>
                 </div>
 
                 <form.Field name="milestones" mode="array">
