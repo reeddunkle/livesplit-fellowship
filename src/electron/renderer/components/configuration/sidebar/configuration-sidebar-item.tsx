@@ -47,8 +47,7 @@ export function ConfigurationSidebarItem({
           </span>
         </SidebarMenuSubButton>
         <ConfigurationSidebarItemActions
-          configurationId={configuration.id}
-          configurationLabel={configuration.label}
+          configuration={configuration}
           onDelete={onDelete}
         />
       </div>
