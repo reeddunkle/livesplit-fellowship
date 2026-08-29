@@ -2,7 +2,7 @@ import * as E from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Schema from "effect/Schema";
 
-import { FellowshipUnitCatalogSchema } from "@/catalogs/fellowship-unit-catalog-schema.ts";
+import { FellowshipUnitCatalogSchema } from "@/catalogs/units/fellowship-unit-catalog-schema.ts";
 import { parseJson } from "@/util/parse-json.ts";
 
 const FELLOWSHIP_UNIT_CATALOG_FILE_PATH =

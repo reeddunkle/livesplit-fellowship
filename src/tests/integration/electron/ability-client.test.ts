@@ -20,11 +20,13 @@ import { UnitApiServiceMock } from "@/tests/common/mocks/unit-api-service-mock.t
 import { runTest } from "@/tests/common/run-test.ts";
 
 const ABILITY_ID = "634";
+const UNIT_ID = "133";
 const UNKNOWN_ABILITY_ID = "999999";
 
 const ability = {
   id: ABILITY_ID,
   name: "Stormy Retreat",
+  unitId: UNIT_ID,
 } satisfies AbilityApiAbility;
 
 function makeAbilityApiServerTestLayer(

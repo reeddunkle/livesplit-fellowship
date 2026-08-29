@@ -4,15 +4,18 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as SqlClient from "effect/unstable/sql/SqlClient";
 
-import { UnitModel } from "@/db/models/unit-model.ts";
+import { UnitModel, UnitStatusSchema } from "@/db/models/unit-model.ts";
 import { NonEmptyStringSchema } from "@/validation/common.ts";
 
 import { UnitDAO, type UnitDAOShape } from "./unit-dao.ts";
 
 const UnitRowSchema = Schema.Struct({
   dungeonId: Schema.NullOr(NonEmptyStringSchema),
+  groupKey: Schema.NullOr(NonEmptyStringSchema),
   id: NonEmptyStringSchema,
   name: NonEmptyStringSchema,
+  status: UnitStatusSchema,
+  variant: Schema.NullOr(NonEmptyStringSchema),
 });
 
 type UnitRow = typeof UnitRowSchema.Type;
@@ -30,8 +33,11 @@ function createUnitModels(
     string,
     {
       dungeonIds: Array<string>;
+      groupKey: string | null;
       id: string;
       name: string;
+      status: UnitRow["status"];
+      variant: string | null;
     }
   >();
 
@@ -48,8 +54,11 @@ function createUnitModels(
 
     unitsById.set(row.id, {
       dungeonIds: row.dungeonId === null ? [] : [row.dungeonId],
+      groupKey: row.groupKey,
       id: row.id,
       name: row.name,
+      status: row.status,
+      variant: row.variant,
     });
   }
 
@@ -66,7 +75,10 @@ const make = E.gen(function* () {
       const rows = yield* sql`
         SELECT
           unit.id,
+          unit.group_key AS groupKey,
           unit.name,
+          unit.status,
+          unit.variant,
           dungeon_unit.dungeon_id AS dungeonId
         FROM unit
         LEFT JOIN dungeon_unit
@@ -85,7 +97,10 @@ const make = E.gen(function* () {
       const rows = yield* sql`
         SELECT
           unit.id,
+          unit.group_key AS groupKey,
           unit.name,
+          unit.status,
+          unit.variant,
           dungeon_unit.dungeon_id AS dungeonId
         FROM unit
         LEFT JOIN dungeon_unit

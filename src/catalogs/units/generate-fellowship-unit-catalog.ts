@@ -7,14 +7,48 @@ import * as Schema from "effect/Schema";
 import {
   type ExternalMobData,
   ExternalMobDataSchema,
-} from "@/catalogs/external-mob-data-schema.ts";
+} from "@/catalogs/units/external-mob-data-schema.ts";
 import {
   type FellowshipUnitCatalog,
   FellowshipUnitCatalogSchema,
-} from "@/catalogs/fellowship-unit-catalog-schema.ts";
+} from "@/catalogs/units/fellowship-unit-catalog-schema.ts";
 import { parseJson } from "@/util/parse-json.ts";
 
 const OUTPUT_FILE_PATH = "./src/catalogs/fellowship-unit-catalog.json";
+
+type FellowshipUnitCatalogEntry = FellowshipUnitCatalog[number];
+
+type UnitCatalogOverride = Partial<Omit<FellowshipUnitCatalogEntry, "id">>;
+
+const UNIT_CATALOG_OVERRIDES: Readonly<Record<string, UnitCatalogOverride>> = {
+  "276": {
+    groupKey: "CHICKEN",
+    name: "Chicken",
+    variant: "SMALL",
+  },
+  "277": {
+    groupKey: "CHICKEN",
+    name: "Chicken",
+    variant: "MEDIUM",
+  },
+  "278": {
+    groupKey: "CHICKEN",
+    name: "Chicken",
+    variant: "LARGE",
+  },
+  "280": {
+    status: "ACTIVE",
+  },
+  "282": {
+    status: "INACTIVE",
+  },
+  "283": {
+    status: "INACTIVE",
+  },
+  "284": {
+    status: "INACTIVE",
+  },
+};
 
 const NumericStringOrder = Order.mapInput(Order.Number, (value: string) =>
   Number(value),
@@ -22,26 +56,53 @@ const NumericStringOrder = Order.mapInput(Order.Number, (value: string) =>
 
 const UnitCatalogEntryOrder = Order.mapInput(
   NumericStringOrder,
-  (entry: FellowshipUnitCatalog[number]) => entry.id,
+  (entry: FellowshipUnitCatalogEntry) => entry.id,
 );
+
+function createUnitCatalogEntry({
+  id,
+  mob,
+}: {
+  readonly id: string;
+  readonly mob: ExternalMobData[string];
+}): FellowshipUnitCatalogEntry {
+  const dungeonIds = Array.from(
+    new Set(
+      mob.FoundInZoneGameIDs.map((dungeonId) => {
+        return String(dungeonId);
+      }),
+    ),
+  );
+
+  const defaultEntry = {
+    dungeonIds: A.sort(dungeonIds, NumericStringOrder),
+    groupKey: null,
+    id,
+    name: mob.FSLName,
+    status: "ACTIVE",
+    variant: null,
+  } satisfies FellowshipUnitCatalogEntry;
+
+  const override: UnitCatalogOverride | undefined = UNIT_CATALOG_OVERRIDES[id];
+
+  if (override === undefined) {
+    return defaultEntry;
+  }
+
+  return {
+    ...defaultEntry,
+    ...override,
+  };
+}
 
 function createUnitCatalog(
   externalMobData: ExternalMobData,
 ): FellowshipUnitCatalog {
   const catalog = Object.entries(externalMobData).map(([id, mob]) => {
-    const dungeonIds = Array.from(
-      new Set(
-        mob.FoundInZoneGameIDs.map((dungeonId) => {
-          return String(dungeonId);
-        }),
-      ),
-    );
-
-    return {
-      dungeonIds: A.sort(dungeonIds, NumericStringOrder),
+    return createUnitCatalogEntry({
       id,
-      name: mob.FSLName,
-    };
+      mob,
+    });
   });
 
   return A.sort(catalog, UnitCatalogEntryOrder);

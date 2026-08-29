@@ -23,8 +23,12 @@ const UNIT_ID = "42";
 const UNKNOWN_UNIT_ID = "999999";
 
 const unit = {
+  dungeonIds: ["24"],
+  groupKey: null,
   id: UNIT_ID,
   name: "Desecrator",
+  status: "ACTIVE",
+  variant: null,
 } satisfies UnitApiUnit;
 
 function makeUnitApiServerTestLayer(
