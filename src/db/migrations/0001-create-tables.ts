@@ -50,6 +50,24 @@ export const createTables = E.gen(function* () {
   `;
 
   yield* sql`
+    CREATE TABLE ability_unit (
+      ability_id TEXT PRIMARY KEY NOT NULL,
+      unit_id TEXT NOT NULL,
+
+      FOREIGN KEY (ability_id)
+        REFERENCES ability(id),
+
+      FOREIGN KEY (unit_id)
+        REFERENCES unit(id)
+    ) STRICT
+  `;
+
+  yield* sql`
+    CREATE INDEX ability_unit_unit_id_index
+      ON ability_unit(unit_id)
+  `;
+
+  yield* sql`
     CREATE TABLE encounter (
       dungeon_id TEXT NOT NULL,
       id TEXT NOT NULL,

@@ -21,10 +21,13 @@ const make = E.gen(function* () {
     return E.gen(function* () {
       const rows = yield* sql`
         SELECT
-          id,
-          name
+          ability.id,
+          ability.name,
+          ability_unit.unit_id AS unitId
         FROM ability
-        ORDER BY name
+        LEFT JOIN ability_unit
+          ON ability_unit.ability_id = ability.id
+        ORDER BY ability.name
       `;
 
       return yield* decodeAbilityRows(rows);
@@ -35,10 +38,13 @@ const make = E.gen(function* () {
     return E.gen(function* () {
       const rows = yield* sql`
         SELECT
-          id,
-          name
+          ability.id,
+          ability.name,
+          ability_unit.unit_id AS unitId
         FROM ability
-        WHERE id = ${id}
+        LEFT JOIN ability_unit
+          ON ability_unit.ability_id = ability.id
+        WHERE ability.id = ${id}
         LIMIT 1
       `;
 

@@ -9,13 +9,26 @@ export const seedAbilityTable = E.gen(function* () {
   for (const ability of Object.values(ABILITIES_CATALOG)) {
     yield* sql`
       INSERT INTO ability (
-      id,
-      name
-    )
+        id,
+        name
+      )
+      VALUES (
+        ${ability.id},
+        ${ability.name}
+      )
+    `;
+
+    if ("unitId" in ability) {
+      yield* sql`
+        INSERT INTO ability_unit (
+          ability_id,
+          unit_id
+        )
         VALUES (
           ${ability.id},
-          ${ability.name}
+          ${ability.unitId}
         )
       `;
+    }
   }
 });

@@ -7,5 +7,6 @@ export function createAbilityApiResponse(
   return {
     id: ability.id,
     name: ability.name,
+    unitId: ability.unitId,
   };
 }

@@ -5,6 +5,7 @@ import { NonEmptyStringSchema } from "@/validation/common.ts";
 export const AbilityApiAbilitySchema = Schema.Struct({
   id: NonEmptyStringSchema,
   name: NonEmptyStringSchema,
+  unitId: Schema.NullOr(NonEmptyStringSchema),
 });
 
 export type AbilityApiAbility = typeof AbilityApiAbilitySchema.Type;

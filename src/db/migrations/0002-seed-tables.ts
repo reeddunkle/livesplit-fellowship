@@ -5,10 +5,11 @@ import { seedDungeonTable } from "@/db/seed/seed-dungeon-table.ts";
 import { seedEncounterTable } from "@/db/seed/seed-encounter-table.ts";
 import { seedUnitTable } from "@/db/seed/seed-unit-table.ts";
 
-// Seed groups run sequentially; seeds within a group can run concurrently
+// Seed groups run sequentially; seeds within a group can run concurrently.
 const seedGroups = [
-  [seedDungeonTable, seedAbilityTable],
+  [seedDungeonTable],
   [seedEncounterTable, seedUnitTable],
+  [seedAbilityTable],
 ] as const;
 
 export const seedTables = E.forEach(
