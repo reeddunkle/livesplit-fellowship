@@ -1,7 +1,7 @@
 import * as E from "effect/Effect";
 import * as SqlClient from "effect/unstable/sql/SqlClient";
 
-import { FELLOWSHIP_ENCOUNTER } from "@/catalogs/fellowship-encounters-catalog.ts";
+import { FELLOWSHIP_ENCOUNTER } from "@/catalogs/encounters/fellowship-encounters-catalog.ts";
 
 export const seedEncounterTable = E.gen(function* () {
   const sql = yield* SqlClient.SqlClient;

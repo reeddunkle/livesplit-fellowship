@@ -3,8 +3,18 @@ import * as Model from "effect/unstable/schema/Model";
 
 import { NonEmptyStringSchema } from "@/validation/common.ts";
 
+export const UnitStatusSchema = Schema.Union([
+  Schema.Literal("ACTIVE"),
+  Schema.Literal("INACTIVE"),
+]);
+
+export type UnitStatus = typeof UnitStatusSchema.Type;
+
 export class UnitModel extends Model.Class<UnitModel>("UnitModel")({
   dungeonIds: Schema.Array(NonEmptyStringSchema),
+  groupKey: Schema.NullOr(NonEmptyStringSchema),
   id: NonEmptyStringSchema,
   name: NonEmptyStringSchema,
+  status: UnitStatusSchema,
+  variant: Schema.NullOr(NonEmptyStringSchema),
 }) {}

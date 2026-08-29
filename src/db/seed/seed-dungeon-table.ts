@@ -1,7 +1,7 @@
 import * as E from "effect/Effect";
 import * as SqlClient from "effect/unstable/sql/SqlClient";
 
-import { FELLOWSHIP_DUNGEON } from "@/catalogs/fellowship-dungeons-catalog.ts";
+import { FELLOWSHIP_DUNGEON } from "@/catalogs/dungeons/fellowship-dungeons-catalog.ts";
 
 export const seedDungeonTable = E.gen(function* () {
   const sql = yield* SqlClient.SqlClient;

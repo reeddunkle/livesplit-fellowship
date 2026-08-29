@@ -15,7 +15,11 @@ export const createTables = E.gen(function* () {
   yield* sql`
     CREATE TABLE unit (
       id TEXT PRIMARY KEY NOT NULL,
-      name TEXT NOT NULL
+      group_key TEXT,
+      name TEXT NOT NULL,
+      status TEXT NOT NULL
+        CHECK (status IN ('ACTIVE', 'INACTIVE')),
+      variant TEXT
     ) STRICT
   `;
 
