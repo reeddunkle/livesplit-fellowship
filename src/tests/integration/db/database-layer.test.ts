@@ -19,6 +19,7 @@ describe("DatabaseLayer", () => {
         WHERE type = 'table'
           AND name IN (
             'ability',
+            'ability_unit',
             'configuration',
             'dungeon',
             'dungeon_unit',
@@ -33,6 +34,9 @@ describe("DatabaseLayer", () => {
       expect(tables).toEqual([
         {
           name: "ability",
+        },
+        {
+          name: "ability_unit",
         },
         {
           name: "configuration",
@@ -89,6 +93,17 @@ describe("DatabaseLayer", () => {
         WHERE id = '634'
       `;
 
+      const abilityUnits = yield* sql<{
+        readonly abilityId: string;
+        readonly unitId: string;
+      }>`
+        SELECT
+          ability_id,
+          unit_id
+        FROM ability_unit
+        WHERE ability_id = '634'
+      `;
+
       const encounters = yield* sql<{
         readonly dungeonId: string;
         readonly id: string;
@@ -103,6 +118,34 @@ describe("DatabaseLayer", () => {
           AND id = '33'
       `;
 
+      const chicken = yield* sql<{
+        readonly groupKey: string | null;
+        readonly id: string;
+        readonly name: string;
+        readonly status: string;
+        readonly variant: string | null;
+      }>`
+        SELECT
+          group_key,
+          id,
+          name,
+          status,
+          variant
+        FROM unit
+        WHERE id = '276'
+      `;
+
+      const inactiveUnit = yield* sql<{
+        readonly id: string;
+        readonly status: string;
+      }>`
+        SELECT
+          id,
+          status
+        FROM unit
+        WHERE id = '282'
+      `;
+
       const unitCount = yield* sql<{
         readonly count: number;
       }>`
@@ -115,6 +158,13 @@ describe("DatabaseLayer", () => {
       }>`
         SELECT COUNT(*) AS count
         FROM dungeon_unit
+      `;
+
+      const abilityUnitCount = yield* sql<{
+        readonly count: number;
+      }>`
+        SELECT COUNT(*) AS count
+        FROM ability_unit
       `;
 
       expect(dungeons).toEqual([
@@ -132,6 +182,13 @@ describe("DatabaseLayer", () => {
         },
       ]);
 
+      expect(abilityUnits).toEqual([
+        {
+          abilityId: "634",
+          unitId: "133",
+        },
+      ]);
+
       expect(encounters).toEqual([
         {
           dungeonId: "24",
@@ -140,8 +197,26 @@ describe("DatabaseLayer", () => {
         },
       ]);
 
+      expect(chicken).toEqual([
+        {
+          groupKey: "CHICKEN",
+          id: "276",
+          name: "Chicken",
+          status: "ACTIVE",
+          variant: "SMALL",
+        },
+      ]);
+
+      expect(inactiveUnit).toEqual([
+        {
+          id: "282",
+          status: "INACTIVE",
+        },
+      ]);
+
       expect(unitCount[0]?.count).toBeGreaterThan(0);
       expect(dungeonUnitCount[0]?.count).toBeGreaterThan(0);
+      expect(abilityUnitCount[0]?.count).toBeGreaterThan(0);
     }).pipe(E.provide(makeDatabaseLayer(":memory:")));
 
     await runTest(program);

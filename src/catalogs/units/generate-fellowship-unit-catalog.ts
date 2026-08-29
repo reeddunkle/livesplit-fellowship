@@ -14,7 +14,7 @@ import {
 } from "@/catalogs/units/fellowship-unit-catalog-schema.ts";
 import { parseJson } from "@/util/parse-json.ts";
 
-const OUTPUT_FILE_PATH = "./src/catalogs/fellowship-unit-catalog.json";
+const OUTPUT_FILE_PATH = "./src/catalogs/units/fellowship-unit-catalog.json";
 
 type FellowshipUnitCatalogEntry = FellowshipUnitCatalog[number];
 

@@ -6,7 +6,7 @@ import { FellowshipUnitCatalogSchema } from "@/catalogs/units/fellowship-unit-ca
 import { parseJson } from "@/util/parse-json.ts";
 
 const FELLOWSHIP_UNIT_CATALOG_FILE_PATH =
-  "./src/catalogs/fellowship-unit-catalog.json";
+  "./src/catalogs/units/fellowship-unit-catalog.json";
 
 export const loadFellowshipUnitCatalog = E.fn("load-fellowship-unit-catalog")(
   function* () {

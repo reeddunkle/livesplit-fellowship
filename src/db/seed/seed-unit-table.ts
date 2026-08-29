@@ -11,11 +11,17 @@ export const seedUnitTable = E.gen(function* () {
     yield* sql`
       INSERT INTO unit (
         id,
-        name
+        group_key,
+        name,
+        status,
+        variant
       )
       VALUES (
         ${unit.id},
-        ${unit.name}
+        ${unit.groupKey},
+        ${unit.name},
+        ${unit.status},
+        ${unit.variant}
       )
     `;
 

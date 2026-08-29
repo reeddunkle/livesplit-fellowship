@@ -4,10 +4,10 @@ import type * as FileSystem from "effect/FileSystem";
 import * as Match from "effect/Match";
 import type * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
-import type * as SqlClient from "effect/unstable/sql/SqlClient";
 
 import { toError } from "@/cli/util/to-error.ts";
 import { validateNoExtraPositionals } from "@/cli/util/validate-no-extra-positionals.ts";
+import { makeDatabaseLayer } from "@/db/database-layer.ts";
 
 import {
   BuildMilestoneConfigurationJsonSchemaCommandInputSchema,
@@ -24,10 +24,7 @@ import {
 } from "./commands/replay-log-file-command.ts";
 import { runSetupDatabaseCommand } from "./commands/setup-database-command.ts";
 
-type DevCLIEnvironment =
-  | FileSystem.FileSystem
-  | Path.Path
-  | SqlClient.SqlClient;
+type DevCLIEnvironment = FileSystem.FileSystem | Path.Path;
 
 type ParsedArguments = ReturnType<typeof parseArgs>;
 
@@ -136,6 +133,7 @@ function parseReplayLogFileInput({ positionals, values }: ParsedArguments) {
 
 export function runDevCLI(
   args: ReadonlyArray<string>,
+  databaseFilename: string,
 ): E.Effect<void, unknown, DevCLIEnvironment> {
   return E.gen(function* () {
     const parsedArguments = yield* parseArguments(args);
@@ -165,14 +163,14 @@ export function runDevCLI(
           const input = yield* parseReplayLogFileInput(parsedArguments);
 
           yield* runReplayLogFileCommand(input);
-        }),
+        }).pipe(E.provide(makeDatabaseLayer(databaseFilename))),
       ),
       Match.when("setup-database", () =>
         E.gen(function* () {
           yield* validateNoExtraPositionals(parsedArguments.positionals);
 
           yield* runSetupDatabaseCommand();
-        }),
+        }).pipe(E.provide(makeDatabaseLayer(databaseFilename))),
       ),
       Match.orElse((unknownCommand) =>
         E.fail(
