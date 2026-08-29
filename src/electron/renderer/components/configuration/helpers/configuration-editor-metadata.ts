@@ -12,6 +12,7 @@ export type RequirementLocation = {
 
 export type EncounterRequirementMetadata = {
   readonly unmatchedTargetCounts: ReadonlyMap<string, number>;
+  readonly unmatchedTargetIds: ReadonlyArray<string>;
 };
 
 export type UnitDeathRequirementMetadata = {
@@ -83,6 +84,18 @@ function addUnmatchedEncounterRequirement({
   const ownCount = ownTargetCounts.get(targetId) ?? 0;
 
   ownTargetCounts.set(targetId, ownCount + 1);
+}
+
+function getUnmatchedTargetIds(
+  unmatchedTargetCounts: ReadonlyMap<string, number>,
+): ReadonlyArray<string> {
+  return Array.from(unmatchedTargetCounts)
+    .filter(([, count]) => {
+      return count > 0;
+    })
+    .map(([targetId]) => {
+      return targetId;
+    });
 }
 
 export function createRequirementMetadata(
@@ -191,9 +204,15 @@ export function createRequirementMetadata(
   return {
     encounterEnd: {
       unmatchedTargetCounts: unmatchedEncounterEndTargetCounts,
+      unmatchedTargetIds: getUnmatchedTargetIds(
+        unmatchedEncounterEndTargetCounts,
+      ),
     },
     encounterStart: {
       unmatchedTargetCounts: unmatchedEncounterStartTargetCounts,
+      unmatchedTargetIds: getUnmatchedTargetIds(
+        unmatchedEncounterStartTargetCounts,
+      ),
     },
     unitDeath: {
       lastTargetId: lastUnitDeathTargetId,

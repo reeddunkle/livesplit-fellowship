@@ -1,3 +1,6 @@
+import * as A from "effect/Array";
+import * as Match from "effect/Match";
+import * as Option from "effect/Option";
 import {
   createContext,
   type ReactNode,
@@ -6,6 +9,9 @@ import {
   useMemo,
   useState,
 } from "react";
+
+import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
+import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
 import { type ConfigurationFormApi } from "./configuration-form.ts";
 import { type ConfigurationEditorValue } from "./configuration-form-schema.ts";
@@ -24,12 +30,47 @@ export type FocusedRequirement = {
   readonly requirement: ConfigurationEditorRequirement;
 };
 
+export type EncounterSuggestion = {
+  readonly targetId: string;
+  readonly unmatchedCount: number;
+};
+
+export type UnitDeathSuggestion = {
+  readonly requiredCount: string;
+  readonly startOccurrence: string;
+};
+
+type GetEncounterSuggestionsOptions = {
+  readonly eventType:
+    | typeof FELLOWSHIP_EVENT.ENCOUNTER_START
+    | typeof FELLOWSHIP_EVENT.ENCOUNTER_END;
+  readonly location: RequirementLocation;
+};
+
+type GetUnitDeathSuggestionOptions = {
+  readonly location: RequirementLocation;
+  readonly targetId: string;
+};
+
 type ConfigurationEditorContextValue = {
   readonly focusedRequirement: FocusedRequirement | undefined;
+
+  readonly getEncounterSuggestions: (
+    options: GetEncounterSuggestionsOptions,
+  ) => ReadonlyArray<EncounterSuggestion>;
 
   readonly getRequirementMetadata: (
     options?: CreateRequirementMetadataOptions,
   ) => ConfigurationEditorRequirementMetadata;
+
+  readonly getSuggestedRequirementValues: (options: {
+    readonly eventType: MilestoneRequirementEventType;
+    readonly location: RequirementLocation;
+  }) => SuggestedRequirementValues;
+
+  readonly getUnitDeathSuggestion: (
+    options: GetUnitDeathSuggestionOptions,
+  ) => UnitDeathSuggestion;
 
   readonly requirementMetadata: ConfigurationEditorRequirementMetadata;
 
@@ -38,6 +79,12 @@ type ConfigurationEditorContextValue = {
   ) => void;
 
   readonly value: ConfigurationEditorValue;
+};
+
+export type SuggestedRequirementValues = {
+  readonly requiredCount?: string;
+  readonly startOccurrence?: string;
+  readonly targetId?: string;
 };
 
 type ConfigurationEditorProviderProps = {
@@ -88,6 +135,125 @@ function ConfigurationEditorProviderInner({
     [value],
   );
 
+  const getEncounterSuggestions = useCallback(
+    ({
+      eventType,
+      location,
+    }: GetEncounterSuggestionsOptions): ReadonlyArray<EncounterSuggestion> => {
+      const metadata = createRequirementMetadata(value, {
+        excluding: location,
+      });
+
+      const unmatchedTargetCounts =
+        eventType === FELLOWSHIP_EVENT.ENCOUNTER_START
+          ? metadata.encounterEnd.unmatchedTargetCounts
+          : metadata.encounterStart.unmatchedTargetCounts;
+
+      return Array.from(unmatchedTargetCounts)
+        .filter(([, count]) => {
+          return count > 0;
+        })
+        .map(([targetId, unmatchedCount]) => {
+          return {
+            targetId,
+            unmatchedCount,
+          };
+        });
+    },
+    [value],
+  );
+
+  const getUnitDeathSuggestion = useCallback(
+    ({
+      location,
+      targetId,
+    }: GetUnitDeathSuggestionOptions): UnitDeathSuggestion => {
+      const metadata = createRequirementMetadata(value, {
+        excluding: location,
+      });
+
+      const nextStartOccurrence =
+        metadata.unitDeath.nextStartOccurrenceByTargetId.get(targetId) ?? 1;
+
+      return {
+        requiredCount: "1",
+        startOccurrence: String(nextStartOccurrence),
+      };
+    },
+    [value],
+  );
+
+  const getSuggestedRequirementValues = useCallback(
+    ({
+      eventType,
+      location,
+    }: {
+      readonly eventType: MilestoneRequirementEventType;
+      readonly location: RequirementLocation;
+    }): SuggestedRequirementValues => {
+      return Match.value(eventType).pipe(
+        Match.when(FELLOWSHIP_EVENT.UNIT_DEATH, () => {
+          const metadata = createRequirementMetadata(value, {
+            excluding: location,
+          });
+
+          const targetId = metadata.unitDeath.lastTargetId;
+
+          if (targetId === undefined) {
+            return {
+              requiredCount: "1",
+              startOccurrence: "1",
+            };
+          }
+
+          const nextStartOccurrence =
+            metadata.unitDeath.nextStartOccurrenceByTargetId.get(targetId) ?? 1;
+
+          return {
+            requiredCount: "1",
+            startOccurrence: String(nextStartOccurrence),
+            targetId,
+          };
+        }),
+        Match.when(
+          (eventType) => {
+            return (
+              eventType === FELLOWSHIP_EVENT.ENCOUNTER_START ||
+              eventType === FELLOWSHIP_EVENT.ENCOUNTER_END
+            );
+          },
+          (eventType) => {
+            const suggestions = getEncounterSuggestions({
+              eventType,
+              location,
+            });
+
+            if (suggestions.length !== 1) {
+              return {};
+            }
+
+            return A.head(suggestions).pipe(
+              Option.match({
+                onNone: () => {
+                  return {};
+                },
+                onSome: (suggestion) => {
+                  return {
+                    targetId: suggestion.targetId,
+                  };
+                },
+              }),
+            );
+          },
+        ),
+        Match.orElse(() => {
+          return {};
+        }),
+      );
+    },
+    [getEncounterSuggestions, value],
+  );
+
   const focusedRequirement = useMemo<FocusedRequirement | undefined>(() => {
     if (focusedRequirementLocation === undefined) {
       return undefined;
@@ -111,12 +277,23 @@ function ConfigurationEditorProviderInner({
   const contextValue = useMemo<ConfigurationEditorContextValue>(() => {
     return {
       focusedRequirement,
+      getEncounterSuggestions,
       getRequirementMetadata,
+      getSuggestedRequirementValues,
+      getUnitDeathSuggestion,
       requirementMetadata,
       setFocusedRequirement,
       value,
     };
-  }, [focusedRequirement, getRequirementMetadata, requirementMetadata, value]);
+  }, [
+    focusedRequirement,
+    getEncounterSuggestions,
+    getRequirementMetadata,
+    getSuggestedRequirementValues,
+    getUnitDeathSuggestion,
+    requirementMetadata,
+    value,
+  ]);
 
   return (
     <ConfigurationEditorContext.Provider value={contextValue}>

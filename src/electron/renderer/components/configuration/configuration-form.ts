@@ -11,7 +11,7 @@ import {
   type MilestoneEditorValue,
   type RequirementEditorValue,
 } from "./configuration-form-schema.ts";
-import { getSuggestedRequirementValues } from "./helpers/get-suggested-requirement-values.ts";
+import { type SuggestedRequirementValues } from "./helpers/get-suggested-requirement-values.ts";
 
 export const EMPTY_CONFIGURATION_EDITOR_VALUE: ConfigurationEditorValue = {
   dungeonId: "",
@@ -21,24 +21,13 @@ export const EMPTY_CONFIGURATION_EDITOR_VALUE: ConfigurationEditorValue = {
 };
 
 type CreateRequirementEditorValueOptions = {
-  readonly milestoneIndex: number;
-  readonly requirementIndex: number;
-  readonly value: ConfigurationEditorValue;
+  readonly suggestedValues?: SuggestedRequirementValues;
 };
 
 export function createRequirementEditorValue({
-  milestoneIndex,
-  requirementIndex,
-  value,
-}: CreateRequirementEditorValueOptions): RequirementEditorValue {
+  suggestedValues = {},
+}: CreateRequirementEditorValueOptions = {}): RequirementEditorValue {
   const type = FELLOWSHIP_EVENT.UNIT_DEATH;
-
-  const suggestedValues = getSuggestedRequirementValues({
-    eventType: type,
-    milestoneIndex,
-    requirementIndex,
-    value,
-  });
 
   return {
     id: crypto.randomUUID(),

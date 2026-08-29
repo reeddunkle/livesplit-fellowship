@@ -14,8 +14,10 @@ import {
   FieldLabel,
 } from "@/electron/renderer/components/ui/field.tsx";
 import { Input } from "@/electron/renderer/components/ui/input.tsx";
+import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
+import { useConfigurationEditor } from "./configuration-editor-provider.tsx";
 import {
   type ConfigurationFormApi,
   createRequirementEditorValue,
@@ -35,6 +37,8 @@ export function MilestoneEditor({
   milestoneIndex,
   onRemove,
 }: MilestoneEditorProps) {
+  const { getSuggestedRequirementValues } = useConfigurationEditor();
+
   const milestonePath = `milestones[${milestoneIndex}]` as const;
 
   return (
@@ -53,6 +57,7 @@ export function MilestoneEditor({
           </Button>
         </CardAction>
       </CardHeader>
+
       <CardContent className="grid gap-4">
         <form.Field name={`${milestonePath}.label` as const}>
           {(field) => {
@@ -80,6 +85,7 @@ export function MilestoneEditor({
             );
           }}
         </form.Field>
+
         <form.Field
           name={`${milestonePath}.requirements` as const}
           mode="array"
@@ -103,6 +109,7 @@ export function MilestoneEditor({
                     );
                   },
                 )}
+
                 <Button
                   className="h-auto min-h-24 border-dashed"
                   type="button"
@@ -111,11 +118,17 @@ export function MilestoneEditor({
                     const requirementIndex =
                       requirementsField.state.value.length;
 
-                    requirementsField.pushValue(
-                      createRequirementEditorValue({
+                    const suggestedValues = getSuggestedRequirementValues({
+                      eventType: FELLOWSHIP_EVENT.UNIT_DEATH,
+                      location: {
                         milestoneIndex,
                         requirementIndex,
-                        value: form.state.values,
+                      },
+                    });
+
+                    requirementsField.pushValue(
+                      createRequirementEditorValue({
+                        suggestedValues,
                       }),
                     );
                   }}

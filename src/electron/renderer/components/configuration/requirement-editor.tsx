@@ -18,8 +18,9 @@ import { useFellowshipDataStore } from "@/electron/renderer/stores/fellowship-da
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
+import { useConfigurationEditor } from "./configuration-editor-provider.tsx";
 import { type ConfigurationFormApi } from "./configuration-form.ts";
-import { getSuggestedRequirementValues } from "./helpers/get-suggested-requirement-values.ts";
+import { type RequirementLocation } from "./helpers/configuration-editor-metadata.ts";
 
 const CUSTOM_TARGET = "__CUSTOM__" as const;
 
@@ -39,6 +40,7 @@ type TargetOption = {
 type RequirementTargetFieldProps = {
   readonly eventType: MilestoneRequirementEventType;
   readonly form: ConfigurationFormApi;
+  readonly location: RequirementLocation;
   readonly requirementPath: `milestones[${number}].requirements[${number}]`;
 };
 
@@ -88,6 +90,7 @@ function TargetSelect({
 function RequirementTargetField({
   eventType,
   form,
+  location,
   requirementPath,
 }: RequirementTargetFieldProps) {
   const [customTargetValue, setCustomTargetValue] = useState<
@@ -95,6 +98,8 @@ function RequirementTargetField({
   >();
 
   const [isCustomInputBlurred, setIsCustomInputBlurred] = useState(false);
+
+  const { getUnitDeathSuggestion } = useConfigurationEditor();
 
   const abilities = useFellowshipDataStore((state) => state.abilities);
   const dungeons = useFellowshipDataStore((state) => state.dungeons);
@@ -147,6 +152,24 @@ function RequirementTargetField({
 
   const optionsByValue = R.fromIterableBy(options, (option) => option.value);
 
+  const handleTargetChange = (targetId: string) => {
+    form.setFieldValue(`${requirementPath}.targetId`, targetId);
+
+    if (eventType !== FELLOWSHIP_EVENT.UNIT_DEATH || targetId === "") {
+      return;
+    }
+
+    const suggestion = getUnitDeathSuggestion({
+      location,
+      targetId,
+    });
+
+    form.setFieldValue(
+      `${requirementPath}.startOccurrence`,
+      suggestion.startOccurrence,
+    );
+  };
+
   return (
     <form.Field name={`${requirementPath}.targetId` as const}>
       {(field) => {
@@ -186,7 +209,7 @@ function RequirementTargetField({
                 if (value === CUSTOM_TARGET) {
                   setCustomTargetValue("");
                   setIsCustomInputBlurred(false);
-                  field.handleChange("");
+                  handleTargetChange("");
                   return;
                 }
 
@@ -196,7 +219,7 @@ function RequirementTargetField({
                 const option = optionsByValue[value];
 
                 if (option !== undefined) {
-                  field.handleChange(option.value);
+                  handleTargetChange(option.value);
                 }
               }}
             />
@@ -220,7 +243,7 @@ function RequirementTargetField({
                 const value = event.target.value;
 
                 setCustomTargetValue(value);
-                field.handleChange(value);
+                handleTargetChange(value);
               }}
             />
 
@@ -239,8 +262,15 @@ export function RequirementEditor({
   onRemove,
   requirementIndex,
 }: RequirementEditorProps) {
+  const { getSuggestedRequirementValues } = useConfigurationEditor();
+
   const requirementPath =
     `milestones[${milestoneIndex}].requirements[${requirementIndex}]` as const;
+
+  const location = {
+    milestoneIndex,
+    requirementIndex,
+  } satisfies RequirementLocation;
 
   const selectableEventTypes = eventTypes.filter((eventType) => {
     return (
@@ -281,9 +311,7 @@ export function RequirementEditor({
 
                       const suggestedValues = getSuggestedRequirementValues({
                         eventType,
-                        milestoneIndex,
-                        requirementIndex,
-                        value: form.state.values,
+                        location,
                       });
 
                       field.handleChange(eventType);
@@ -299,7 +327,6 @@ export function RequirementEditor({
                       }
 
                       if (suggestedValues.startOccurrence !== undefined) {
-                        console.log("Setting startOccurrence.");
                         form.setFieldValue(
                           `${requirementPath}.startOccurrence`,
                           suggestedValues.startOccurrence,
@@ -327,9 +354,10 @@ export function RequirementEditor({
                 </Field>
 
                 <RequirementTargetField
-                  key={field.state.value}
                   eventType={field.state.value}
                   form={form}
+                  key={field.state.value}
+                  location={location}
                   requirementPath={requirementPath}
                 />
 
