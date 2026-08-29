@@ -1,26 +1,20 @@
 import { Link } from "@tanstack/react-router";
 
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from "@/electron/renderer/components/ui/navigation-menu.tsx";
+import { ThemeToggle } from "@/electron/renderer/components/core/theme-toggle.tsx";
+import { navigationMenuTriggerStyle } from "@/electron/renderer/components/ui/navigation-menu.tsx";
 
 export function NavMenu() {
   return (
-    <NavigationMenu>
-      <NavigationMenuList>
-        <NavigationMenuItem>
-          <NavigationMenuLink
-            className={navigationMenuTriggerStyle()}
-            render={<Link to="/settings" />}
-          >
-            Settings
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-      </NavigationMenuList>
-    </NavigationMenu>
+    <nav className="flex items-center gap-1">
+      <Link className={navigationMenuTriggerStyle()} to="/">
+        Configurations
+      </Link>
+      <Link className={navigationMenuTriggerStyle()} to="/settings">
+        Settings
+      </Link>
+      <div className="ml-2">
+        <ThemeToggle />
+      </div>
+    </nav>
   );
 }
