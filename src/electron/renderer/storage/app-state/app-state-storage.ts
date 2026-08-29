@@ -55,6 +55,11 @@ export const makeAppStateStorage = E.gen(function* () {
         return DEFAULT_APP_STATE;
       }),
     ),
+    E.catchTag("SchemaError", (error) => {
+      return E.logWarning("Invalid persisted app state. Using defaults.", {
+        error,
+      }).pipe(E.as(DEFAULT_APP_STATE));
+    }),
   );
 
   const set: AppStateStorageShape["set"] = (state) => {

@@ -49,6 +49,7 @@ export function ConfigurationSidebar() {
           </div>
         </div>
       </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -64,6 +65,7 @@ export function ConfigurationSidebar() {
                   >
                     <SidebarMenuItem>
                       <CollapsibleTrigger
+                        nativeButton={false}
                         render={
                           <SidebarMenuButton>
                             <ChevronRightIcon className="transition-transform group-data-[state=open]/dungeon:rotate-90" />
@@ -74,6 +76,7 @@ export function ConfigurationSidebar() {
                           </SidebarMenuButton>
                         }
                       />
+
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {dungeonGroup.levels.map((levelGroup) => {
@@ -85,6 +88,7 @@ export function ConfigurationSidebar() {
                               >
                                 <SidebarMenuSubItem>
                                   <CollapsibleTrigger
+                                    nativeButton={false}
                                     render={
                                       <SidebarMenuSubButton>
                                         <ChevronRightIcon className="transition-transform group-data-[state=open]/level:rotate-90" />
@@ -140,6 +144,7 @@ export function ConfigurationSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
       <SidebarRail />
     </Sidebar>
   );
