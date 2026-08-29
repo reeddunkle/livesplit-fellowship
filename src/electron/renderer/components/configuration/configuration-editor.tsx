@@ -133,14 +133,12 @@ export function ConfigurationEditor({
           Select a saved configuration from the sidebar or create a new one.
         </p>
       </header>
-
       <section className="grid gap-2">
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" onClick={onNew}>
             <PlusIcon />
             New
           </Button>
-
           <form.Subscribe selector={selectConfigurationEditorFormState}>
             {(state) => {
               const isResetEnabled = hasUnsavedChanges(state);
@@ -160,7 +158,6 @@ export function ConfigurationEditor({
               );
             }}
           </form.Subscribe>
-
           <Button
             disabled={!canDelete}
             type="button"
@@ -170,7 +167,6 @@ export function ConfigurationEditor({
             <Trash2Icon />
             Delete
           </Button>
-
           <form.Subscribe
             selector={(state) => {
               return [state.canSubmit, state.isSubmitting] as const;
@@ -190,7 +186,6 @@ export function ConfigurationEditor({
             }}
           </form.Subscribe>
         </div>
-
         <div className="min-h-6">
           <form.Subscribe selector={selectConfigurationEditorFormState}>
             {(state) => {
@@ -209,7 +204,6 @@ export function ConfigurationEditor({
           </form.Subscribe>
         </div>
       </section>
-
       <form
         className="grid gap-8"
         id={CONFIGURATION_FORM_DOM_ID}
@@ -271,7 +265,6 @@ export function ConfigurationEditor({
                       }}
                     </form.Field>
                   </div>
-
                   <div className="grid justify-start gap-4 md:grid-cols-[minmax(20rem,32rem)_10rem]">
                     <form.Field name="dungeonId">
                       {(field) => {
@@ -318,7 +311,6 @@ export function ConfigurationEditor({
                         );
                       }}
                     </form.Field>
-
                     <form.Field name="dungeonLevel">
                       {(field) => {
                         const isInvalid =
@@ -353,7 +345,6 @@ export function ConfigurationEditor({
                     </form.Field>
                   </div>
                 </div>
-
                 <form.Field name="milestones" mode="array">
                   {(milestonesField) => {
                     return (

@@ -277,6 +277,56 @@ describe("ConfigurationDAOLive", () => {
     await runTest(program);
   });
 
+  test("updates milestone labels for a semantically duplicate configuration", async () => {
+    const updatedConfiguration = {
+      ...configuration,
+      milestones: configuration.milestones.map((milestone, index) => {
+        if (index !== 0) {
+          return milestone;
+        }
+
+        return {
+          ...milestone,
+          label: "Updated First Desecrator",
+        };
+      }),
+    } satisfies FellowshipMilestoneConfiguration;
+
+    const program = E.gen(function* () {
+      const configurationDAO = yield* ConfigurationDAO;
+
+      const first = yield* configurationDAO.save({
+        configuration,
+        label: TEST_CONFIGURATION_LABEL,
+      });
+
+      const second = yield* configurationDAO.save({
+        configuration: updatedConfiguration,
+        label: TEST_CONFIGURATION_LABEL,
+      });
+
+      expect(second.id).toBe(first.id);
+      expect(second.fingerprint).toBe(first.fingerprint);
+
+      const result = yield* configurationDAO.getById({
+        id: first.id,
+      });
+
+      const persisted = getPersistedConfiguration(result);
+
+      const milestoneLabels = persisted.configuration.milestones.map(
+        (milestone) => {
+          return milestone.label;
+        },
+      );
+
+      expect(milestoneLabels).toContain("Updated First Desecrator");
+      expect(milestoneLabels).not.toContain("First Desecrator");
+    }).pipe(E.provide(makeTestLayer()));
+
+    await runTest(program);
+  });
+
   test("allows otherwise identical configurations at different dungeon levels", async () => {
     const differentLevelConfiguration = {
       ...configuration,

@@ -224,6 +224,57 @@ const make = E.gen(function* () {
         },
       ).pipe(E.mapError(mapConfigurationDAOError));
 
+      const insertConfigurationChildren = (
+        configurationId: ConfigurationId,
+      ) => {
+        return E.gen(function* () {
+          /*
+           * Milestone IDs were generated together with the requirement records,
+           * so keep those IDs. Only the parent configuration ID needs to be
+           * replaced when saving over an existing semantic configuration.
+           */
+          for (const milestone of milestoneInserts) {
+            yield* sql`
+              INSERT INTO milestone (
+                id,
+                configuration_id,
+                label
+              )
+              VALUES (
+                ${milestone.id},
+                ${configurationId},
+                ${milestone.label}
+              )
+            `;
+          }
+
+          /*
+           * Requirement records already reference the newly generated
+           * milestone IDs above, so they can be inserted unchanged.
+           */
+          for (const requirement of requirementInserts) {
+            yield* sql`
+              INSERT INTO requirement (
+                id,
+                milestone_id,
+                type,
+                target_id,
+                start_occurrence,
+                required_count
+              )
+              VALUES (
+                ${requirement.id},
+                ${requirement.milestoneId},
+                ${requirement.type},
+                ${requirement.targetId},
+                ${requirement.startOccurrence},
+                ${requirement.requiredCount}
+              )
+            `;
+          }
+        });
+      };
+
       const configurationId = yield* sql
         .withTransaction(
           E.gen(function* () {
@@ -246,11 +297,31 @@ const make = E.gen(function* () {
                 E.mapError(mapConfigurationDAOError),
               );
 
+              /*
+               * The fingerprint only represents semantic configuration data.
+               * Labels are editable metadata and therefore need to be updated
+               * even when the semantic fingerprint has not changed.
+               */
               yield* sql`
                 UPDATE configuration
                 SET label = ${configurationInsert.label}
                 WHERE id = ${configurationId}
               `;
+
+              /*
+               * Milestone labels are also excluded from the semantic
+               * fingerprint. Recreate the child graph so persisted milestone
+               * metadata reflects the submitted configuration.
+               *
+               * Deleting milestones also deletes their requirements through
+               * the milestone -> requirement ON DELETE CASCADE foreign key.
+               */
+              yield* sql`
+                DELETE FROM milestone
+                WHERE configuration_id = ${configurationId}
+              `;
+
+              yield* insertConfigurationChildren(configurationId);
             } else {
               configurationId = records.configuration.id;
 
@@ -275,41 +346,7 @@ const make = E.gen(function* () {
                 )
               `;
 
-              for (const milestone of milestoneInserts) {
-                yield* sql`
-                  INSERT INTO milestone (
-                    id,
-                    configuration_id,
-                    label
-                  )
-                  VALUES (
-                    ${milestone.id},
-                    ${milestone.configurationId},
-                    ${milestone.label}
-                  )
-                `;
-              }
-
-              for (const requirement of requirementInserts) {
-                yield* sql`
-                  INSERT INTO requirement (
-                    id,
-                    milestone_id,
-                    type,
-                    target_id,
-                    start_occurrence,
-                    required_count
-                  )
-                  VALUES (
-                    ${requirement.id},
-                    ${requirement.milestoneId},
-                    ${requirement.type},
-                    ${requirement.targetId},
-                    ${requirement.startOccurrence},
-                    ${requirement.requiredCount}
-                  )
-                `;
-              }
+              yield* insertConfigurationChildren(configurationId);
             }
 
             if (replaceDungeonAndLevel) {
@@ -335,17 +372,19 @@ const make = E.gen(function* () {
     });
   };
 
-  const save: ConfigurationDAOShape["save"] = (options) => {
+  const save: ConfigurationDAOShape["save"] = ({ configuration, label }) => {
     return persistConfiguration({
-      ...options,
+      configuration,
+      label,
       replaceDungeonAndLevel: false,
     });
   };
 
   const saveReplacingDungeonAndLevel: ConfigurationDAOShape["saveReplacingDungeonAndLevel"] =
-    (options) => {
+    ({ configuration, label }) => {
       return persistConfiguration({
-        ...options,
+        configuration,
+        label,
         replaceDungeonAndLevel: true,
       });
     };
