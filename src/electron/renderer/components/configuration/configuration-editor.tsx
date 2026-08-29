@@ -109,7 +109,7 @@ export function ConfigurationEditor({
     <main className="mx-auto grid w-full gap-8 p-6">
       <header className="grid gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Fellowship Configuration
+          Configure a run
         </h1>
 
         <p className="text-sm text-muted-foreground">
