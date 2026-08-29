@@ -8,7 +8,7 @@ export function ConfigurationSaveStateIndicator({
   if (saveState.type === "UPDATE") {
     return (
       <span className="text-sm text-amber-600 dark:text-amber-400">
-        Updates “{saveState.label}”
+        Matches existing Configuration "{saveState.label}"
       </span>
     );
   }

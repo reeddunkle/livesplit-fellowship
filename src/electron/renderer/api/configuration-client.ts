@@ -83,6 +83,6 @@ export function saveConfiguration(args: SaveConfigurationArgs) {
   return saveConfigurationBase(getApiBaseUrl())(args);
 }
 
-// function deleteConfiguration(args: ConfigurationIdArgs) {
-//   return deleteConfigurationBase(getApiBaseUrl())(args);
-// }
+export function deleteConfiguration(args: ConfigurationIdArgs) {
+  return deleteConfigurationBase(getApiBaseUrl())(args);
+}

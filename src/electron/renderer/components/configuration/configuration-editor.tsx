@@ -1,6 +1,6 @@
 import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
-import { PlusIcon, SaveIcon } from "lucide-react";
+import { PlusIcon, SaveIcon, Trash2Icon } from "lucide-react";
 
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import { Card, CardContent } from "@/electron/renderer/components/ui/card.tsx";
@@ -47,6 +47,9 @@ type ConfigurationEditorProps = {
   readonly getSaveState: (
     value: DecodedConfigurationEditorValue,
   ) => ConfigurationSaveState;
+  readonly onDeleteConfiguration: (
+    fingerprint: ConfigurationFingerprint,
+  ) => void | Promise<void>;
   readonly onSelectConfiguration: (
     fingerprint: ConfigurationFingerprint | null,
   ) => void;
@@ -67,12 +70,20 @@ function decodeConfigurationEditorValue(
   });
 }
 
+function hasConfigurationEditorChanged(
+  value: ConfigurationEditorValue,
+  defaultValue: ConfigurationEditorValue,
+): boolean {
+  return JSON.stringify(value) !== JSON.stringify(defaultValue);
+}
+
 export function ConfigurationEditor({
   configurationOptions,
   defaultValue,
   dungeonOptions,
   eventTypes,
   getSaveState,
+  onDeleteConfiguration,
   onSelectConfiguration,
   onSubmit,
   selectedConfigurationFingerprint,
@@ -107,15 +118,15 @@ export function ConfigurationEditor({
         </p>
       </header>
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="grid min-w-0 flex-1 gap-2">
+      <div className="grid gap-x-4 gap-y-2 md:grid-cols-[minmax(20rem,1fr)_auto]">
+        <div className="grid min-w-0 gap-2">
           <FieldLabel htmlFor="configuration-selection">
             Configuration
           </FieldLabel>
 
           <div className="flex gap-2">
             <NativeSelect
-              className="min-w-0 flex-1"
+              className="min-w-64 flex-1"
               id="configuration-selection"
               value={selectedConfigurationFingerprint ?? ""}
               onChange={(event) => {
@@ -162,18 +173,22 @@ export function ConfigurationEditor({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <form.Subscribe selector={(state) => state.values}>
-            {(value) => {
-              const saveState = resolveSaveState(value);
-
-              if (saveState === undefined) {
-                return null;
+        <div className="flex items-end justify-end gap-2">
+          <Button
+            disabled={selectedConfigurationFingerprint === null}
+            type="button"
+            variant="destructive"
+            onClick={() => {
+              if (selectedConfigurationFingerprint === null) {
+                return;
               }
 
-              return <ConfigurationSaveStateIndicator saveState={saveState} />;
+              onDeleteConfiguration(selectedConfigurationFingerprint);
             }}
-          </form.Subscribe>
+          >
+            <Trash2Icon />
+            Delete
+          </Button>
 
           <form.Subscribe
             selector={(state) => {
@@ -194,6 +209,22 @@ export function ConfigurationEditor({
             }}
           </form.Subscribe>
         </div>
+
+        <div />
+
+        <div className="flex min-h-6 justify-end">
+          <form.Subscribe selector={(state) => state.values}>
+            {(value) => {
+              const saveState = resolveSaveState(value);
+
+              if (saveState === undefined) {
+                return null;
+              }
+
+              return <ConfigurationSaveStateIndicator saveState={saveState} />;
+            }}
+          </form.Subscribe>
+        </div>
       </div>
 
       <form
@@ -209,19 +240,25 @@ export function ConfigurationEditor({
         <form.Subscribe selector={(state) => state.values}>
           {(value) => {
             const saveState = resolveSaveState(value);
+            const hasChanged = hasConfigurationEditorChanged(
+              value,
+              defaultValue,
+            );
 
             const saveStateClassName =
-              saveState?.type === "UPDATE"
-                ? "border-amber-500/70"
-                : saveState?.type === "CREATE"
-                  ? "border-green-500/70"
-                  : "border-border";
+              !hasChanged && selectedConfigurationFingerprint !== null
+                ? "border-border"
+                : saveState?.type === "UPDATE"
+                  ? "border-amber-500/70"
+                  : saveState?.type === "CREATE"
+                    ? "border-green-500/70"
+                    : "border-border";
 
             return (
               <div
                 className={`grid gap-8 rounded-xl border-2 p-4 transition-colors ${saveStateClassName}`}
               >
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_10rem]">
                   <form.Field name="label">
                     {(field) => {
                       const isInvalid =

@@ -74,7 +74,7 @@ function HomePageContent() {
   const selectedConfigurationFingerprint =
     useSelectedConfigurationFingerprint();
 
-  const { newConfiguration, save, selectConfiguration } =
+  const { deleteConfiguration, newConfiguration, save, selectConfiguration } =
     useConfigurationActions();
 
   const dungeons = useFellowshipDataStore((state) => state.dungeons);
@@ -91,11 +91,13 @@ function HomePageContent() {
     configurations.map((configuration) => {
       const dungeon = dungeonsById[configuration.dungeonId];
 
+      const labelSuffix = `${
+        dungeon?.name ?? configuration.dungeonId
+      } ${configuration.dungeonLevel}`;
+
       return {
         fingerprint: configuration.fingerprint,
-        label: `${configuration.label} — ${
-          dungeon?.name ?? configuration.dungeonId
-        } ${configuration.dungeonLevel}`,
+        label: `${configuration.label} (${labelSuffix})`,
       };
     });
 
@@ -112,6 +114,12 @@ function HomePageContent() {
     selectedConfiguration === undefined
       ? EMPTY_CONFIGURATION_EDITOR_VALUE
       : createConfigurationEditorValue(selectedConfiguration);
+
+  const handleDeleteConfiguration = (
+    fingerprint: ConfigurationFingerprint,
+  ): void => {
+    deleteConfiguration(fingerprint);
+  };
 
   const handleSelectConfiguration = (
     fingerprint: ConfigurationFingerprint | null,
@@ -136,6 +144,7 @@ function HomePageContent() {
       dungeonOptions={dungeonOptions}
       eventTypes={eventTypes}
       getSaveState={configurationSaveState.get}
+      onDeleteConfiguration={handleDeleteConfiguration}
       onSelectConfiguration={handleSelectConfiguration}
       onSubmit={handleSubmit}
       selectedConfigurationFingerprint={selectedConfigurationFingerprint}

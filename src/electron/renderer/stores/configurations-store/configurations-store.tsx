@@ -11,7 +11,7 @@ import {
 } from "react";
 
 import { createConfigurationFingerprint } from "@/application/configurations/configuration-fingerprint.ts";
-import { saveConfiguration as saveConfigurationApi } from "@/electron/renderer/api/configuration-client.ts";
+import * as configurationClient from "@/electron/renderer/api/configuration-client.ts";
 import { saveConfigurationApiRequest } from "@/electron/renderer/components/configuration/configuration-editor-adapter.ts";
 import { type DecodedConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-form-schema.ts";
 import { useAppStore } from "@/electron/renderer/stores/app-state-store/use-app-store.ts";
@@ -21,19 +21,33 @@ import {
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
 
-type ConfigurationOptimisticAction = {
-  readonly configuration: ConfigurationApiConfiguration;
-  readonly type: "SAVE";
-};
+type ConfigurationOptimisticAction =
+  | {
+      readonly configuration: ConfigurationApiConfiguration;
+      readonly type: "SAVE";
+    }
+  | {
+      readonly fingerprint: ConfigurationFingerprint;
+      readonly type: "DELETE";
+    };
 
 type SaveConfigurationActionInput = {
   readonly previousSelectedConfigurationFingerprint: ConfigurationFingerprint | null;
   readonly value: DecodedConfigurationEditorValue;
 };
 
+type DeleteConfigurationActionInput = {
+  readonly configuration: ConfigurationApiConfiguration;
+  readonly previousSelectedConfigurationFingerprint: ConfigurationFingerprint | null;
+};
+
 type ConfigurationSaveActionState = {
   readonly error: unknown | undefined;
   readonly savedConfiguration: ConfigurationApiConfiguration | undefined;
+};
+
+type ConfigurationDeleteActionState = {
+  readonly error: unknown | undefined;
 };
 
 type ConfigurationStateContextValue = {
@@ -43,7 +57,10 @@ type ConfigurationStateContextValue = {
 };
 
 type ConfigurationActionContextValue = {
+  readonly deleteConfiguration: (fingerprint: ConfigurationFingerprint) => void;
+  readonly deleteError: unknown | undefined;
   readonly error: unknown | undefined;
+  readonly isDeleting: boolean;
   readonly isSaving: boolean;
   readonly newConfiguration: () => void;
   readonly save: (value: DecodedConfigurationEditorValue) => void;
@@ -61,6 +78,10 @@ const INITIAL_SAVE_ACTION_STATE: ConfigurationSaveActionState = {
   savedConfiguration: undefined,
 };
 
+const INITIAL_DELETE_ACTION_STATE: ConfigurationDeleteActionState = {
+  error: undefined,
+};
+
 const ConfigurationStateContext = createContext<
   ConfigurationStateContextValue | undefined
 >(undefined);
@@ -74,6 +95,12 @@ function reduceConfigurations(
   action: ConfigurationOptimisticAction,
 ): ConfigurationApiConfigurationList {
   switch (action.type) {
+    case "DELETE": {
+      return configurations.filter((configuration) => {
+        return configuration.fingerprint !== action.fingerprint;
+      });
+    }
+
     case "SAVE": {
       const exists = configurations.some((configuration) => {
         return configuration.fingerprint === action.configuration.fingerprint;
@@ -126,7 +153,7 @@ export function ConfigurationProvider({
         setSelectedConfigurationFingerprint(candidateFingerprint.fingerprint);
 
         const savedConfiguration = await E.runPromise(
-          saveConfigurationApi({
+          configurationClient.saveConfiguration({
             request,
           }),
         );
@@ -165,6 +192,55 @@ export function ConfigurationProvider({
     INITIAL_SAVE_ACTION_STATE,
   );
 
+  const [deleteState, dispatchDelete, isDeleting] = useActionState(
+    async (
+      _previousState: ConfigurationDeleteActionState,
+      input: DeleteConfigurationActionInput,
+    ): Promise<ConfigurationDeleteActionState> => {
+      const isSelected =
+        input.configuration.fingerprint ===
+        input.previousSelectedConfigurationFingerprint;
+
+      updateOptimisticConfigurations({
+        fingerprint: input.configuration.fingerprint,
+        type: "DELETE",
+      });
+
+      if (isSelected) {
+        setSelectedConfigurationFingerprint(null);
+      }
+
+      try {
+        await E.runPromise(
+          configurationClient.deleteConfiguration({
+            id: input.configuration.id,
+          }),
+        );
+
+        await router.invalidate({
+          sync: true,
+        });
+
+        return {
+          error: undefined,
+        };
+      } catch (error) {
+        setSelectedConfigurationFingerprint(
+          input.previousSelectedConfigurationFingerprint,
+        );
+
+        await router.invalidate({
+          sync: true,
+        });
+
+        return {
+          error,
+        };
+      }
+    },
+    INITIAL_DELETE_ACTION_STATE,
+  );
+
   const selectedConfiguration = useMemo(() => {
     if (selectedConfigurationFingerprint === null) {
       return undefined;
@@ -177,7 +253,27 @@ export function ConfigurationProvider({
 
   const actionContextValue = useMemo<ConfigurationActionContextValue>(() => {
     return {
+      deleteConfiguration: (fingerprint) => {
+        const configuration = optimisticConfigurations.find((candidate) => {
+          return candidate.fingerprint === fingerprint;
+        });
+
+        if (configuration === undefined) {
+          return;
+        }
+
+        startTransition(() => {
+          dispatchDelete({
+            configuration,
+            previousSelectedConfigurationFingerprint:
+              selectedConfigurationFingerprint,
+          });
+        });
+      },
+
+      deleteError: deleteState.error,
       error: saveState.error,
+      isDeleting,
       isSaving,
 
       newConfiguration: () => {
@@ -201,8 +297,12 @@ export function ConfigurationProvider({
       },
     };
   }, [
+    deleteState.error,
+    dispatchDelete,
     dispatchSave,
+    isDeleting,
     isSaving,
+    optimisticConfigurations,
     saveState.error,
     saveState.savedConfiguration,
     selectedConfigurationFingerprint,
