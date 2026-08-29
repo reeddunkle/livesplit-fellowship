@@ -23,14 +23,13 @@ import {
 import {
   useConfigurationActions,
   useConfigurationGroups,
-  useSelectedConfigurationFingerprint,
+  useSelectedConfigurationId,
 } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { useFellowshipDataStore } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
 
 export function ConfigurationSidebar() {
   const configurationGroups = useConfigurationGroups();
-  const selectedConfigurationFingerprint =
-    useSelectedConfigurationFingerprint();
+  const selectedConfigurationId = useSelectedConfigurationId();
 
   const { selectConfiguration } = useConfigurationActions();
 
@@ -50,6 +49,7 @@ export function ConfigurationSidebar() {
           </div>
         </div>
       </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -75,6 +75,7 @@ export function ConfigurationSidebar() {
                           </SidebarMenuButton>
                         }
                       />
+
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {dungeonGroup.levels.map((levelGroup) => {
@@ -95,23 +96,24 @@ export function ConfigurationSidebar() {
                                       </SidebarMenuSubButton>
                                     }
                                   />
+
                                   <CollapsibleContent className="mt-1">
                                     <SidebarMenuSub>
                                       {levelGroup.configurations.map(
                                         (configuration) => {
                                           const isActive =
-                                            configuration.fingerprint ===
-                                            selectedConfigurationFingerprint;
+                                            configuration.id ===
+                                            selectedConfigurationId;
 
                                           return (
                                             <SidebarMenuSubItem
-                                              key={configuration.fingerprint}
+                                              key={configuration.id}
                                             >
                                               <SidebarMenuSubButton
                                                 isActive={isActive}
                                                 onClick={() => {
                                                   selectConfiguration(
-                                                    configuration.fingerprint,
+                                                    configuration.id,
                                                   );
                                                 }}
                                               >
@@ -140,6 +142,7 @@ export function ConfigurationSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
       <SidebarRail />
     </Sidebar>
   );
