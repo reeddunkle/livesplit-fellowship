@@ -1,11 +1,8 @@
-import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { createRootRouteWithContext } from "@tanstack/react-router";
 
+import { RootLayout } from "@/electron/renderer/components/layouts/root-layout";
 import { type RouterContext } from "@/electron/renderer/router/router-context";
 
-function RootComponent() {
-  return <Outlet />;
-}
-
 export const Route = createRootRouteWithContext<RouterContext>()({
-  component: RootComponent,
+  component: RootLayout,
 });
