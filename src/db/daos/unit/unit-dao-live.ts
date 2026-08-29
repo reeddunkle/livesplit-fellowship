@@ -83,6 +83,7 @@ const make = E.gen(function* () {
         FROM unit
         LEFT JOIN dungeon_unit
           ON dungeon_unit.unit_id = unit.id
+        WHERE unit.status = 'ACTIVE'
         ORDER BY unit.name
       `;
 
@@ -106,6 +107,7 @@ const make = E.gen(function* () {
         LEFT JOIN dungeon_unit
           ON dungeon_unit.unit_id = unit.id
         WHERE unit.id = ${id}
+          AND unit.status = 'ACTIVE'
       `;
 
       const unitRows = yield* decodeUnitRows(rows);

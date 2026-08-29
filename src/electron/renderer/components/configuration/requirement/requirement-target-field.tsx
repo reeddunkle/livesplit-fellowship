@@ -1,3 +1,4 @@
+import * as A from "effect/Array";
 import * as Match from "effect/Match";
 import * as R from "effect/Record";
 import { useState } from "react";
@@ -91,8 +92,11 @@ export function RequirementTargetField({
     ),
     Match.when(FELLOWSHIP_EVENT.UNIT_DEATH, () => {
       return dungeonUnits.map((unit) => {
+        const label =
+          unit.variant === null ? unit.name : `${unit.name} (${unit.variant})`;
+
         return {
-          label: unit.name,
+          label,
           value: unit.id,
         };
       });
