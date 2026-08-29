@@ -19,13 +19,13 @@ export function createWindow({
     },
     try: async () => {
       const window = new BrowserWindow({
-        height: 700,
+        height: 1100,
         webPreferences: {
           contextIsolation: true,
           nodeIntegration: false,
           sandbox: true,
         },
-        width: 1000,
+        width: 1400,
       });
 
       if (rendererDevServerUrl) {
