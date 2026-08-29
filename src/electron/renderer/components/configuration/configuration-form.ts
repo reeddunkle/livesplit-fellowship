@@ -11,7 +11,7 @@ import {
   type MilestoneEditorValue,
   type RequirementEditorValue,
 } from "./configuration-form-schema.ts";
-import { getSuggestedRequirementValues } from "./get-suggested-requirement-values.ts";
+import { getSuggestedRequirementValues } from "./helpers/get-suggested-requirement-values.ts";
 
 export const EMPTY_CONFIGURATION_EDITOR_VALUE: ConfigurationEditorValue = {
   dungeonId: "",

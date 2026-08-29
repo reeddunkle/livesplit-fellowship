@@ -11,7 +11,7 @@ import { type FellowshipMilestoneRequirement } from "@/services/fellowship/valid
 import {
   type ConfigurationEditorValue,
   type DecodedConfigurationEditorValue,
-} from "./configuration-form-schema.ts";
+} from "../configuration-form-schema.ts";
 
 function createEditorRequirement(
   requirement: ConfigurationApiConfiguration["milestones"][number]["requirements"][number],

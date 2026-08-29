@@ -4,7 +4,7 @@ import * as Match from "effect/Match";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
-import { type ConfigurationEditorValue } from "./configuration-form-schema.ts";
+import { type ConfigurationEditorValue } from "../configuration-form-schema.ts";
 
 type RequirementLocation = {
   readonly milestoneIndex: number;

@@ -19,7 +19,7 @@ import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-eve
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
 import { type ConfigurationFormApi } from "./configuration-form.ts";
-import { getSuggestedRequirementValues } from "./get-suggested-requirement-values.ts";
+import { getSuggestedRequirementValues } from "./helpers/get-suggested-requirement-values.ts";
 
 const CUSTOM_TARGET = "__CUSTOM__" as const;
 

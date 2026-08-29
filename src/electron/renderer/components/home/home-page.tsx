@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 
 import { ConfigurationEditor } from "@/electron/renderer/components/configuration/configuration-editor.tsx";
-import { createConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-editor-adapter.ts";
-import { ConfigurationEditorSidebar } from "@/electron/renderer/components/configuration/configuration-editor-sidebar";
-import { type DungeonOption } from "@/electron/renderer/components/configuration/configuration-editor-types.ts";
 import { EMPTY_CONFIGURATION_EDITOR_VALUE } from "@/electron/renderer/components/configuration/configuration-form.ts";
 import { type DecodedConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-form-schema.ts";
-import { makeConfigurationSaveStateLookup } from "@/electron/renderer/components/configuration/configuration-save-state.ts";
+import { ConfigurationSidebar } from "@/electron/renderer/components/configuration/configuration-sidebar";
+import { createConfigurationEditorValue } from "@/electron/renderer/components/configuration/helpers/configuration-editor-adapter";
+import { type DungeonOption } from "@/electron/renderer/components/configuration/helpers/configuration-editor-types";
+import { makeConfigurationSaveStateLookup } from "@/electron/renderer/components/configuration/helpers/configuration-save-state";
 import { AppLayout } from "@/electron/renderer/components/core/app-layout.tsx";
 import {
   ConfigurationProvider,
@@ -60,7 +60,7 @@ export function HomePage({
       units={units}
     >
       <ConfigurationProvider configurations={configurations}>
-        <AppLayout sidebar={<ConfigurationEditorSidebar />}>
+        <AppLayout sidebar={<ConfigurationSidebar />}>
           <HomePageContent />
         </AppLayout>
       </ConfigurationProvider>

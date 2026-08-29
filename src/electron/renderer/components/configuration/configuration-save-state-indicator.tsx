@@ -1,6 +1,6 @@
 import { AlertTriangleIcon, CirclePlusIcon } from "lucide-react";
 
-import { type ConfigurationSaveState } from "./configuration-save-state";
+import { type ConfigurationSaveState } from "./helpers/configuration-save-state";
 
 export function ConfigurationSaveStateIndicator({
   saveState,

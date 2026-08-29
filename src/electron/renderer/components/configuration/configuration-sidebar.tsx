@@ -27,7 +27,7 @@ import {
 } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { useFellowshipDataStore } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
 
-export function ConfigurationEditorSidebar() {
+export function ConfigurationSidebar() {
   const configurationGroups = useConfigurationGroups();
   const selectedConfigurationFingerprint =
     useSelectedConfigurationFingerprint();

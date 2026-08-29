@@ -17,7 +17,6 @@ import {
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
 
-import { type DungeonOption } from "./configuration-editor-types.ts";
 import {
   createMilestoneEditorValue,
   useConfigurationForm,
@@ -27,8 +26,9 @@ import {
   type ConfigurationEditorValue,
   type DecodedConfigurationEditorValue,
 } from "./configuration-form-schema.ts";
-import { type ConfigurationSaveState } from "./configuration-save-state.ts";
 import { ConfigurationSaveStateIndicator } from "./configuration-save-state-indicator.tsx";
+import { type DungeonOption } from "./helpers/configuration-editor-types.ts";
+import { type ConfigurationSaveState } from "./helpers/configuration-save-state.ts";
 import { MilestoneEditor } from "./milestone-editor.tsx";
 
 const CONFIGURATION_FORM_DOM_ID = "configuration-form";

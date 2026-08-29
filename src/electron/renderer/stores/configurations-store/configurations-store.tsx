@@ -14,8 +14,8 @@ import {
 
 import { createConfigurationFingerprint } from "@/application/configurations/configuration-fingerprint.ts";
 import * as configurationClient from "@/electron/renderer/api/configuration-client.ts";
-import { saveConfigurationApiRequest } from "@/electron/renderer/components/configuration/configuration-editor-adapter.ts";
 import { type DecodedConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-form-schema.ts";
+import { saveConfigurationApiRequest } from "@/electron/renderer/components/configuration/helpers/configuration-editor-adapter";
 import { useAppStore } from "@/electron/renderer/stores/app-state-store/use-app-store.ts";
 import {
   type ConfigurationApiConfiguration,
