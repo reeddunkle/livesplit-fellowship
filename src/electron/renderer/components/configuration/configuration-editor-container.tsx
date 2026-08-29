@@ -9,7 +9,7 @@ import {
   useConfigurationActions,
   useConfigurations,
   useSelectedConfiguration,
-  useSelectedConfigurationFingerprint,
+  useSelectedConfigurationId,
 } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { useFellowshipDataStore } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
@@ -27,10 +27,9 @@ const eventTypes = [
 export function ConfigurationEditorContainer() {
   const configurations = useConfigurations();
   const selectedConfiguration = useSelectedConfiguration();
-  const selectedConfigurationFingerprint =
-    useSelectedConfigurationFingerprint();
+  const selectedConfigurationId = useSelectedConfigurationId();
 
-  const { deleteConfiguration, newConfiguration, save } =
+  const { deleteConfiguration, newConfiguration, save, saveRevision } =
     useConfigurationActions();
 
   const dungeons = useFellowshipDataStore((state) => state.dungeons);
@@ -55,18 +54,18 @@ export function ConfigurationEditorContainer() {
 
   return (
     <ConfigurationEditor
-      canDelete={selectedConfigurationFingerprint !== null}
+      canDelete={selectedConfigurationId !== null}
       defaultValue={defaultValue}
       dungeonOptions={dungeonOptions}
       eventTypes={eventTypes}
       getSaveState={configurationSaveState.get}
-      key={selectedConfigurationFingerprint ?? "new"}
+      key={`${selectedConfigurationId ?? "new"}:${saveRevision}`}
       onDelete={() => {
-        if (selectedConfigurationFingerprint === null) {
+        if (selectedConfigurationId === null) {
           return;
         }
 
-        deleteConfiguration(selectedConfigurationFingerprint);
+        deleteConfiguration(selectedConfigurationId);
       }}
       onNew={newConfiguration}
       onSubmit={save}

@@ -12,16 +12,15 @@ import {
   useOptimistic,
 } from "react";
 
-import { createConfigurationFingerprint } from "@/application/configurations/configuration-fingerprint.ts";
 import * as configurationClient from "@/electron/renderer/api/configuration-client.ts";
 import { type DecodedConfigurationEditorValue } from "@/electron/renderer/components/configuration/configuration-form-schema.ts";
-import { saveConfigurationApiRequest } from "@/electron/renderer/components/configuration/helpers/configuration-editor-adapter";
+import { saveConfigurationApiRequest } from "@/electron/renderer/components/configuration/helpers/configuration-editor-adapter.ts";
 import { useAppStore } from "@/electron/renderer/stores/app-state-store/use-app-store.ts";
 import {
   type ConfigurationApiConfiguration,
   type ConfigurationApiConfigurationList,
 } from "@/services/api/configuration/configuration-api-schema.ts";
-import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
 type ConfigurationOptimisticAction =
   | {
@@ -29,22 +28,23 @@ type ConfigurationOptimisticAction =
       readonly type: "SAVE";
     }
   | {
-      readonly fingerprint: ConfigurationFingerprint;
+      readonly id: ConfigurationId;
       readonly type: "DELETE";
     };
 
 type SaveConfigurationActionInput = {
-  readonly previousSelectedConfigurationFingerprint: ConfigurationFingerprint | null;
+  readonly previousSelectedConfigurationId: ConfigurationId | null;
   readonly value: DecodedConfigurationEditorValue;
 };
 
 type DeleteConfigurationActionInput = {
   readonly configuration: ConfigurationApiConfiguration;
-  readonly previousSelectedConfigurationFingerprint: ConfigurationFingerprint | null;
+  readonly previousSelectedConfigurationId: ConfigurationId | null;
 };
 
 type ConfigurationSaveActionState = {
   readonly error: unknown | undefined;
+  readonly revision: number;
   readonly savedConfiguration: ConfigurationApiConfiguration | undefined;
 };
 
@@ -55,19 +55,20 @@ type ConfigurationDeleteActionState = {
 type ConfigurationStateContextValue = {
   readonly configurations: ConfigurationApiConfigurationList;
   readonly selectedConfiguration: ConfigurationApiConfiguration | undefined;
-  readonly selectedConfigurationFingerprint: ConfigurationFingerprint | null;
+  readonly selectedConfigurationId: ConfigurationId | null;
 };
 
 type ConfigurationActionContextValue = {
-  readonly deleteConfiguration: (fingerprint: ConfigurationFingerprint) => void;
+  readonly deleteConfiguration: (id: ConfigurationId) => void;
   readonly deleteError: unknown | undefined;
   readonly error: unknown | undefined;
   readonly isDeleting: boolean;
   readonly isSaving: boolean;
   readonly newConfiguration: () => void;
   readonly save: (value: DecodedConfigurationEditorValue) => void;
+  readonly saveRevision: number;
   readonly savedConfiguration: ConfigurationApiConfiguration | undefined;
-  readonly selectConfiguration: (fingerprint: ConfigurationFingerprint) => void;
+  readonly selectConfiguration: (id: ConfigurationId) => void;
 };
 
 type ConfigurationProviderProps = {
@@ -87,6 +88,7 @@ export type ConfigurationDungeonGroup = {
 
 const INITIAL_SAVE_ACTION_STATE: ConfigurationSaveActionState = {
   error: undefined,
+  revision: 0,
   savedConfiguration: undefined,
 };
 
@@ -109,13 +111,13 @@ function reduceConfigurations(
   switch (action.type) {
     case "DELETE": {
       return configurations.filter((configuration) => {
-        return configuration.fingerprint !== action.fingerprint;
+        return configuration.id !== action.id;
       });
     }
 
     case "SAVE": {
       const exists = configurations.some((configuration) => {
-        return configuration.fingerprint === action.configuration.fingerprint;
+        return configuration.id === action.configuration.id;
       });
 
       if (!exists) {
@@ -123,7 +125,7 @@ function reduceConfigurations(
       }
 
       return configurations.map((configuration) => {
-        return configuration.fingerprint === action.configuration.fingerprint
+        return configuration.id === action.configuration.id
           ? action.configuration
           : configuration;
       });
@@ -171,33 +173,19 @@ export function ConfigurationProvider({
 }: ConfigurationProviderProps) {
   const router = useRouter();
 
-  const {
-    selectedConfigurationFingerprint,
-    setSelectedConfigurationFingerprint,
-  } = useAppStore();
+  const { selectedConfigurationId, setSelectedConfigurationId } = useAppStore();
 
   const [optimisticConfigurations, updateOptimisticConfigurations] =
     useOptimistic(configurations, reduceConfigurations);
 
   const [saveState, dispatchSave, isSaving] = useActionState(
     async (
-      _previousState: ConfigurationSaveActionState,
+      previousState: ConfigurationSaveActionState,
       input: SaveConfigurationActionInput,
     ): Promise<ConfigurationSaveActionState> => {
       const request = saveConfigurationApiRequest(input.value);
 
       try {
-        /*
-         * Calculate only the configuration currently being saved. This lets
-         * the UI identify its semantic configuration before the HTTP
-         * transaction completes without re-hashing the persisted collection.
-         */
-        const candidateFingerprint = await E.runPromise(
-          createConfigurationFingerprint(request.configuration),
-        );
-
-        setSelectedConfigurationFingerprint(candidateFingerprint.fingerprint);
-
         const savedConfiguration = await E.runPromise(
           configurationClient.saveConfiguration({
             request,
@@ -205,16 +193,18 @@ export function ConfigurationProvider({
         );
 
         /*
-         * The server-returned fingerprint is authoritative. Reconcile the
-         * optimistic collection using that value rather than retaining the
-         * client-calculated fingerprint as source of truth.
+         * The API response owns persisted identity. This covers both:
+         *
+         * - creating a new configuration, where the client did not have an ID
+         * - saving a semantic duplicate, where the server may resolve the save
+         *   to an already-existing configuration ID
          */
         updateOptimisticConfigurations({
           configuration: savedConfiguration,
           type: "SAVE",
         });
 
-        setSelectedConfigurationFingerprint(savedConfiguration.fingerprint);
+        setSelectedConfigurationId(savedConfiguration.id);
 
         await router.invalidate({
           sync: true,
@@ -222,15 +212,15 @@ export function ConfigurationProvider({
 
         return {
           error: undefined,
+          revision: previousState.revision + 1,
           savedConfiguration,
         };
       } catch (error) {
-        setSelectedConfigurationFingerprint(
-          input.previousSelectedConfigurationFingerprint,
-        );
+        setSelectedConfigurationId(input.previousSelectedConfigurationId);
 
         return {
           error,
+          revision: previousState.revision,
           savedConfiguration: undefined,
         };
       }
@@ -244,16 +234,15 @@ export function ConfigurationProvider({
       input: DeleteConfigurationActionInput,
     ): Promise<ConfigurationDeleteActionState> => {
       const isSelected =
-        input.configuration.fingerprint ===
-        input.previousSelectedConfigurationFingerprint;
+        input.configuration.id === input.previousSelectedConfigurationId;
 
       updateOptimisticConfigurations({
-        fingerprint: input.configuration.fingerprint,
+        id: input.configuration.id,
         type: "DELETE",
       });
 
       if (isSelected) {
-        setSelectedConfigurationFingerprint(null);
+        setSelectedConfigurationId(null);
       }
 
       try {
@@ -271,9 +260,7 @@ export function ConfigurationProvider({
           error: undefined,
         };
       } catch (error) {
-        setSelectedConfigurationFingerprint(
-          input.previousSelectedConfigurationFingerprint,
-        );
+        setSelectedConfigurationId(input.previousSelectedConfigurationId);
 
         await router.invalidate({
           sync: true,
@@ -288,20 +275,20 @@ export function ConfigurationProvider({
   );
 
   const selectedConfiguration = useMemo(() => {
-    if (selectedConfigurationFingerprint === null) {
+    if (selectedConfigurationId === null) {
       return undefined;
     }
 
     return optimisticConfigurations.find((configuration) => {
-      return configuration.fingerprint === selectedConfigurationFingerprint;
+      return configuration.id === selectedConfigurationId;
     });
-  }, [optimisticConfigurations, selectedConfigurationFingerprint]);
+  }, [optimisticConfigurations, selectedConfigurationId]);
 
   const actionContextValue = useMemo<ConfigurationActionContextValue>(() => {
     return {
-      deleteConfiguration: (fingerprint) => {
+      deleteConfiguration: (id) => {
         const configuration = optimisticConfigurations.find((candidate) => {
-          return candidate.fingerprint === fingerprint;
+          return candidate.id === id;
         });
 
         if (configuration === undefined) {
@@ -311,8 +298,7 @@ export function ConfigurationProvider({
         startTransition(() => {
           dispatchDelete({
             configuration,
-            previousSelectedConfigurationFingerprint:
-              selectedConfigurationFingerprint,
+            previousSelectedConfigurationId: selectedConfigurationId,
           });
         });
       },
@@ -323,23 +309,23 @@ export function ConfigurationProvider({
       isSaving,
 
       newConfiguration: () => {
-        setSelectedConfigurationFingerprint(null);
+        setSelectedConfigurationId(null);
       },
 
       save: (value) => {
         startTransition(() => {
           dispatchSave({
-            previousSelectedConfigurationFingerprint:
-              selectedConfigurationFingerprint,
+            previousSelectedConfigurationId: selectedConfigurationId,
             value,
           });
         });
       },
-
       savedConfiguration: saveState.savedConfiguration,
 
-      selectConfiguration: (fingerprint) => {
-        setSelectedConfigurationFingerprint(fingerprint);
+      saveRevision: saveState.revision,
+
+      selectConfiguration: (id) => {
+        setSelectedConfigurationId(id);
       },
     };
   }, [
@@ -350,21 +336,22 @@ export function ConfigurationProvider({
     isSaving,
     optimisticConfigurations,
     saveState.error,
+    saveState.revision,
     saveState.savedConfiguration,
-    selectedConfigurationFingerprint,
-    setSelectedConfigurationFingerprint,
+    selectedConfigurationId,
+    setSelectedConfigurationId,
   ]);
 
   const stateContextValue = useMemo<ConfigurationStateContextValue>(() => {
     return {
       configurations: optimisticConfigurations,
       selectedConfiguration,
-      selectedConfigurationFingerprint,
+      selectedConfigurationId,
     };
   }, [
     optimisticConfigurations,
     selectedConfiguration,
-    selectedConfigurationFingerprint,
+    selectedConfigurationId,
   ]);
 
   return (
@@ -412,17 +399,17 @@ export function useConfigurationGroups(): ReadonlyArray<ConfigurationDungeonGrou
   }, [configurations]);
 }
 
-export function useConfigurationByFingerprint(
-  fingerprint: ConfigurationFingerprint | null,
+export function useConfigurationById(
+  id: ConfigurationId | null,
 ): ConfigurationApiConfiguration | undefined {
   const configurations = useConfigurations();
 
-  if (fingerprint === null) {
+  if (id === null) {
     return undefined;
   }
 
   return configurations.find((configuration) => {
-    return configuration.fingerprint === fingerprint;
+    return configuration.id === id;
   });
 }
 
@@ -432,22 +419,25 @@ export function useSelectedConfiguration():
   return useConfigurationState().selectedConfiguration;
 }
 
-export function useSelectedConfigurationFingerprint(): ConfigurationFingerprint | null {
-  return useConfigurationState().selectedConfigurationFingerprint;
+export function useSelectedConfigurationId(): ConfigurationId | null {
+  return useConfigurationState().selectedConfigurationId;
 }
 
 export type ConfigurationSaveStatus = {
   readonly error: unknown | undefined;
   readonly isSaving: boolean;
+  readonly revision: number;
   readonly savedConfiguration: ConfigurationApiConfiguration | undefined;
 };
 
 export function useConfigurationSaveStatus(): ConfigurationSaveStatus {
-  const { error, isSaving, savedConfiguration } = useConfigurationActions();
+  const { error, isSaving, saveRevision, savedConfiguration } =
+    useConfigurationActions();
 
   return {
     error,
     isSaving,
+    revision: saveRevision,
     savedConfiguration,
   };
 }
