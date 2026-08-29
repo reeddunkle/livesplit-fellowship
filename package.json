@@ -38,6 +38,7 @@
     "@tanstack/react-router": "catalog:tanstack",
     "class-variance-authority": "catalog:tailwind",
     "clsx": "catalog:tailwind",
+    "date-fns": "catalog:util",
     "dotenv": "catalog:runtime",
     "effect": "catalog:effect",
     "lucide-react": "catalog:ui",

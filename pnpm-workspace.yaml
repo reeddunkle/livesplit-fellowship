@@ -55,6 +55,8 @@ catalogs:
   vite:
     "@vitejs/plugin-react": "^6.0.5"
     "vite": "^8.2.1"
+  util:
+    "date-fns": "^4.4.0"
 
 allowBuilds:
   better-sqlite3: true
