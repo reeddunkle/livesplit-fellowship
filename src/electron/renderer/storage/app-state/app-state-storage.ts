@@ -26,6 +26,14 @@ export type AppStateStorageShape = {
   readonly setSelectedConfigurationId: (
     id: ConfigurationId | null,
   ) => E.Effect<void, AppStateStorageError>;
+
+  readonly setSidebarOpen: (
+    sidebarOpen: AppState["sidebarOpen"],
+  ) => E.Effect<void, AppStateStorageError>;
+
+  readonly setTheme: (
+    theme: AppState["theme"],
+  ) => E.Effect<void, AppStateStorageError>;
 };
 
 export class AppStateStorage extends Context.Service<
@@ -53,21 +61,51 @@ export const makeAppStateStorage = E.gen(function* () {
     return appStateStorage.set(APP_STATE_KEY, state);
   };
 
+  const update = (
+    updateState: (state: AppState) => AppState,
+  ): E.Effect<void, AppStateStorageError> => {
+    return E.gen(function* () {
+      const state = yield* get;
+
+      yield* set(updateState(state));
+    });
+  };
+
   const setSelectedConfigurationId: AppStateStorageShape["setSelectedConfigurationId"] =
     (id) => {
-      return E.gen(function* () {
-        const state = yield* get;
-
-        yield* set({
+      return update((state) => {
+        return {
           ...state,
           selectedConfigurationId: id,
-        });
+        };
       });
     };
+
+  const setSidebarOpen: AppStateStorageShape["setSidebarOpen"] = (
+    sidebarOpen,
+  ) => {
+    return update((state) => {
+      return {
+        ...state,
+        sidebarOpen,
+      };
+    });
+  };
+
+  const setTheme: AppStateStorageShape["setTheme"] = (theme) => {
+    return update((state) => {
+      return {
+        ...state,
+        theme,
+      };
+    });
+  };
 
   return {
     get,
     set,
     setSelectedConfigurationId,
+    setSidebarOpen,
+    setTheme,
   } satisfies AppStateStorageShape;
 });

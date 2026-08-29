@@ -10,7 +10,8 @@ export function useAppStore(): UseAppStoreResult {
 
   return {
     ...state,
-    setSelectedConfigurationFingerprint:
-      appStore.setSelectedConfigurationFingerprint,
+    setSelectedConfigurationId: appStore.setSelectedConfigurationId,
+    setSidebarOpen: appStore.setSidebarOpen,
+    setTheme: appStore.setTheme,
   };
 }

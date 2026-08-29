@@ -23,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@/electron/renderer/components/ui/tooltip";
 import { useIsMobile } from "@/electron/renderer/hooks/use-mobile";
+import { useAppStore } from "@/electron/renderer/stores/app-state-store/use-app-store.ts";
 import { cn } from "@/util/class-names";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
@@ -54,7 +55,6 @@ function useSidebar() {
 }
 
 function SidebarProvider({
-  defaultOpen = true,
   open: openProp,
   onOpenChange: setOpenProp,
   className,
@@ -62,36 +62,34 @@ function SidebarProvider({
   children,
   ...props
 }: React.ComponentProps<"div"> & {
-  defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 
-  // This is the internal state of the sidebar.
-  // We use openProp and setOpenProp for control from outside the component.
-  const [_open, _setOpen] = React.useState(defaultOpen);
-  const open = openProp ?? _open;
+  const { sidebarOpen, setSidebarOpen } = useAppStore();
+
+  const open = openProp ?? sidebarOpen;
+
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === "function" ? value(open) : value;
-      if (setOpenProp) {
+
+      if (setOpenProp !== undefined) {
         setOpenProp(openState);
-      } else {
-        _setOpen(openState);
+        return;
       }
 
-      // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      setSidebarOpen(openState);
     },
-    [setOpenProp, open],
+    [open, setOpenProp, setSidebarOpen],
   );
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
-  }, [isMobile, setOpen, setOpenMobile]);
+  }, [isMobile, setOpen]);
 
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
@@ -106,7 +104,10 @@ function SidebarProvider({
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [toggleSidebar]);
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
@@ -123,7 +124,7 @@ function SidebarProvider({
       state,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
+    [isMobile, open, openMobile, setOpen, setOpenMobile, state, toggleSidebar],
   );
 
   return (

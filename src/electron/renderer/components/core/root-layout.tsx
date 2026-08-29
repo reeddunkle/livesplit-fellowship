@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/electron/renderer/components/ui/tooltip.tsx";
 
 export function RootLayout() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <ThemeProvider>
       <TooltipProvider>
         <Outlet />
       </TooltipProvider>

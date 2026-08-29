@@ -4,6 +4,7 @@ import { browserRuntime } from "@/electron/renderer/runtimes/browser-runtime.ts"
 import {
   type AppState,
   DEFAULT_APP_STATE,
+  type Theme,
 } from "@/electron/renderer/storage/app-state/app-state-schema.ts";
 import { AppStateStorage } from "@/electron/renderer/storage/app-state/app-state-storage.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
@@ -14,6 +15,10 @@ export type AppStoreActions = {
   readonly setSelectedConfigurationId: (
     selectedConfigurationId: ConfigurationId | null,
   ) => void;
+
+  readonly setSidebarOpen: (sidebarOpen: boolean) => void;
+
+  readonly setTheme: (theme: Theme) => void;
 };
 
 export type AppStore = {
@@ -86,6 +91,28 @@ export function makeAppStore(): AppStore {
     persist(snapshot);
   }
 
+  function setSidebarOpen(sidebarOpen: boolean): void {
+    updateSnapshot((state) => {
+      return {
+        ...state,
+        sidebarOpen,
+      };
+    });
+
+    persist(snapshot);
+  }
+
+  function setTheme(theme: Theme): void {
+    updateSnapshot((state) => {
+      return {
+        ...state,
+        theme,
+      };
+    });
+
+    persist(snapshot);
+  }
+
   function subscribe(listener: Listener): () => void {
     listeners.add(listener);
 
@@ -103,6 +130,8 @@ export function makeAppStore(): AppStore {
   return {
     getSnapshot,
     setSelectedConfigurationId,
+    setSidebarOpen,
+    setTheme,
     subscribe,
   };
 }
