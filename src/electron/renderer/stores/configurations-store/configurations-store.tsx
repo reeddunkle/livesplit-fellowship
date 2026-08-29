@@ -1,6 +1,8 @@
 import { useRouter } from "@tanstack/react-router";
 import * as A from "effect/Array";
+import * as DateTime from "effect/DateTime";
 import * as E from "effect/Effect";
+import * as Order from "effect/Order";
 import * as Record from "effect/Record";
 import {
   createContext,
@@ -96,6 +98,29 @@ const INITIAL_DELETE_ACTION_STATE: ConfigurationDeleteActionState = {
   error: undefined,
 };
 
+export const ConfigurationUpdatedAtAscendingOrder = Order.mapInput(
+  Order.Number,
+  (configuration: ConfigurationApiConfiguration) => {
+    return DateTime.toEpochMillis(configuration.updatedAt);
+  },
+);
+
+export const ConfigurationUpdatedAtDescendingOrder = Order.flip(
+  ConfigurationUpdatedAtAscendingOrder,
+);
+
+const ConfigurationDungeonLevelAscendingOrder = Order.mapInput(
+  Order.Number,
+  (group: ConfigurationLevelGroup) => group.dungeonLevel,
+);
+
+export function sortConfigurations(
+  configurations: ConfigurationApiConfigurationList,
+  order: Order.Order<ConfigurationApiConfiguration>,
+): ConfigurationApiConfigurationList {
+  return A.sort(configurations, order);
+}
+
 const ConfigurationStateContext = createContext<
   ConfigurationStateContextValue | undefined
 >(undefined);
@@ -148,16 +173,20 @@ function groupConfigurations(
         (configuration) => String(configuration.dungeonLevel),
       );
 
-      const levels = Record.toEntries(configurationsByLevel)
-        .map(([dungeonLevel, levelConfigurations]) => {
-          return {
-            configurations: levelConfigurations,
-            dungeonLevel: Number(dungeonLevel),
-          } satisfies ConfigurationLevelGroup;
-        })
-        .sort((left, right) => {
-          return left.dungeonLevel - right.dungeonLevel;
-        });
+      const levels = A.sort(
+        Record.toEntries(configurationsByLevel).map(
+          ([dungeonLevel, levelConfigurations]) => {
+            return {
+              configurations: sortConfigurations(
+                levelConfigurations,
+                ConfigurationUpdatedAtDescendingOrder,
+              ),
+              dungeonLevel: Number(dungeonLevel),
+            } satisfies ConfigurationLevelGroup;
+          },
+        ),
+        ConfigurationDungeonLevelAscendingOrder,
+      );
 
       return {
         dungeonId,

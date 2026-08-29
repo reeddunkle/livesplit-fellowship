@@ -1,11 +1,27 @@
+import * as A from "effect/Array";
+import * as Match from "effect/Match";
 import * as R from "effect/Record";
-import { ChevronRightIcon, FileTextIcon, FolderIcon } from "lucide-react";
+import {
+  ChevronRightIcon,
+  FileTextIcon,
+  FolderIcon,
+  Trash2Icon,
+} from "lucide-react";
+import { useState } from "react";
 
+import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/electron/renderer/components/ui/collapsible.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/electron/renderer/components/ui/select.tsx";
 import {
   Sidebar,
   SidebarContent,
@@ -21,17 +37,33 @@ import {
   SidebarRail,
 } from "@/electron/renderer/components/ui/sidebar.tsx";
 import {
+  ConfigurationUpdatedAtAscendingOrder,
+  ConfigurationUpdatedAtDescendingOrder,
   useConfigurationActions,
   useConfigurationGroups,
   useSelectedConfigurationId,
 } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { useFellowshipDataStore } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
+import { formatLocalDateTime } from "@/electron/renderer/util/format-date-time.ts";
+
+import {
+  CONFIGURATION_SORT_OPTIONS,
+  type ConfigurationSort,
+  ConfigurationSortOptionContent,
+  DEFAULT_CONFIGURATION_SORT,
+  getConfigurationSortOption,
+} from "./configuration-sort";
 
 export function ConfigurationSidebar() {
+  const [sort, setSort] = useState<ConfigurationSort>(
+    DEFAULT_CONFIGURATION_SORT,
+  );
+
   const configurationGroups = useConfigurationGroups();
   const selectedConfigurationId = useSelectedConfigurationId();
 
-  const { selectConfiguration } = useConfigurationActions();
+  const { deleteConfiguration, selectConfiguration } =
+    useConfigurationActions();
 
   const dungeons = useFellowshipDataStore((state) => state.dungeons);
 
@@ -39,13 +71,56 @@ export function ConfigurationSidebar() {
     return dungeon.id;
   });
 
+  const selectedSortOption = getConfigurationSortOption(sort);
+
+  const configurationOrder = Match.value(sort).pipe(
+    Match.when(
+      "UPDATED_DESCENDING",
+      () => ConfigurationUpdatedAtDescendingOrder,
+    ),
+    Match.when("UPDATED_ASCENDING", () => ConfigurationUpdatedAtAscendingOrder),
+    Match.exhaustive,
+  );
+
   return (
     <Sidebar collapsible="offcanvas">
-      <SidebarHeader className="h-14 shrink-0 justify-center border-b">
-        <div className="px-2">
-          <div className="text-sm font-semibold">Configurations</div>
-          <div className="text-xs text-muted-foreground">
-            Saved dungeon routes
+      <SidebarHeader className="shrink-0 border-b py-2">
+        <div className="space-y-2 px-2">
+          <div>
+            <div className="text-sm font-semibold">Saved configurations</div>
+          </div>
+          <div className="space-y-1">
+            <label
+              className="text-xs font-medium text-muted-foreground"
+              htmlFor="configuration-sort"
+            >
+              Sort
+            </label>
+            <Select
+              value={sort}
+              onValueChange={(value) => {
+                Match.value(value).pipe(
+                  Match.when("UPDATED_DESCENDING", setSort),
+                  Match.when("UPDATED_ASCENDING", setSort),
+                  Match.orElse(() => undefined),
+                );
+              }}
+            >
+              <SelectTrigger className="w-full" id="configuration-sort">
+                <SelectValue>
+                  <ConfigurationSortOptionContent option={selectedSortOption} />
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {CONFIGURATION_SORT_OPTIONS.map((option) => {
+                  return (
+                    <SelectItem key={option.value} value={option.value}>
+                      <ConfigurationSortOptionContent option={option} />
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </SidebarHeader>
@@ -77,6 +152,11 @@ export function ConfigurationSidebar() {
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {dungeonGroup.levels.map((levelGroup) => {
+                            const configurations = A.sort(
+                              levelGroup.configurations,
+                              configurationOrder,
+                            );
+
                             return (
                               <Collapsible
                                 className="group/level"
@@ -98,36 +178,56 @@ export function ConfigurationSidebar() {
                                   />
                                   <CollapsibleContent className="mt-1">
                                     <SidebarMenuSub>
-                                      {levelGroup.configurations.map(
-                                        (configuration) => {
-                                          const isActive =
-                                            configuration.id ===
-                                            selectedConfigurationId;
+                                      {configurations.map((configuration) => {
+                                        const isActive =
+                                          configuration.id ===
+                                          selectedConfigurationId;
 
-                                          return (
-                                            <SidebarMenuSubItem
-                                              key={configuration.id}
+                                        return (
+                                          <SidebarMenuSubItem
+                                            className="flex items-center gap-1"
+                                            key={configuration.id}
+                                          >
+                                            <SidebarMenuSubButton
+                                              className="h-auto min-w-0 flex-1 items-start py-1.5 text-left data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground"
+                                              isActive={isActive}
+                                              render={<button type="button" />}
+                                              onClick={() => {
+                                                selectConfiguration(
+                                                  configuration.id,
+                                                );
+                                              }}
                                             >
-                                              <SidebarMenuSubButton
-                                                isActive={isActive}
-                                                render={
-                                                  <button type="button" />
-                                                }
-                                                onClick={() => {
-                                                  selectConfiguration(
-                                                    configuration.id,
-                                                  );
-                                                }}
-                                              >
-                                                <FileTextIcon />
-                                                <span>
+                                              <FileTextIcon className="mt-0.5" />
+                                              <span className="min-w-0 flex-1">
+                                                <span className="block truncate">
                                                   {configuration.label}
                                                 </span>
-                                              </SidebarMenuSubButton>
-                                            </SidebarMenuSubItem>
-                                          );
-                                        },
-                                      )}
+                                                <span className="block truncate text-xs font-normal text-muted-foreground">
+                                                  Updated{" "}
+                                                  {formatLocalDateTime(
+                                                    configuration.updatedAt,
+                                                  )}
+                                                </span>
+                                              </span>
+                                            </SidebarMenuSubButton>
+                                            <Button
+                                              aria-label={`Delete ${configuration.label}`}
+                                              className="shrink-0"
+                                              size="icon-sm"
+                                              type="button"
+                                              variant="ghost"
+                                              onClick={() => {
+                                                deleteConfiguration(
+                                                  configuration.id,
+                                                );
+                                              }}
+                                            >
+                                              <Trash2Icon />
+                                            </Button>
+                                          </SidebarMenuSubItem>
+                                        );
+                                      })}
                                     </SidebarMenuSub>
                                   </CollapsibleContent>
                                 </SidebarMenuSubItem>
