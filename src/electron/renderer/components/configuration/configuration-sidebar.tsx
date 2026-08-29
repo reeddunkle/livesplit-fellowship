@@ -65,7 +65,6 @@ export function ConfigurationSidebar() {
                   >
                     <SidebarMenuItem>
                       <CollapsibleTrigger
-                        nativeButton={false}
                         render={
                           <SidebarMenuButton>
                             <ChevronRightIcon className="transition-transform group-data-[state=open]/dungeon:rotate-90" />
@@ -88,9 +87,10 @@ export function ConfigurationSidebar() {
                               >
                                 <SidebarMenuSubItem>
                                   <CollapsibleTrigger
-                                    nativeButton={false}
                                     render={
-                                      <SidebarMenuSubButton>
+                                      <SidebarMenuSubButton
+                                        render={<button type="button" />}
+                                      >
                                         <ChevronRightIcon className="transition-transform group-data-[state=open]/level:rotate-90" />
                                         <span>
                                           Eternal {levelGroup.dungeonLevel}
@@ -113,6 +113,9 @@ export function ConfigurationSidebar() {
                                             >
                                               <SidebarMenuSubButton
                                                 isActive={isActive}
+                                                render={
+                                                  <button type="button" />
+                                                }
                                                 onClick={() => {
                                                   selectConfiguration(
                                                     configuration.id,
