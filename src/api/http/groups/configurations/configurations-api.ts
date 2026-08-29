@@ -7,6 +7,7 @@ import * as HttpApiSchema from "effect/unstable/httpapi/HttpApiSchema";
 import {
   ConfigurationApiConfigurationListSchema,
   ConfigurationApiConfigurationSchema,
+  DeleteConfigurationsByDungeonAndLevelApiRequestSchema,
   SaveConfigurationApiRequestSchema,
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
@@ -53,6 +54,16 @@ const SaveConfigurationEndpoint = HttpApiEndpoint.post(
   },
 );
 
+const SaveReplacingDungeonAndLevelEndpoint = HttpApiEndpoint.post(
+  "saveReplacingDungeonAndLevel",
+  `${CONFIGURATIONS_ROUTE}/replace`,
+  {
+    error: HttpApiError.InternalServerErrorNoContent,
+    payload: SaveConfigurationApiRequestSchema,
+    success: SavedConfigurationSchema,
+  },
+);
+
 const DeleteConfigurationEndpoint = HttpApiEndpoint.delete(
   "deleteConfiguration",
   `${CONFIGURATIONS_ROUTE}/:id`,
@@ -62,9 +73,20 @@ const DeleteConfigurationEndpoint = HttpApiEndpoint.delete(
   },
 );
 
+const DeleteConfigurationsByDungeonAndLevelEndpoint = HttpApiEndpoint.delete(
+  "deleteConfigurationsByDungeonAndLevel",
+  `${CONFIGURATIONS_ROUTE}/dungeon-level`,
+  {
+    error: HttpApiError.InternalServerErrorNoContent,
+    payload: DeleteConfigurationsByDungeonAndLevelApiRequestSchema,
+  },
+);
+
 export const ConfigurationsApi = HttpApiGroup.make("configurations").add(
   GetConfigurationsEndpoint,
   GetConfigurationEndpoint,
   SaveConfigurationEndpoint,
+  SaveReplacingDungeonAndLevelEndpoint,
   DeleteConfigurationEndpoint,
+  DeleteConfigurationsByDungeonAndLevelEndpoint,
 );

@@ -62,10 +62,32 @@ const ConfigurationsApiHandlersInferred = HttpApiBuilder.group(
           })
           .pipe(E.catch(mapConfigurationError));
       })
+      .handle("saveReplacingDungeonAndLevel", ({ payload }) => {
+        const configuration = {
+          dungeonId: payload.configuration.dungeonId,
+          dungeonLevel: payload.configuration.dungeonLevel,
+          milestones: payload.configuration.milestones,
+        } satisfies FellowshipMilestoneConfiguration;
+
+        return configurationApiService
+          .saveReplacingDungeonAndLevel({
+            configuration,
+            label: payload.label,
+          })
+          .pipe(E.catch(mapConfigurationError));
+      })
       .handle("deleteConfiguration", ({ params }) => {
         return configurationApiService
           .delete({
             id: params.id,
+          })
+          .pipe(E.catch(mapConfigurationError));
+      })
+      .handle("deleteConfigurationsByDungeonAndLevel", ({ payload }) => {
+        return configurationApiService
+          .deleteByDungeonAndLevel({
+            dungeonId: payload.dungeonId,
+            dungeonLevel: payload.dungeonLevel,
           })
           .pipe(E.catch(mapConfigurationError));
       });
