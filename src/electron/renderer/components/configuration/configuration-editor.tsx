@@ -59,6 +59,13 @@ type ConfigurationEditorProps = {
   readonly selectedConfigurationFingerprint: ConfigurationFingerprint | null;
 };
 
+type ConfigurationEditorFormState = {
+  readonly isDefaultValue: boolean;
+  readonly isDirty: boolean;
+  readonly isSubmitted: boolean;
+  readonly values: ConfigurationEditorValue;
+};
+
 function decodeConfigurationEditorValue(
   value: ConfigurationEditorValue,
 ): DecodedConfigurationEditorValue | undefined {
@@ -70,11 +77,34 @@ function decodeConfigurationEditorValue(
   });
 }
 
-function hasConfigurationEditorChanged(
-  value: ConfigurationEditorValue,
-  defaultValue: ConfigurationEditorValue,
-): boolean {
-  return JSON.stringify(value) !== JSON.stringify(defaultValue);
+function selectConfigurationEditorFormState(
+  state: ConfigurationEditorFormState,
+) {
+  return {
+    isDefaultValue: state.isDefaultValue,
+    isDirty: state.isDirty,
+    isSubmitted: state.isSubmitted,
+    values: state.values,
+  };
+}
+
+function hasUnsavedChanges({
+  isDefaultValue,
+  isDirty,
+  isSubmitted,
+}: Pick<
+  ConfigurationEditorFormState,
+  "isDefaultValue" | "isDirty" | "isSubmitted"
+>): boolean {
+  if (isDefaultValue) {
+    return false;
+  }
+
+  if (isSubmitted && !isDirty) {
+    return false;
+  }
+
+  return true;
 }
 
 export function ConfigurationEditor({
@@ -172,16 +202,13 @@ export function ConfigurationEditor({
             New
           </Button>
 
-          <form.Subscribe selector={(state) => state.values}>
-            {(value) => {
-              const hasChanged = hasConfigurationEditorChanged(
-                value,
-                defaultValue,
-              );
+          <form.Subscribe selector={selectConfigurationEditorFormState}>
+            {(state) => {
+              const isResetEnabled = hasUnsavedChanges(state);
 
               return (
                 <Button
-                  disabled={!hasChanged}
+                  disabled={!isResetEnabled}
                   type="button"
                   variant="outline"
                   onClick={() => {
@@ -232,19 +259,15 @@ export function ConfigurationEditor({
         </div>
 
         <div className="min-h-6">
-          <form.Subscribe selector={(state) => state.values}>
-            {(value) => {
-              const saveState = resolveSaveState(value);
-              const hasChanged = hasConfigurationEditorChanged(
-                value,
-                defaultValue,
-              );
+          <form.Subscribe selector={selectConfigurationEditorFormState}>
+            {(state) => {
+              if (!hasUnsavedChanges(state)) {
+                return null;
+              }
 
-              const shouldShowSaveState =
-                saveState !== undefined &&
-                (hasChanged || selectedConfigurationFingerprint === null);
+              const saveState = resolveSaveState(state.values);
 
-              if (!shouldShowSaveState) {
+              if (saveState === undefined) {
                 return null;
               }
 
@@ -264,16 +287,10 @@ export function ConfigurationEditor({
           form.handleSubmit();
         }}
       >
-        <form.Subscribe selector={(state) => state.values}>
-          {(value) => {
-            const saveState = resolveSaveState(value);
-            const hasChanged = hasConfigurationEditorChanged(
-              value,
-              defaultValue,
-            );
-
-            const shouldHighlightSaveState =
-              hasChanged || selectedConfigurationFingerprint === null;
+        <form.Subscribe selector={selectConfigurationEditorFormState}>
+          {(state) => {
+            const saveState = resolveSaveState(state.values);
+            const shouldHighlightSaveState = hasUnsavedChanges(state);
 
             const saveStateClassName = !shouldHighlightSaveState
               ? "border-border"
