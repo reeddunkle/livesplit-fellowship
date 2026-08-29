@@ -1,3 +1,5 @@
+import { AlertTriangleIcon, CirclePlusIcon } from "lucide-react";
+
 import { type ConfigurationSaveState } from "./configuration-save-state";
 
 export function ConfigurationSaveStateIndicator({
@@ -7,15 +9,21 @@ export function ConfigurationSaveStateIndicator({
 }) {
   if (saveState.type === "UPDATE") {
     return (
-      <span className="text-sm text-amber-600 dark:text-amber-400">
-        Matches existing Configuration "{saveState.label}"
-      </span>
+      <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+        <AlertTriangleIcon className="size-4 shrink-0" />
+
+        <span>
+          Saving will update the existing configuration "{saveState.label}".
+        </span>
+      </div>
     );
   }
 
   return (
-    <span className="text-sm text-green-600 dark:text-green-400">
-      Creates a new configuration
-    </span>
+    <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+      <CirclePlusIcon className="size-4 shrink-0" />
+
+      <span>Saving will create a new configuration.</span>
+    </div>
   );
 }

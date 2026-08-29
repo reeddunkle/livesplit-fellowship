@@ -1,6 +1,6 @@
 import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
-import { PlusIcon, SaveIcon, Trash2Icon } from "lucide-react";
+import { PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from "lucide-react";
 
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import { Card, CardContent } from "@/electron/renderer/components/ui/card.tsx";
@@ -118,62 +118,83 @@ export function ConfigurationEditor({
         </p>
       </header>
 
-      <div className="grid gap-x-4 gap-y-2 md:grid-cols-[minmax(20rem,1fr)_auto]">
-        <div className="grid min-w-0 gap-2">
+      <div className="grid gap-x-6 gap-y-2 lg:grid-cols-[minmax(20rem,1fr)_auto]">
+        <div className="grid min-w-0 content-start gap-2">
           <FieldLabel htmlFor="configuration-selection">
             Configuration
           </FieldLabel>
 
-          <div className="flex gap-2">
-            <NativeSelect
-              className="min-w-64 flex-1"
-              id="configuration-selection"
-              value={selectedConfigurationFingerprint ?? ""}
-              onChange={(event) => {
-                const result = Schema.decodeUnknownResult(
-                  ConfigurationFingerprintSchema,
-                )(event.target.value);
+          <NativeSelect
+            className="w-full min-w-64"
+            id="configuration-selection"
+            value={selectedConfigurationFingerprint ?? ""}
+            onChange={(event) => {
+              const result = Schema.decodeUnknownResult(
+                ConfigurationFingerprintSchema,
+              )(event.target.value);
 
-                Result.match(result, {
-                  onFailure: (error) => {
-                    console.error("Invalid configuration fingerprint.", error);
-                  },
-                  onSuccess: (fingerprint) => {
-                    onSelectConfiguration(fingerprint);
-                  },
-                });
-              }}
-            >
-              <NativeSelectOption value="" disabled>
-                Select a configuration
-              </NativeSelectOption>
+              Result.match(result, {
+                onFailure: (error) => {
+                  console.error("Invalid configuration fingerprint.", error);
+                },
+                onSuccess: (fingerprint) => {
+                  onSelectConfiguration(fingerprint);
+                },
+              });
+            }}
+          >
+            <NativeSelectOption value="" disabled>
+              Select a configuration
+            </NativeSelectOption>
 
-              {configurationOptions.map((configuration) => {
-                return (
-                  <NativeSelectOption
-                    key={configuration.fingerprint}
-                    value={configuration.fingerprint}
-                  >
-                    {configuration.label}
-                  </NativeSelectOption>
-                );
-              })}
-            </NativeSelect>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                onSelectConfiguration(null);
-              }}
-            >
-              <PlusIcon />
-              New configuration
-            </Button>
-          </div>
+            {configurationOptions.map((configuration) => {
+              return (
+                <NativeSelectOption
+                  key={configuration.fingerprint}
+                  value={configuration.fingerprint}
+                >
+                  {configuration.label}
+                </NativeSelectOption>
+              );
+            })}
+          </NativeSelect>
         </div>
 
-        <div className="flex items-end justify-end gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:w-152 lg:self-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              onSelectConfiguration(null);
+            }}
+          >
+            <PlusIcon />
+            New
+          </Button>
+
+          <form.Subscribe selector={(state) => state.values}>
+            {(value) => {
+              const hasChanged = hasConfigurationEditorChanged(
+                value,
+                defaultValue,
+              );
+
+              return (
+                <Button
+                  disabled={!hasChanged}
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    form.reset();
+                  }}
+                >
+                  <RotateCcwIcon />
+                  Reset
+                </Button>
+              );
+            }}
+          </form.Subscribe>
+
           <Button
             disabled={selectedConfigurationFingerprint === null}
             type="button"
@@ -203,21 +224,27 @@ export function ConfigurationEditor({
                   type="submit"
                 >
                   <SaveIcon />
-                  {isSubmitting ? "Saving..." : "Save configuration"}
+                  {isSubmitting ? "Saving..." : "Save"}
                 </Button>
               );
             }}
           </form.Subscribe>
         </div>
 
-        <div />
-
-        <div className="flex min-h-6 justify-end">
+        <div className="min-h-6">
           <form.Subscribe selector={(state) => state.values}>
             {(value) => {
               const saveState = resolveSaveState(value);
+              const hasChanged = hasConfigurationEditorChanged(
+                value,
+                defaultValue,
+              );
 
-              if (saveState === undefined) {
+              const shouldShowSaveState =
+                saveState !== undefined &&
+                (hasChanged || selectedConfigurationFingerprint === null);
+
+              if (!shouldShowSaveState) {
                 return null;
               }
 
@@ -245,14 +272,16 @@ export function ConfigurationEditor({
               defaultValue,
             );
 
-            const saveStateClassName =
-              !hasChanged && selectedConfigurationFingerprint !== null
-                ? "border-border"
-                : saveState?.type === "UPDATE"
-                  ? "border-amber-500/70"
-                  : saveState?.type === "CREATE"
-                    ? "border-green-500/70"
-                    : "border-border";
+            const shouldHighlightSaveState =
+              hasChanged || selectedConfigurationFingerprint === null;
+
+            const saveStateClassName = !shouldHighlightSaveState
+              ? "border-border"
+              : saveState?.type === "UPDATE"
+                ? "border-amber-500/70"
+                : saveState?.type === "CREATE"
+                  ? "border-green-500/70"
+                  : "border-border";
 
             return (
               <div
@@ -407,18 +436,6 @@ export function ConfigurationEditor({
                     );
                   }}
                 </form.Field>
-
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      form.reset();
-                    }}
-                  >
-                    Reset
-                  </Button>
-                </div>
               </div>
             );
           }}

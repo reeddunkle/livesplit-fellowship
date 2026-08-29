@@ -89,7 +89,10 @@ function RequirementTargetField({
   form,
   requirementPath,
 }: RequirementTargetFieldProps) {
-  const [selectedTarget, setSelectedTarget] = useState<string | undefined>();
+  const [customTargetValue, setCustomTargetValue] = useState<
+    string | undefined
+  >();
+
   const [isCustomInputBlurred, setIsCustomInputBlurred] = useState(false);
 
   const abilities = useFellowshipDataStore((state) => state.abilities);
@@ -148,9 +151,18 @@ function RequirementTargetField({
       {(field) => {
         const existingOption = optionsByValue[field.state.value];
 
-        const selectedValue =
-          selectedTarget ??
-          (existingOption === undefined ? CUSTOM_TARGET : existingOption.value);
+        /*
+         * A custom target override is only active while it still matches the
+         * current form value. If form.reset() changes the field externally,
+         * the form value becomes authoritative again automatically.
+         */
+        const isCustomOverride =
+          customTargetValue !== undefined &&
+          customTargetValue === field.state.value;
+
+        const selectedValue = isCustomOverride
+          ? CUSTOM_TARGET
+          : (existingOption?.value ?? CUSTOM_TARGET);
 
         const isCustom = selectedValue === CUSTOM_TARGET;
 
@@ -170,13 +182,15 @@ function RequirementTargetField({
               value={selectedValue}
               onBlur={field.handleBlur}
               onChange={(value) => {
-                setSelectedTarget(value);
-
                 if (value === CUSTOM_TARGET) {
+                  setCustomTargetValue("");
                   setIsCustomInputBlurred(false);
                   field.handleChange("");
                   return;
                 }
+
+                setCustomTargetValue(undefined);
+                setIsCustomInputBlurred(false);
 
                 const option = optionsByValue[value];
 
@@ -202,7 +216,10 @@ function RequirementTargetField({
                 field.handleBlur();
               }}
               onChange={(event) => {
-                field.handleChange(event.target.value);
+                const value = event.target.value;
+
+                setCustomTargetValue(value);
+                field.handleChange(value);
               }}
             />
 
