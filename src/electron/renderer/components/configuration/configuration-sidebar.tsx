@@ -177,7 +177,7 @@ export function ConfigurationSidebar() {
                                     }
                                   />
                                   <CollapsibleContent className="mt-1">
-                                    <SidebarMenuSub>
+                                    <SidebarMenuSub className="mr-0">
                                       {configurations.map((configuration) => {
                                         const isActive =
                                           configuration.id ===
@@ -185,46 +185,56 @@ export function ConfigurationSidebar() {
 
                                         return (
                                           <SidebarMenuSubItem
-                                            className="flex items-center gap-1"
                                             key={configuration.id}
                                           >
-                                            <SidebarMenuSubButton
-                                              className="h-auto min-w-0 flex-1 items-start py-1.5 text-left data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground"
-                                              isActive={isActive}
-                                              render={<button type="button" />}
-                                              onClick={() => {
-                                                selectConfiguration(
-                                                  configuration.id,
-                                                );
-                                              }}
+                                            <div
+                                              className="grid grid-cols-[auto_minmax(0,1fr)_auto] grid-rows-[auto_auto] items-center gap-x-2 rounded-md px-2 py-1.5 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground"
+                                              data-active={isActive}
                                             >
-                                              <FileTextIcon className="mt-0.5" />
-                                              <span className="min-w-0 flex-1">
-                                                <span className="block truncate">
+                                              <FileTextIcon className="col-start-1 row-start-1" />
+                                              <SidebarMenuSubButton
+                                                className="col-start-2 row-start-1 h-auto min-w-0 justify-start p-0 text-left hover:bg-transparent active:bg-transparent"
+                                                render={
+                                                  <button type="button" />
+                                                }
+                                                onClick={() => {
+                                                  selectConfiguration(
+                                                    configuration.id,
+                                                  );
+                                                }}
+                                              >
+                                                <span className="truncate">
                                                   {configuration.label}
                                                 </span>
-                                                <span className="block truncate text-xs font-normal text-muted-foreground">
-                                                  Updated{" "}
-                                                  {formatLocalDateTime(
-                                                    configuration.updatedAt,
-                                                  )}
-                                                </span>
-                                              </span>
-                                            </SidebarMenuSubButton>
-                                            <Button
-                                              aria-label={`Delete ${configuration.label}`}
-                                              className="shrink-0"
-                                              size="icon-sm"
-                                              type="button"
-                                              variant="ghost"
-                                              onClick={() => {
-                                                deleteConfiguration(
-                                                  configuration.id,
-                                                );
-                                              }}
-                                            >
-                                              <Trash2Icon />
-                                            </Button>
+                                              </SidebarMenuSubButton>
+                                              <Button
+                                                aria-label={`Delete ${configuration.label}`}
+                                                className="col-start-3 row-start-1 justify-self-end"
+                                                size="icon-xs"
+                                                type="button"
+                                                variant="destructive"
+                                                onClick={() => {
+                                                  deleteConfiguration(
+                                                    configuration.id,
+                                                  );
+                                                }}
+                                              >
+                                                <Trash2Icon />
+                                              </Button>
+                                              <button
+                                                className="col-span-3 col-start-1 row-start-2 min-w-0 truncate text-left text-xs font-normal text-muted-foreground"
+                                                type="button"
+                                                onClick={() => {
+                                                  selectConfiguration(
+                                                    configuration.id,
+                                                  );
+                                                }}
+                                              >
+                                                {formatLocalDateTime(
+                                                  configuration.updatedAt,
+                                                )}
+                                              </button>
+                                            </div>
                                           </SidebarMenuSubItem>
                                         );
                                       })}
