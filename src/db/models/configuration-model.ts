@@ -2,12 +2,10 @@ import * as Schema from "effect/Schema";
 import * as Model from "effect/unstable/schema/Model";
 
 import { DungeonIdSchema } from "@/services/fellowship/validation/fellowship-common.ts";
-import {
-  NonEmptyStringSchema,
-  PositiveIntegerSchema,
-} from "@/validation/common.ts";
+import { PositiveIntegerSchema } from "@/validation/common.ts";
 import { ConfigurationFingerprintSchema } from "@/validation/configuration/configuration-fingerprint.ts";
 import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
+import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label.ts";
 
 export class ConfigurationModel extends Model.Class<ConfigurationModel>(
   "ConfigurationModel",
@@ -18,5 +16,5 @@ export class ConfigurationModel extends Model.Class<ConfigurationModel>(
   dungeonLevel: PositiveIntegerSchema,
   fingerprint: ConfigurationFingerprintSchema,
   id: Model.UuidV7Insert(ConfigurationIdSchema),
-  label: NonEmptyStringSchema,
+  label: ConfigurationLabelSchema,
 }) {}

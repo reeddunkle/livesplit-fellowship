@@ -12,6 +12,12 @@ import {
 } from "@/db/daos/configuration/configuration-dao.ts";
 import { makePersistenceLayer } from "@/layers/persistence-layer.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import {
+  TEST_CONFIGURATION_LABEL,
+  TEST_DUNGEON_ID,
+  TEST_DUNGEON_LEVEL,
+  TEST_UPDATED_CONFIGURATION_LABEL,
+} from "@/tests/common/fixtures/configuration-fixtures.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
@@ -21,12 +27,6 @@ type MilestoneDefinition =
 type MilestoneRequirement = MilestoneDefinition["requirements"][number];
 
 const CITHRELS_FALL_DUNGEON_ID = "7";
-const DUNGEON_LEVEL = 63;
-const EVERDAWN_GROVE_DUNGEON_ID = "11";
-
-const CONFIGURATION_LABEL = "Everdawn Grove Route";
-const UPDATED_CONFIGURATION_LABEL = "Updated Everdawn Grove Route";
-const SECOND_CONFIGURATION_LABEL = "Cithrel's Fall Route";
 
 const firstDesecratorMilestone = {
   label: "First Desecrator",
@@ -84,8 +84,8 @@ const combinedMilestone = {
 } satisfies MilestoneDefinition;
 
 const configuration = {
-  dungeonId: EVERDAWN_GROVE_DUNGEON_ID,
-  dungeonLevel: DUNGEON_LEVEL,
+  dungeonId: TEST_DUNGEON_ID,
+  dungeonLevel: TEST_DUNGEON_LEVEL,
   milestones: [
     firstDesecratorMilestone,
     secondDesecratorMilestone,
@@ -117,12 +117,17 @@ describe("ConfigurationDAOLive", () => {
 
       const created = yield* configurationDAO.save({
         configuration,
-        label: CONFIGURATION_LABEL,
+        label: TEST_CONFIGURATION_LABEL,
       });
 
       expect(created.id).toBeDefined();
       expect(created.configuration).toEqual(configuration);
-      expect(created.label).toBe(CONFIGURATION_LABEL);
+      expect(created.label).toBe(TEST_CONFIGURATION_LABEL);
+
+      const expectedFingerprint =
+        yield* createConfigurationFingerprint(configuration);
+
+      expect(created.fingerprint).toBe(expectedFingerprint.fingerprint);
 
       const result = yield* configurationDAO.getById({
         id: created.id,
@@ -131,19 +136,9 @@ describe("ConfigurationDAOLive", () => {
       const persisted = getPersistedConfiguration(result);
 
       expect(persisted.id).toBe(created.id);
-      expect(persisted.label).toBe(CONFIGURATION_LABEL);
-      expect(persisted.configuration.dungeonLevel).toBe(DUNGEON_LEVEL);
-
-      const originalFingerprint =
-        yield* createConfigurationFingerprint(configuration);
-
-      const persistedFingerprint = yield* createConfigurationFingerprint(
-        persisted.configuration,
-      );
-
-      expect(persistedFingerprint.fingerprint).toBe(
-        originalFingerprint.fingerprint,
-      );
+      expect(persisted.fingerprint).toBe(created.fingerprint);
+      expect(persisted.label).toBe(TEST_CONFIGURATION_LABEL);
+      expect(persisted.configuration.dungeonLevel).toBe(TEST_DUNGEON_LEVEL);
 
       expect(
         persisted.configuration.milestones.map((milestone) => {
@@ -250,16 +245,17 @@ describe("ConfigurationDAOLive", () => {
 
       const first = yield* configurationDAO.save({
         configuration,
-        label: CONFIGURATION_LABEL,
+        label: TEST_CONFIGURATION_LABEL,
       });
 
       const second = yield* configurationDAO.save({
         configuration: duplicateConfiguration,
-        label: UPDATED_CONFIGURATION_LABEL,
+        label: TEST_UPDATED_CONFIGURATION_LABEL,
       });
 
       expect(second.id).toBe(first.id);
-      expect(second.label).toBe(UPDATED_CONFIGURATION_LABEL);
+      expect(second.fingerprint).toBe(first.fingerprint);
+      expect(second.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
 
       const persistedConfigurations = yield* configurationDAO.getAll();
 
@@ -274,18 +270,8 @@ describe("ConfigurationDAOLive", () => {
       }
 
       expect(persisted.id).toBe(first.id);
-      expect(persisted.label).toBe(UPDATED_CONFIGURATION_LABEL);
-
-      const persistedFingerprint = yield* createConfigurationFingerprint(
-        persisted.configuration,
-      );
-
-      const originalFingerprint =
-        yield* createConfigurationFingerprint(configuration);
-
-      expect(persistedFingerprint.fingerprint).toBe(
-        originalFingerprint.fingerprint,
-      );
+      expect(persisted.fingerprint).toBe(first.fingerprint);
+      expect(persisted.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
     }).pipe(E.provide(makeTestLayer()));
 
     await runTest(program);
@@ -302,30 +288,20 @@ describe("ConfigurationDAOLive", () => {
 
       const first = yield* configurationDAO.save({
         configuration,
-        label: CONFIGURATION_LABEL,
+        label: TEST_CONFIGURATION_LABEL,
       });
 
       const second = yield* configurationDAO.save({
         configuration: differentLevelConfiguration,
-        label: UPDATED_CONFIGURATION_LABEL,
+        label: TEST_UPDATED_CONFIGURATION_LABEL,
       });
 
       expect(second.id).not.toBe(first.id);
+      expect(second.fingerprint).not.toBe(first.fingerprint);
 
       const persistedConfigurations = yield* configurationDAO.getAll();
 
       expect(persistedConfigurations).toHaveLength(2);
-
-      const firstFingerprint =
-        yield* createConfigurationFingerprint(configuration);
-
-      const secondFingerprint = yield* createConfigurationFingerprint(
-        differentLevelConfiguration,
-      );
-
-      expect(firstFingerprint.fingerprint).not.toBe(
-        secondFingerprint.fingerprint,
-      );
     }).pipe(E.provide(makeTestLayer()));
 
     await runTest(program);
@@ -337,7 +313,7 @@ describe("ConfigurationDAOLive", () => {
 
       const created = yield* configurationDAO.save({
         configuration,
-        label: CONFIGURATION_LABEL,
+        label: TEST_CONFIGURATION_LABEL,
       });
 
       yield* configurationDAO.delete({
@@ -357,7 +333,7 @@ describe("ConfigurationDAOLive", () => {
   test("returns all persisted configurations", async () => {
     const secondConfiguration = {
       dungeonId: CITHRELS_FALL_DUNGEON_ID,
-      dungeonLevel: DUNGEON_LEVEL,
+      dungeonLevel: TEST_DUNGEON_LEVEL,
       milestones: [
         {
           label: "Ghorn Defeated",
@@ -378,12 +354,12 @@ describe("ConfigurationDAOLive", () => {
 
       const first = yield* configurationDAO.save({
         configuration,
-        label: CONFIGURATION_LABEL,
+        label: TEST_CONFIGURATION_LABEL,
       });
 
       const second = yield* configurationDAO.save({
         configuration: secondConfiguration,
-        label: SECOND_CONFIGURATION_LABEL,
+        label: TEST_UPDATED_CONFIGURATION_LABEL,
       });
 
       const persistedConfigurations = yield* configurationDAO.getAll();
@@ -402,31 +378,17 @@ describe("ConfigurationDAOLive", () => {
         }),
       ).toEqual(
         expect.arrayContaining([
-          CONFIGURATION_LABEL,
-          SECOND_CONFIGURATION_LABEL,
+          TEST_CONFIGURATION_LABEL,
+          TEST_UPDATED_CONFIGURATION_LABEL,
         ]),
       );
 
-      const persistedFingerprints = yield* E.forEach(
-        persistedConfigurations,
-        (persisted) => {
-          return createConfigurationFingerprint(persisted.configuration).pipe(
-            E.map((result) => result.fingerprint),
-          );
-        },
-      );
-
-      const firstFingerprint =
-        yield* createConfigurationFingerprint(configuration);
-
-      const secondFingerprint =
-        yield* createConfigurationFingerprint(secondConfiguration);
-
-      expect(persistedFingerprints).toEqual(
-        expect.arrayContaining([
-          firstFingerprint.fingerprint,
-          secondFingerprint.fingerprint,
-        ]),
+      expect(
+        persistedConfigurations.map((persisted) => {
+          return persisted.fingerprint;
+        }),
+      ).toEqual(
+        expect.arrayContaining([first.fingerprint, second.fingerprint]),
       );
     }).pipe(E.provide(makeTestLayer()));
 
@@ -446,15 +408,21 @@ describe("ConfigurationDAOLive", () => {
     try {
       let configurationId: ConfigurationId | undefined;
 
+      const expectedFingerprint = await runTest(
+        createConfigurationFingerprint(configuration),
+      );
+
       const createProgram = E.gen(function* () {
         const configurationDAO = yield* ConfigurationDAO;
 
         const created = yield* configurationDAO.save({
           configuration,
-          label: CONFIGURATION_LABEL,
+          label: TEST_CONFIGURATION_LABEL,
         });
 
         configurationId = created.id;
+
+        expect(created.fingerprint).toBe(expectedFingerprint.fingerprint);
       }).pipe(
         E.provide(
           makePersistenceLayer({
@@ -481,19 +449,9 @@ describe("ConfigurationDAOLive", () => {
         const persisted = getPersistedConfiguration(result);
 
         expect(persisted.id).toBe(persistedConfigurationId);
-        expect(persisted.label).toBe(CONFIGURATION_LABEL);
-        expect(persisted.configuration.dungeonLevel).toBe(DUNGEON_LEVEL);
-
-        const persistedFingerprint = yield* createConfigurationFingerprint(
-          persisted.configuration,
-        );
-
-        const originalFingerprint =
-          yield* createConfigurationFingerprint(configuration);
-
-        expect(persistedFingerprint.fingerprint).toBe(
-          originalFingerprint.fingerprint,
-        );
+        expect(persisted.fingerprint).toBe(expectedFingerprint.fingerprint);
+        expect(persisted.label).toBe(TEST_CONFIGURATION_LABEL);
+        expect(persisted.configuration.dungeonLevel).toBe(TEST_DUNGEON_LEVEL);
       }).pipe(
         E.provide(
           makePersistenceLayer({

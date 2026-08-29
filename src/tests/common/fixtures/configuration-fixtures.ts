@@ -21,7 +21,9 @@ export const TEST_CONFIGURATION_LABEL = Schema.decodeUnknownSync(
   ConfigurationLabelSchema,
 )("Everdawn Grove Route");
 
-export const TEST_UPDATED_CONFIGURATION_LABEL = "Updated Everdawn Grove Route";
+export const TEST_UPDATED_CONFIGURATION_LABEL = Schema.decodeUnknownSync(
+  ConfigurationLabelSchema,
+)("Updated Everdawn Grove Route");
 
 export const TEST_DUNGEON_ID = "11";
 
