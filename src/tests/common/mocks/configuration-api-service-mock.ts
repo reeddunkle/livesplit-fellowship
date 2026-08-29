@@ -19,6 +19,9 @@ export function makeConfigurationApiServiceMock({
   delete: deleteConfiguration = () => {
     return E.void;
   },
+  deleteByDungeonAndLevel = () => {
+    return E.void;
+  },
   getAll = () => {
     return E.succeed([]);
   },
@@ -35,12 +38,24 @@ export function makeConfigurationApiServiceMock({
       }),
     );
   },
+  saveReplacingDungeonAndLevel = ({ configuration, label }) => {
+    return E.succeed(
+      createConfigurationApiResponse({
+        configuration,
+        fingerprint: TEST_CONFIGURATION_FINGERPRINT,
+        id: TEST_CONFIGURATION_ID,
+        label,
+      }),
+    );
+  },
 }: MakeConfigurationApiServiceMockOptions = {}) {
   return Layer.succeed(ConfigurationApiService, {
     delete: deleteConfiguration,
+    deleteByDungeonAndLevel,
     getAll,
     getById,
     save,
+    saveReplacingDungeonAndLevel,
   } satisfies ConfigurationApiServiceShape);
 }
 

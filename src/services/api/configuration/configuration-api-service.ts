@@ -8,6 +8,7 @@ import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts"
 import {
   type ConfigurationApiConfiguration,
   type ConfigurationApiConfigurationList,
+  type DeleteConfigurationsByDungeonAndLevelApiRequest,
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { createConfigurationApiResponse } from "@/services/api/configuration/create-configuration-api-response.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
@@ -32,6 +33,10 @@ export type ConfigurationApiServiceShape = {
     options: DeleteConfigurationOptions,
   ) => E.Effect<void, ConfigurationDAOError>;
 
+  readonly deleteByDungeonAndLevel: (
+    options: DeleteConfigurationsByDungeonAndLevelApiRequest,
+  ) => E.Effect<void, ConfigurationDAOError>;
+
   readonly getAll: () => E.Effect<
     ConfigurationApiConfigurationList,
     ConfigurationDAOError
@@ -47,6 +52,10 @@ export type ConfigurationApiServiceShape = {
   readonly save: (
     options: SaveConfigurationOptions,
   ) => E.Effect<ConfigurationApiConfiguration, ConfigurationDAOError>;
+
+  readonly saveReplacingDungeonAndLevel: (
+    options: SaveConfigurationOptions,
+  ) => E.Effect<ConfigurationApiConfiguration, ConfigurationDAOError>;
 };
 
 export class ConfigurationApiService extends Context.Service<
@@ -55,16 +64,24 @@ export class ConfigurationApiService extends Context.Service<
 >()("app/ConfigurationApiService") {}
 
 const make = E.gen(function* () {
-  const configurationStore = yield* ConfigurationDAO;
+  const configurationDAO = yield* ConfigurationDAO;
 
   const deleteConfiguration: ConfigurationApiServiceShape["delete"] = ({
     id,
   }) => {
-    return configurationStore.delete({ id });
+    return configurationDAO.delete({ id });
   };
 
+  const deleteByDungeonAndLevel: ConfigurationApiServiceShape["deleteByDungeonAndLevel"] =
+    ({ dungeonId, dungeonLevel }) => {
+      return configurationDAO.deleteByDungeonAndLevel({
+        dungeonId,
+        dungeonLevel,
+      });
+    };
+
   const getAll: ConfigurationApiServiceShape["getAll"] = () => {
-    return configurationStore.getAll().pipe(
+    return configurationDAO.getAll().pipe(
       E.map((configurations) => {
         return configurations.map(createConfigurationApiResponse);
       }),
@@ -72,7 +89,7 @@ const make = E.gen(function* () {
   };
 
   const getById: ConfigurationApiServiceShape["getById"] = ({ id }) => {
-    return configurationStore
+    return configurationDAO
       .getById({ id })
       .pipe(E.map(Option.map(createConfigurationApiResponse)));
   };
@@ -81,7 +98,7 @@ const make = E.gen(function* () {
     configuration,
     label,
   }) => {
-    return configurationStore
+    return configurationDAO
       .save({
         configuration,
         label,
@@ -89,11 +106,23 @@ const make = E.gen(function* () {
       .pipe(E.map(createConfigurationApiResponse));
   };
 
+  const saveReplacingDungeonAndLevel: ConfigurationApiServiceShape["saveReplacingDungeonAndLevel"] =
+    ({ configuration, label }) => {
+      return configurationDAO
+        .saveReplacingDungeonAndLevel({
+          configuration,
+          label,
+        })
+        .pipe(E.map(createConfigurationApiResponse));
+    };
+
   return {
     delete: deleteConfiguration,
+    deleteByDungeonAndLevel,
     getAll,
     getById,
     save,
+    saveReplacingDungeonAndLevel,
   } satisfies ConfigurationApiServiceShape;
 });
 

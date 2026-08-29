@@ -22,6 +22,15 @@ export const SaveConfigurationApiRequestSchema = Schema.Struct({
 export type SaveConfigurationApiRequest =
   typeof SaveConfigurationApiRequestSchema.Type;
 
+export const DeleteConfigurationsByDungeonAndLevelApiRequestSchema =
+  Schema.Struct({
+    dungeonId: DungeonIdSchema,
+    dungeonLevel: DungeonLevelSchema,
+  });
+
+export type DeleteConfigurationsByDungeonAndLevelApiRequest =
+  typeof DeleteConfigurationsByDungeonAndLevelApiRequestSchema.Type;
+
 const ConfigurationApiRequirementSchema = Schema.Struct({
   requiredCount: PositiveIntegerSchema,
   startOccurrence: PositiveIntegerSchema,
