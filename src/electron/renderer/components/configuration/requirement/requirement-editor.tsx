@@ -1,7 +1,4 @@
-import * as Match from "effect/Match";
-import * as R from "effect/Record";
 import { XIcon } from "lucide-react";
-import { useState } from "react";
 
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import {
@@ -14,15 +11,13 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/electron/renderer/components/ui/native-select.tsx";
-import { useFellowshipDataStore } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
-import { useConfigurationEditor } from "./configuration-editor-provider.tsx";
-import { type ConfigurationFormApi } from "./configuration-form.ts";
-import { type RequirementLocation } from "./helpers/configuration-editor-metadata.ts";
-
-const CUSTOM_TARGET = "__CUSTOM__" as const;
+import { useConfigurationEditor } from "../configuration-editor-provider.tsx";
+import { type ConfigurationFormApi } from "../configuration-form.ts";
+import { type RequirementLocation } from "../helpers/configuration-editor-metadata.ts";
+import { RequirementTargetField } from "./requirement-target-field.tsx";
 
 type RequirementEditorProps = {
   readonly autoFocus?: boolean;
@@ -32,222 +27,6 @@ type RequirementEditorProps = {
   readonly onRemove: () => void;
   readonly requirementIndex: number;
 };
-
-type TargetOption = {
-  readonly label: string;
-  readonly value: string;
-};
-
-type RequirementTargetFieldProps = {
-  readonly eventType: MilestoneRequirementEventType;
-  readonly form: ConfigurationFormApi;
-  readonly location: RequirementLocation;
-  readonly requirementPath: `milestones[${number}].requirements[${number}]`;
-};
-
-type TargetSelectProps = {
-  readonly id: string;
-  readonly isInvalid: boolean;
-  readonly name: string;
-  readonly options: ReadonlyArray<TargetOption>;
-  readonly value: string;
-  readonly onBlur: () => void;
-  readonly onChange: (value: string) => void;
-};
-
-function TargetSelect({
-  id,
-  isInvalid,
-  name,
-  onBlur,
-  onChange,
-  options,
-  value,
-}: TargetSelectProps) {
-  return (
-    <NativeSelect
-      aria-invalid={isInvalid}
-      id={id}
-      name={name}
-      value={value}
-      onBlur={onBlur}
-      onChange={(event) => {
-        onChange(event.target.value);
-      }}
-    >
-      <NativeSelectOption value={CUSTOM_TARGET}>Custom</NativeSelectOption>
-      {options.map((option) => {
-        return (
-          <NativeSelectOption key={option.value} value={option.value}>
-            {option.label}
-          </NativeSelectOption>
-        );
-      })}
-    </NativeSelect>
-  );
-}
-
-function RequirementTargetField({
-  eventType,
-  form,
-  location,
-  requirementPath,
-}: RequirementTargetFieldProps) {
-  const [customTargetValue, setCustomTargetValue] = useState<
-    string | undefined
-  >();
-  const [isCustomInputBlurred, setIsCustomInputBlurred] = useState(false);
-  const { getUnitDeathSuggestion } = useConfigurationEditor();
-  const abilities = useFellowshipDataStore((state) => state.abilities);
-  const dungeons = useFellowshipDataStore((state) => state.dungeons);
-  const encounters = useFellowshipDataStore((state) => state.encounters);
-  const units = useFellowshipDataStore((state) => state.units);
-
-  const options = Match.value(eventType).pipe(
-    Match.when(FELLOWSHIP_EVENT.ABILITY_ACTIVATED, () => {
-      return abilities.map((ability) => {
-        return {
-          label: ability.name,
-          value: ability.id,
-        };
-      });
-    }),
-    Match.whenOr(
-      FELLOWSHIP_EVENT.DUNGEON_START,
-      FELLOWSHIP_EVENT.DUNGEON_END,
-      () => {
-        return dungeons.map((dungeon) => {
-          return {
-            label: dungeon.name,
-            value: dungeon.id,
-          };
-        });
-      },
-    ),
-    Match.whenOr(
-      FELLOWSHIP_EVENT.ENCOUNTER_START,
-      FELLOWSHIP_EVENT.ENCOUNTER_END,
-      () => {
-        return encounters.map((encounter) => {
-          return {
-            label: encounter.name,
-            value: encounter.id,
-          };
-        });
-      },
-    ),
-    Match.when(FELLOWSHIP_EVENT.UNIT_DEATH, () => {
-      return units.map((unit) => {
-        return {
-          label: unit.name,
-          value: unit.id,
-        };
-      });
-    }),
-    Match.exhaustive,
-  );
-
-  const optionsByValue = R.fromIterableBy(options, (option) => option.value);
-
-  const handleTargetChange = (targetId: string) => {
-    form.setFieldValue(`${requirementPath}.targetId`, targetId);
-
-    if (eventType !== FELLOWSHIP_EVENT.UNIT_DEATH || targetId === "") {
-      return;
-    }
-
-    const suggestion = getUnitDeathSuggestion({
-      location,
-      targetId,
-    });
-
-    form.setFieldValue(
-      `${requirementPath}.startOccurrence`,
-      suggestion.startOccurrence,
-    );
-  };
-
-  return (
-    <form.Field name={`${requirementPath}.targetId` as const}>
-      {(field) => {
-        const existingOption = optionsByValue[field.state.value];
-
-        /*
-         * A custom target override is only active while it still matches the
-         * current form value. If form.reset() changes the field externally,
-         * the form value becomes authoritative again automatically.
-         */
-        const isCustomOverride =
-          customTargetValue !== undefined &&
-          customTargetValue === field.state.value;
-
-        const selectedValue = isCustomOverride
-          ? CUSTOM_TARGET
-          : (existingOption?.value ?? CUSTOM_TARGET);
-
-        const isCustom = selectedValue === CUSTOM_TARGET;
-        const isInvalid = !field.state.meta.isValid;
-        const showError =
-          isInvalid &&
-          (isCustom ? isCustomInputBlurred : field.state.meta.isBlurred);
-
-        return (
-          <Field data-invalid={showError}>
-            <FieldLabel htmlFor={`${field.name}-select`}>Target</FieldLabel>
-            <TargetSelect
-              id={`${field.name}-select`}
-              isInvalid={!isCustom && isInvalid}
-              name={`${field.name}-select`}
-              options={options}
-              value={selectedValue}
-              onBlur={field.handleBlur}
-              onChange={(value) => {
-                if (value === CUSTOM_TARGET) {
-                  setCustomTargetValue("");
-                  setIsCustomInputBlurred(false);
-                  handleTargetChange("");
-                  return;
-                }
-
-                setCustomTargetValue(undefined);
-                setIsCustomInputBlurred(false);
-
-                const option = optionsByValue[value];
-
-                if (option !== undefined) {
-                  handleTargetChange(option.value);
-                }
-              }}
-            />
-            <Input
-              aria-invalid={isCustom && isInvalid}
-              disabled={!isCustom}
-              id={field.name}
-              inputMode="numeric"
-              name={field.name}
-              placeholder="Target ID"
-              value={field.state.value}
-              onBlur={() => {
-                if (isCustom) {
-                  setIsCustomInputBlurred(true);
-                }
-
-                field.handleBlur();
-              }}
-              onChange={(event) => {
-                const value = event.target.value;
-
-                setCustomTargetValue(value);
-                handleTargetChange(value);
-              }}
-            />
-            {showError && <FieldError errors={field.state.meta.errors} />}
-          </Field>
-        );
-      }}
-    </form.Field>
-  );
-}
 
 export function RequirementEditor({
   autoFocus = false,

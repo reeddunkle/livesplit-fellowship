@@ -18,12 +18,12 @@ import { Input } from "@/electron/renderer/components/ui/input.tsx";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
-import { useConfigurationEditor } from "./configuration-editor-provider.tsx";
+import { useConfigurationEditor } from "../configuration-editor-provider.tsx";
 import {
   type ConfigurationFormApi,
   createRequirementEditorValue,
-} from "./configuration-form.ts";
-import { RequirementEditor } from "./requirement-editor.tsx";
+} from "../configuration-form.ts";
+import { RequirementEditor } from "../requirement/requirement-editor.tsx";
 
 type MilestoneEditorProps = {
   readonly eventTypes: ReadonlyArray<MilestoneRequirementEventType>;

@@ -29,7 +29,7 @@ import {
 import { ConfigurationSaveStateIndicator } from "./configuration-save-state-indicator.tsx";
 import { type DungeonOption } from "./helpers/configuration-editor-types.ts";
 import { type ConfigurationSaveState } from "./helpers/configuration-save-state.ts";
-import { MilestoneEditor } from "./milestone-editor.tsx";
+import { MilestoneEditor } from "./milestone/milestone-editor.tsx";
 
 const CONFIGURATION_FORM_DOM_ID = "configuration-form";
 

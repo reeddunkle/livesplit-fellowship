@@ -3,6 +3,7 @@ import * as Schema from "effect/Schema";
 import { NonEmptyStringSchema } from "@/validation/common.ts";
 
 export const UnitApiUnitSchema = Schema.Struct({
+  dungeonIds: Schema.Array(NonEmptyStringSchema),
   id: NonEmptyStringSchema,
   name: NonEmptyStringSchema,
 });
