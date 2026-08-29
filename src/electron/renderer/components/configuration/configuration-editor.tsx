@@ -415,7 +415,7 @@ export function ConfigurationEditor({
                 <form.Field name="milestones" mode="array">
                   {(milestonesField) => {
                     return (
-                      <section className="grid grid-cols-[repeat(auto-fit,minmax(22rem,1fr))] gap-4">
+                      <section className="grid grid-cols-[repeat(auto-fit,minmax(22rem,28rem))] justify-start gap-4">
                         {milestonesField.state.value.map(
                           (milestone, milestoneIndex) => {
                             return (
