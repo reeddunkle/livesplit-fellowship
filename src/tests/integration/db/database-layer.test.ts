@@ -203,7 +203,7 @@ describe("DatabaseLayer", () => {
           id: "276",
           name: "Chicken",
           status: "ACTIVE",
-          variant: "SMALL",
+          variant: "Small",
         },
       ]);
 

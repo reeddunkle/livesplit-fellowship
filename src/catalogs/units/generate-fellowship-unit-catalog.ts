@@ -24,17 +24,17 @@ const UNIT_CATALOG_OVERRIDES: Readonly<Record<string, UnitCatalogOverride>> = {
   "276": {
     groupKey: "CHICKEN",
     name: "Chicken",
-    variant: "SMALL",
+    variant: "Small",
   },
   "277": {
     groupKey: "CHICKEN",
     name: "Chicken",
-    variant: "MEDIUM",
+    variant: "Medium",
   },
   "278": {
     groupKey: "CHICKEN",
     name: "Chicken",
-    variant: "LARGE",
+    variant: "Large",
   },
   "280": {
     status: "ACTIVE",

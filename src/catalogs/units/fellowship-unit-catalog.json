@@ -1299,7 +1299,7 @@
     "id": "276",
     "name": "Chicken",
     "status": "ACTIVE",
-    "variant": "SMALL"
+    "variant": "Small"
   },
   {
     "dungeonIds": [
@@ -1323,7 +1323,7 @@
     "id": "277",
     "name": "Chicken",
     "status": "ACTIVE",
-    "variant": "MEDIUM"
+    "variant": "Medium"
   },
   {
     "dungeonIds": [
@@ -1347,7 +1347,7 @@
     "id": "278",
     "name": "Chicken",
     "status": "ACTIVE",
-    "variant": "LARGE"
+    "variant": "Large"
   },
   {
     "dungeonIds": [
