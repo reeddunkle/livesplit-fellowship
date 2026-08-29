@@ -15,15 +15,10 @@ import {
   NativeSelectOption,
 } from "@/electron/renderer/components/ui/native-select.tsx";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
-import {
-  type ConfigurationFingerprint,
-  ConfigurationFingerprintSchema,
-} from "@/validation/configuration/configuration-fingerprint.ts";
+import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
 
-import {
-  type ConfigurationOption,
-  type DungeonOption,
-} from "./configuration-editor-types.ts";
+import { ConfigurationEditorLayout } from "./configuration-editor-layout.tsx";
+import { type DungeonOption } from "./configuration-editor-types.ts";
 import {
   createMilestoneEditorValue,
   useConfigurationForm,
@@ -40,7 +35,6 @@ import { MilestoneEditor } from "./milestone-editor.tsx";
 const CONFIGURATION_FORM_DOM_ID = "configuration-form";
 
 type ConfigurationEditorProps = {
-  readonly configurationOptions: ReadonlyArray<ConfigurationOption>;
   readonly defaultValue: ConfigurationEditorValue;
   readonly dungeonOptions: ReadonlyArray<DungeonOption>;
   readonly eventTypes: ReadonlyArray<MilestoneRequirementEventType>;
@@ -108,7 +102,6 @@ function hasUnsavedChanges({
 }
 
 export function ConfigurationEditor({
-  configurationOptions,
   defaultValue,
   dungeonOptions,
   eventTypes,
@@ -136,62 +129,20 @@ export function ConfigurationEditor({
   };
 
   return (
-    <main className="mx-auto grid w-full gap-4 p-6">
-      <div className="grid gap-8">
+    <ConfigurationEditorLayout>
+      <main className="mx-auto grid w-full gap-6 p-6">
         <header className="grid gap-1">
           <h1 className="text-2xl font-semibold tracking-tight">
             Configure a run
           </h1>
 
           <p className="text-sm text-muted-foreground">
-            Select an existing configuration or edit the current configuration
-            below.
+            Select a saved configuration from the sidebar or create a new one.
           </p>
         </header>
 
-        <div className="grid gap-x-6 gap-y-2 lg:grid-cols-[minmax(20rem,1fr)_auto]">
-          <div className="grid min-w-0 content-start gap-2">
-            <FieldLabel htmlFor="configuration-selection">
-              Configuration
-            </FieldLabel>
-
-            <NativeSelect
-              className="w-full min-w-64"
-              id="configuration-selection"
-              value={selectedConfigurationFingerprint ?? ""}
-              onChange={(event) => {
-                const result = Schema.decodeUnknownResult(
-                  ConfigurationFingerprintSchema,
-                )(event.target.value);
-
-                Result.match(result, {
-                  onFailure: (error) => {
-                    console.error("Invalid configuration fingerprint.", error);
-                  },
-                  onSuccess: (fingerprint) => {
-                    onSelectConfiguration(fingerprint);
-                  },
-                });
-              }}
-            >
-              <NativeSelectOption value="" disabled>
-                Select a configuration
-              </NativeSelectOption>
-
-              {configurationOptions.map((configuration) => {
-                return (
-                  <NativeSelectOption
-                    key={configuration.fingerprint}
-                    value={configuration.fingerprint}
-                  >
-                    {configuration.label}
-                  </NativeSelectOption>
-                );
-              })}
-            </NativeSelect>
-          </div>
-
-          <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:w-152 lg:self-end">
+        <section className="grid gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               type="button"
               variant="outline"
@@ -278,199 +229,199 @@ export function ConfigurationEditor({
               }}
             </form.Subscribe>
           </div>
-        </div>
-      </div>
+        </section>
 
-      <form
-        className="grid gap-8"
-        id={CONFIGURATION_FORM_DOM_ID}
-        onSubmit={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
+        <form
+          className="grid gap-8"
+          id={CONFIGURATION_FORM_DOM_ID}
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
 
-          form.handleSubmit();
-        }}
-      >
-        <form.Subscribe selector={selectConfigurationEditorFormState}>
-          {(state) => {
-            const saveState = resolveSaveState(state.values);
-            const shouldHighlightSaveState = hasUnsavedChanges(state);
+            form.handleSubmit();
+          }}
+        >
+          <form.Subscribe selector={selectConfigurationEditorFormState}>
+            {(state) => {
+              const saveState = resolveSaveState(state.values);
+              const shouldHighlightSaveState = hasUnsavedChanges(state);
 
-            const saveStateClassName = !shouldHighlightSaveState
-              ? "border-border"
-              : saveState?.type === "UPDATE"
-                ? "border-amber-500/70"
-                : saveState?.type === "CREATE"
-                  ? "border-green-500/70"
-                  : "border-border";
+              const saveStateClassName = !shouldHighlightSaveState
+                ? "border-border"
+                : saveState?.type === "UPDATE"
+                  ? "border-amber-500/70"
+                  : saveState?.type === "CREATE"
+                    ? "border-green-500/70"
+                    : "border-border";
 
-            return (
-              <div
-                className={`grid gap-8 rounded-xl border-2 p-4 transition-colors ${saveStateClassName}`}
-              >
-                <div className="grid gap-4">
-                  <div className="w-full max-w-lg">
-                    <form.Field name="label">
-                      {(field) => {
-                        const isInvalid =
-                          field.state.meta.isBlurred &&
-                          !field.state.meta.isValid;
+              return (
+                <div
+                  className={`grid gap-8 rounded-xl border-2 p-4 transition-colors ${saveStateClassName}`}
+                >
+                  <div className="grid gap-4">
+                    <div className="w-full max-w-lg">
+                      <form.Field name="label">
+                        {(field) => {
+                          const isInvalid =
+                            field.state.meta.isBlurred &&
+                            !field.state.meta.isValid;
 
-                        return (
-                          <Field data-invalid={isInvalid}>
-                            <FieldLabel htmlFor={field.name}>
-                              Configuration label
-                            </FieldLabel>
+                          return (
+                            <Field data-invalid={isInvalid}>
+                              <FieldLabel htmlFor={field.name}>
+                                Configuration label
+                              </FieldLabel>
 
-                            <Input
-                              aria-invalid={isInvalid}
-                              id={field.name}
-                              name={field.name}
-                              placeholder="My configuration"
-                              value={field.state.value}
-                              onBlur={field.handleBlur}
-                              onChange={(event) => {
-                                field.handleChange(event.target.value);
-                              }}
-                            />
-
-                            {isInvalid && (
-                              <FieldError errors={field.state.meta.errors} />
-                            )}
-                          </Field>
-                        );
-                      }}
-                    </form.Field>
-                  </div>
-
-                  <div className="grid justify-start gap-4 md:grid-cols-[minmax(20rem,32rem)_10rem]">
-                    <form.Field name="dungeonId">
-                      {(field) => {
-                        const isInvalid =
-                          field.state.meta.isBlurred &&
-                          !field.state.meta.isValid;
-
-                        return (
-                          <Field data-invalid={isInvalid}>
-                            <FieldLabel htmlFor={field.name}>
-                              Dungeon
-                            </FieldLabel>
-
-                            <NativeSelect
-                              aria-invalid={isInvalid}
-                              id={field.name}
-                              name={field.name}
-                              value={field.state.value}
-                              onBlur={field.handleBlur}
-                              onChange={(event) => {
-                                field.handleChange(event.target.value);
-                              }}
-                            >
-                              <NativeSelectOption value="" disabled>
-                                Select a dungeon
-                              </NativeSelectOption>
-
-                              {dungeonOptions.map((dungeon) => {
-                                return (
-                                  <NativeSelectOption
-                                    key={dungeon.key}
-                                    value={dungeon.key}
-                                  >
-                                    {dungeon.label}
-                                  </NativeSelectOption>
-                                );
-                              })}
-                            </NativeSelect>
-
-                            {isInvalid && (
-                              <FieldError errors={field.state.meta.errors} />
-                            )}
-                          </Field>
-                        );
-                      }}
-                    </form.Field>
-
-                    <form.Field name="dungeonLevel">
-                      {(field) => {
-                        const isInvalid =
-                          field.state.meta.isBlurred &&
-                          !field.state.meta.isValid;
-
-                        return (
-                          <Field data-invalid={isInvalid}>
-                            <FieldLabel htmlFor={field.name}>
-                              Dungeon level
-                            </FieldLabel>
-
-                            <Input
-                              aria-invalid={isInvalid}
-                              id={field.name}
-                              min={1}
-                              name={field.name}
-                              type="number"
-                              value={field.state.value}
-                              onBlur={field.handleBlur}
-                              onChange={(event) => {
-                                field.handleChange(event.target.value);
-                              }}
-                            />
-
-                            {isInvalid && (
-                              <FieldError errors={field.state.meta.errors} />
-                            )}
-                          </Field>
-                        );
-                      }}
-                    </form.Field>
-                  </div>
-                </div>
-
-                <form.Field name="milestones" mode="array">
-                  {(milestonesField) => {
-                    return (
-                      <section className="grid grid-cols-[repeat(auto-fit,minmax(22rem,28rem))] justify-start gap-4">
-                        {milestonesField.state.value.map(
-                          (milestone, milestoneIndex) => {
-                            return (
-                              <MilestoneEditor
-                                eventTypes={eventTypes}
-                                form={form}
-                                key={milestone.id}
-                                milestoneIndex={milestoneIndex}
-                                onRemove={() => {
-                                  milestonesField.removeValue(milestoneIndex);
+                              <Input
+                                aria-invalid={isInvalid}
+                                id={field.name}
+                                name={field.name}
+                                placeholder="My configuration"
+                                value={field.state.value}
+                                onBlur={field.handleBlur}
+                                onChange={(event) => {
+                                  field.handleChange(event.target.value);
                                 }}
                               />
-                            );
-                          },
-                        )}
 
-                        <Card className="min-h-64 border-dashed">
-                          <CardContent className="flex h-full min-h-64 items-center justify-center">
-                            <Button
-                              className="h-full min-h-48 w-full border-dashed"
-                              type="button"
-                              variant="ghost"
-                              onClick={() => {
-                                milestonesField.pushValue(
-                                  createMilestoneEditorValue(),
-                                );
-                              }}
-                            >
-                              <PlusIcon />
-                              Add milestone
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      </section>
-                    );
-                  }}
-                </form.Field>
-              </div>
-            );
-          }}
-        </form.Subscribe>
-      </form>
-    </main>
+                              {isInvalid && (
+                                <FieldError errors={field.state.meta.errors} />
+                              )}
+                            </Field>
+                          );
+                        }}
+                      </form.Field>
+                    </div>
+
+                    <div className="grid justify-start gap-4 md:grid-cols-[minmax(20rem,32rem)_10rem]">
+                      <form.Field name="dungeonId">
+                        {(field) => {
+                          const isInvalid =
+                            field.state.meta.isBlurred &&
+                            !field.state.meta.isValid;
+
+                          return (
+                            <Field data-invalid={isInvalid}>
+                              <FieldLabel htmlFor={field.name}>
+                                Dungeon
+                              </FieldLabel>
+
+                              <NativeSelect
+                                aria-invalid={isInvalid}
+                                id={field.name}
+                                name={field.name}
+                                value={field.state.value}
+                                onBlur={field.handleBlur}
+                                onChange={(event) => {
+                                  field.handleChange(event.target.value);
+                                }}
+                              >
+                                <NativeSelectOption value="" disabled>
+                                  Select a dungeon
+                                </NativeSelectOption>
+
+                                {dungeonOptions.map((dungeon) => {
+                                  return (
+                                    <NativeSelectOption
+                                      key={dungeon.key}
+                                      value={dungeon.key}
+                                    >
+                                      {dungeon.label}
+                                    </NativeSelectOption>
+                                  );
+                                })}
+                              </NativeSelect>
+
+                              {isInvalid && (
+                                <FieldError errors={field.state.meta.errors} />
+                              )}
+                            </Field>
+                          );
+                        }}
+                      </form.Field>
+
+                      <form.Field name="dungeonLevel">
+                        {(field) => {
+                          const isInvalid =
+                            field.state.meta.isBlurred &&
+                            !field.state.meta.isValid;
+
+                          return (
+                            <Field data-invalid={isInvalid}>
+                              <FieldLabel htmlFor={field.name}>
+                                Dungeon level
+                              </FieldLabel>
+
+                              <Input
+                                aria-invalid={isInvalid}
+                                id={field.name}
+                                min={1}
+                                name={field.name}
+                                type="number"
+                                value={field.state.value}
+                                onBlur={field.handleBlur}
+                                onChange={(event) => {
+                                  field.handleChange(event.target.value);
+                                }}
+                              />
+
+                              {isInvalid && (
+                                <FieldError errors={field.state.meta.errors} />
+                              )}
+                            </Field>
+                          );
+                        }}
+                      </form.Field>
+                    </div>
+                  </div>
+
+                  <form.Field name="milestones" mode="array">
+                    {(milestonesField) => {
+                      return (
+                        <section className="grid grid-cols-[repeat(auto-fit,minmax(22rem,28rem))] justify-start gap-4">
+                          {milestonesField.state.value.map(
+                            (milestone, milestoneIndex) => {
+                              return (
+                                <MilestoneEditor
+                                  eventTypes={eventTypes}
+                                  form={form}
+                                  key={milestone.id}
+                                  milestoneIndex={milestoneIndex}
+                                  onRemove={() => {
+                                    milestonesField.removeValue(milestoneIndex);
+                                  }}
+                                />
+                              );
+                            },
+                          )}
+
+                          <Card className="min-h-64 border-dashed">
+                            <CardContent className="flex h-full min-h-64 items-center justify-center">
+                              <Button
+                                className="h-full min-h-48 w-full border-dashed"
+                                type="button"
+                                variant="ghost"
+                                onClick={() => {
+                                  milestonesField.pushValue(
+                                    createMilestoneEditorValue(),
+                                  );
+                                }}
+                              >
+                                <PlusIcon />
+                                Add milestone
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        </section>
+                      );
+                    }}
+                  </form.Field>
+                </div>
+              );
+            }}
+          </form.Subscribe>
+        </form>
+      </main>
+    </ConfigurationEditorLayout>
   );
 }

@@ -1,5 +1,7 @@
 import { useRouter } from "@tanstack/react-router";
+import * as A from "effect/Array";
 import * as E from "effect/Effect";
+import * as Record from "effect/Record";
 import {
   createContext,
   type ReactNode,
@@ -73,6 +75,16 @@ type ConfigurationProviderProps = {
   readonly configurations: ConfigurationApiConfigurationList;
 };
 
+export type ConfigurationLevelGroup = {
+  readonly configurations: ConfigurationApiConfigurationList;
+  readonly dungeonLevel: ConfigurationApiConfiguration["dungeonLevel"];
+};
+
+export type ConfigurationDungeonGroup = {
+  readonly dungeonId: ConfigurationApiConfiguration["dungeonId"];
+  readonly levels: ReadonlyArray<ConfigurationLevelGroup>;
+};
+
 const INITIAL_SAVE_ACTION_STATE: ConfigurationSaveActionState = {
   error: undefined,
   savedConfiguration: undefined,
@@ -117,6 +129,40 @@ function reduceConfigurations(
       });
     }
   }
+}
+
+function groupConfigurations(
+  configurations: ConfigurationApiConfigurationList,
+): ReadonlyArray<ConfigurationDungeonGroup> {
+  const configurationsByDungeon = A.groupBy(
+    configurations,
+    (configuration) => configuration.dungeonId,
+  );
+
+  return Record.toEntries(configurationsByDungeon).map(
+    ([dungeonId, dungeonConfigurations]) => {
+      const configurationsByLevel = A.groupBy(
+        dungeonConfigurations,
+        (configuration) => String(configuration.dungeonLevel),
+      );
+
+      const levels = Record.toEntries(configurationsByLevel)
+        .map(([dungeonLevel, levelConfigurations]) => {
+          return {
+            configurations: levelConfigurations,
+            dungeonLevel: Number(dungeonLevel),
+          } satisfies ConfigurationLevelGroup;
+        })
+        .sort((left, right) => {
+          return left.dungeonLevel - right.dungeonLevel;
+        });
+
+      return {
+        dungeonId,
+        levels,
+      } satisfies ConfigurationDungeonGroup;
+    },
+  );
 }
 
 export function ConfigurationProvider({
@@ -356,6 +402,14 @@ export function useConfigurationActions(): ConfigurationActionContextValue {
 
 export function useConfigurations(): ConfigurationApiConfigurationList {
   return useConfigurationState().configurations;
+}
+
+export function useConfigurationGroups(): ReadonlyArray<ConfigurationDungeonGroup> {
+  const configurations = useConfigurations();
+
+  return useMemo(() => {
+    return groupConfigurations(configurations);
+  }, [configurations]);
 }
 
 export function useConfigurationByFingerprint(
