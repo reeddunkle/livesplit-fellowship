@@ -7,6 +7,7 @@ import { getApiBaseUrl } from "@/electron/renderer/api/api-url.ts";
 import {
   type DeleteConfigurationsByDungeonAndLevelApiRequest,
   type SaveConfigurationApiRequest,
+  type UpdateConfigurationApiRequest,
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
@@ -16,6 +17,11 @@ type ConfigurationIdArgs = {
 
 export type SaveConfigurationArgs = {
   readonly request: SaveConfigurationApiRequest;
+};
+
+export type UpdateConfigurationArgs = {
+  readonly id: ConfigurationId;
+  readonly request: UpdateConfigurationApiRequest;
 };
 
 export type DeleteConfigurationsByDungeonAndLevelArgs = {
@@ -76,6 +82,21 @@ export function saveReplacingDungeonAndLevelBase(baseUrl: string) {
   };
 }
 
+export function updateConfigurationBase(baseUrl: string) {
+  return ({ id, request }: UpdateConfigurationArgs) => {
+    return E.gen(function* () {
+      const client = yield* makeHttpApiClient(baseUrl);
+
+      client.configurations.updateConfiguration({
+        params: {
+          id,
+        },
+        payload: request,
+      });
+    });
+  };
+}
+
 export function deleteConfigurationBase(baseUrl: string) {
   return ({ id }: ConfigurationIdArgs) => {
     return E.gen(function* () {
@@ -116,6 +137,10 @@ export function saveConfiguration(args: SaveConfigurationArgs) {
 
 export function saveReplacingDungeonAndLevel(args: SaveConfigurationArgs) {
   return saveReplacingDungeonAndLevelBase(getApiBaseUrl())(args);
+}
+
+export function updateConfiguration(args: UpdateConfigurationArgs) {
+  return updateConfigurationBase(getApiBaseUrl())(args);
 }
 
 export function deleteConfiguration(args: ConfigurationIdArgs) {

@@ -23,6 +23,10 @@ type SaveConfigurationOptions = {
   readonly label: ConfigurationLabel;
 };
 
+type UpdateConfigurationOptions = SaveConfigurationOptions & {
+  readonly id: ConfigurationId;
+};
+
 type GetConfigurationByIdOptions = {
   readonly id: ConfigurationId;
 };
@@ -60,6 +64,10 @@ export type ConfigurationDAOShape = {
 
   readonly saveReplacingDungeonAndLevel: (
     options: SaveConfigurationOptions,
+  ) => E.Effect<PersistedConfiguration, ConfigurationDAOError>;
+
+  readonly update: (
+    options: UpdateConfigurationOptions,
   ) => E.Effect<PersistedConfiguration, ConfigurationDAOError>;
 };
 

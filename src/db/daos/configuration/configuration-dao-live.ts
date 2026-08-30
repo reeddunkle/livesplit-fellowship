@@ -195,17 +195,10 @@ const make = E.gen(function* () {
     }).pipe(E.mapError(mapConfigurationDAOError));
   };
 
-  const persistConfiguration = ({
+  const prepareConfigurationPersistence = ({
     configuration,
     label,
-    replaceDungeonAndLevel,
-  }: {
-    readonly configuration: Parameters<
-      ConfigurationDAOShape["save"]
-    >[0]["configuration"];
-    readonly label: Parameters<ConfigurationDAOShape["save"]>[0]["label"];
-    readonly replaceDungeonAndLevel: boolean;
-  }): E.Effect<PersistedConfiguration, ConfigurationDAOError> => {
+  }: Parameters<ConfigurationDAOShape["save"]>[0]) => {
     return E.gen(function* () {
       const records = yield* createConfigurationPersistenceRecords({
         configuration,
@@ -230,64 +223,125 @@ const make = E.gen(function* () {
         },
       ).pipe(E.mapError(mapConfigurationDAOError));
 
-      const insertConfigurationChildren = (
-        configurationId: ConfigurationId,
-      ) => {
-        return E.gen(function* () {
-          /*
-           * Milestone IDs were generated together with the requirement records,
-           * so keep those IDs. Only the parent configuration ID needs to be
-           * replaced when saving over an existing semantic configuration.
-           */
-          for (const milestone of milestoneInserts) {
-            yield* sql`
-              INSERT INTO milestone (
-                id,
-                configuration_id,
-                label,
-                created_at,
-                updated_at
-              )
-              VALUES (
-                ${milestone.id},
-                ${configurationId},
-                ${milestone.label},
-                ${milestone.createdAt},
-                ${milestone.updatedAt}
-              )
-            `;
-          }
-
-          /*
-           * Requirement records already reference the newly generated
-           * milestone IDs above, so they can be inserted unchanged.
-           */
-          for (const requirement of requirementInserts) {
-            yield* sql`
-              INSERT INTO requirement (
-                id,
-                milestone_id,
-                type,
-                target_id,
-                start_occurrence,
-                required_count,
-                created_at,
-                updated_at
-              )
-              VALUES (
-                ${requirement.id},
-                ${requirement.milestoneId},
-                ${requirement.type},
-                ${requirement.targetId},
-                ${requirement.startOccurrence},
-                ${requirement.requiredCount},
-                ${requirement.createdAt},
-                ${requirement.updatedAt}
-              )
-            `;
-          }
-        });
+      return {
+        configurationInsert,
+        milestoneInserts,
+        records,
+        requirementInserts,
       };
+    });
+  };
+
+  const insertConfigurationChildren = ({
+    configurationId,
+    milestoneInserts,
+    requirementInserts,
+  }: {
+    readonly configurationId: ConfigurationId;
+    readonly milestoneInserts: ReadonlyArray<
+      typeof MilestoneModel.insert.Encoded
+    >;
+    readonly requirementInserts: ReadonlyArray<
+      typeof RequirementModel.insert.Encoded
+    >;
+  }) => {
+    return E.gen(function* () {
+      /*
+       * Milestone IDs were generated together with the requirement records,
+       * so keep those IDs. Only the parent configuration ID needs to be
+       * replaced when persisting against an existing configuration.
+       */
+      for (const milestone of milestoneInserts) {
+        yield* sql`
+          INSERT INTO milestone (
+            id,
+            configuration_id,
+            label,
+            created_at,
+            updated_at
+          )
+          VALUES (
+            ${milestone.id},
+            ${configurationId},
+            ${milestone.label},
+            ${milestone.createdAt},
+            ${milestone.updatedAt}
+          )
+        `;
+      }
+
+      /*
+       * Requirement records reference the newly generated milestone IDs above,
+       * so they can be inserted unchanged.
+       */
+      for (const requirement of requirementInserts) {
+        yield* sql`
+          INSERT INTO requirement (
+            id,
+            milestone_id,
+            type,
+            target_id,
+            start_occurrence,
+            required_count,
+            created_at,
+            updated_at
+          )
+          VALUES (
+            ${requirement.id},
+            ${requirement.milestoneId},
+            ${requirement.type},
+            ${requirement.targetId},
+            ${requirement.startOccurrence},
+            ${requirement.requiredCount},
+            ${requirement.createdAt},
+            ${requirement.updatedAt}
+          )
+        `;
+      }
+    });
+  };
+
+  const getPersistedConfiguration = (
+    id: ConfigurationId,
+  ): E.Effect<PersistedConfiguration, ConfigurationDAOError> => {
+    return E.gen(function* () {
+      const persisted = yield* getById({ id });
+
+      if (Option.isNone(persisted)) {
+        return yield* E.fail(
+          mapConfigurationDAOError(
+            new Error(
+              `Configuration "${id}" was not found after it was persisted.`,
+            ),
+          ),
+        );
+      }
+
+      return persisted.value;
+    });
+  };
+
+  const persistConfiguration = ({
+    configuration,
+    label,
+    replaceDungeonAndLevel,
+  }: {
+    readonly configuration: Parameters<
+      ConfigurationDAOShape["save"]
+    >[0]["configuration"];
+    readonly label: Parameters<ConfigurationDAOShape["save"]>[0]["label"];
+    readonly replaceDungeonAndLevel: boolean;
+  }): E.Effect<PersistedConfiguration, ConfigurationDAOError> => {
+    return E.gen(function* () {
+      const {
+        configurationInsert,
+        milestoneInserts,
+        records,
+        requirementInserts,
+      } = yield* prepareConfigurationPersistence({
+        configuration,
+        label,
+      });
 
       const configurationId = yield* sql
         .withTransaction(
@@ -328,16 +382,17 @@ const make = E.gen(function* () {
                * Milestone labels are also excluded from the semantic
                * fingerprint. Recreate the child graph so persisted milestone
                * metadata reflects the submitted configuration.
-               *
-               * Deleting milestones also deletes their requirements through
-               * the milestone -> requirement ON DELETE CASCADE foreign key.
                */
               yield* sql`
                 DELETE FROM milestone
                 WHERE configuration_id = ${configurationId}
               `;
 
-              yield* insertConfigurationChildren(configurationId);
+              yield* insertConfigurationChildren({
+                configurationId,
+                milestoneInserts,
+                requirementInserts,
+              });
             } else {
               configurationId = records.configuration.id;
 
@@ -364,7 +419,11 @@ const make = E.gen(function* () {
                 )
               `;
 
-              yield* insertConfigurationChildren(configurationId);
+              yield* insertConfigurationChildren({
+                configurationId,
+                milestoneInserts,
+                requirementInserts,
+              });
             }
 
             if (replaceDungeonAndLevel) {
@@ -381,21 +440,7 @@ const make = E.gen(function* () {
         )
         .pipe(E.mapError(mapConfigurationDAOError));
 
-      const persisted = yield* getById({
-        id: configurationId,
-      });
-
-      if (Option.isNone(persisted)) {
-        return yield* E.fail(
-          mapConfigurationDAOError(
-            new Error(
-              `Configuration "${configurationId}" was not found after it was persisted.`,
-            ),
-          ),
-        );
-      }
-
-      return persisted.value;
+      return yield* getPersistedConfiguration(configurationId);
     });
   };
 
@@ -415,6 +460,77 @@ const make = E.gen(function* () {
         replaceDungeonAndLevel: true,
       });
     };
+
+  const update: ConfigurationDAOShape["update"] = ({
+    configuration,
+    id,
+    label,
+  }) => {
+    return E.gen(function* () {
+      const { configurationInsert, milestoneInserts, requirementInserts } =
+        yield* prepareConfigurationPersistence({
+          configuration,
+          label,
+        });
+
+      yield* sql
+        .withTransaction(
+          E.gen(function* () {
+            const existingRows = yield* sql`
+              SELECT
+                id
+              FROM configuration
+              WHERE id = ${id}
+              LIMIT 1
+            `;
+
+            if (existingRows[0] === undefined) {
+              return yield* E.fail(
+                new Error(`Configuration "${id}" was not found.`),
+              );
+            }
+
+            /*
+             * Update the existing configuration in place. Its persisted
+             * identity and created_at timestamp are intentionally preserved.
+             *
+             * The fingerprint and canonical JSON are regenerated from the
+             * submitted configuration exactly as they are during a save.
+             */
+            yield* sql`
+              UPDATE configuration
+              SET
+                dungeon_id = ${configurationInsert.dungeonId},
+                dungeon_level = ${configurationInsert.dungeonLevel},
+                label = ${configurationInsert.label},
+                fingerprint = ${configurationInsert.fingerprint},
+                canonical_json = ${configurationInsert.canonicalJson},
+                updated_at = ${configurationInsert.updatedAt}
+              WHERE id = ${id}
+            `;
+
+            /*
+             * The submitted configuration owns the complete child graph.
+             * Removing milestones also removes their requirements through
+             * ON DELETE CASCADE.
+             */
+            yield* sql`
+              DELETE FROM milestone
+              WHERE configuration_id = ${id}
+            `;
+
+            yield* insertConfigurationChildren({
+              configurationId: id,
+              milestoneInserts,
+              requirementInserts,
+            });
+          }),
+        )
+        .pipe(E.mapError(mapConfigurationDAOError));
+
+      return yield* getPersistedConfiguration(id);
+    });
+  };
 
   const deleteConfiguration: ConfigurationDAOShape["delete"] = ({ id }) => {
     return sql`
@@ -439,6 +555,7 @@ const make = E.gen(function* () {
     getById,
     save,
     saveReplacingDungeonAndLevel,
+    update,
   } satisfies ConfigurationDAOShape;
 });
 

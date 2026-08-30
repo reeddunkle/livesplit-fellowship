@@ -22,6 +22,15 @@ export const SaveConfigurationApiRequestSchema = Schema.Struct({
 export type SaveConfigurationApiRequest =
   typeof SaveConfigurationApiRequestSchema.Type;
 
+export const UpdateConfigurationApiRequestSchema = Schema.Struct({
+  configuration: FellowshipMilestoneConfigurationFileSchema,
+  id: ConfigurationIdSchema,
+  label: ConfigurationLabelSchema,
+});
+
+export type UpdateConfigurationApiRequest =
+  typeof UpdateConfigurationApiRequestSchema.Type;
+
 export const DeleteConfigurationsByDungeonAndLevelApiRequestSchema =
   Schema.Struct({
     dungeonId: DungeonIdSchema,

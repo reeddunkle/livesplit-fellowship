@@ -64,6 +64,17 @@ const SaveReplacingDungeonAndLevelEndpoint = HttpApiEndpoint.post(
   },
 );
 
+const UpdateConfigurationEndpoint = HttpApiEndpoint.put(
+  "updateConfiguration",
+  `${CONFIGURATIONS_ROUTE}/:id`,
+  {
+    error: HttpApiError.InternalServerErrorNoContent,
+    params: ConfigurationIdParamsSchema,
+    payload: SaveConfigurationApiRequestSchema,
+    success: ConfigurationApiConfigurationSchema,
+  },
+);
+
 const DeleteConfigurationEndpoint = HttpApiEndpoint.delete(
   "deleteConfiguration",
   `${CONFIGURATIONS_ROUTE}/:id`,
@@ -87,6 +98,7 @@ export const ConfigurationsApi = HttpApiGroup.make("configurations").add(
   GetConfigurationEndpoint,
   SaveConfigurationEndpoint,
   SaveReplacingDungeonAndLevelEndpoint,
+  UpdateConfigurationEndpoint,
   DeleteConfigurationEndpoint,
   DeleteConfigurationsByDungeonAndLevelEndpoint,
 );

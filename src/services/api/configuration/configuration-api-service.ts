@@ -20,6 +20,10 @@ type SaveConfigurationOptions = {
   readonly label: ConfigurationLabel;
 };
 
+type UpdateConfigurationOptions = SaveConfigurationOptions & {
+  readonly id: ConfigurationId;
+};
+
 type DeleteConfigurationOptions = {
   readonly id: ConfigurationId;
 };
@@ -55,6 +59,10 @@ export type ConfigurationApiServiceShape = {
 
   readonly saveReplacingDungeonAndLevel: (
     options: SaveConfigurationOptions,
+  ) => E.Effect<ConfigurationApiConfiguration, ConfigurationDAOError>;
+
+  readonly update: (
+    options: UpdateConfigurationOptions,
   ) => E.Effect<ConfigurationApiConfiguration, ConfigurationDAOError>;
 };
 
@@ -116,6 +124,20 @@ const make = E.gen(function* () {
         .pipe(E.map(createConfigurationApiResponse));
     };
 
+  const update: ConfigurationApiServiceShape["update"] = ({
+    configuration,
+    id,
+    label,
+  }) => {
+    return configurationDAO
+      .update({
+        configuration,
+        id,
+        label,
+      })
+      .pipe(E.map(createConfigurationApiResponse));
+  };
+
   return {
     delete: deleteConfiguration,
     deleteByDungeonAndLevel,
@@ -123,6 +145,7 @@ const make = E.gen(function* () {
     getById,
     save,
     saveReplacingDungeonAndLevel,
+    update,
   } satisfies ConfigurationApiServiceShape;
 });
 

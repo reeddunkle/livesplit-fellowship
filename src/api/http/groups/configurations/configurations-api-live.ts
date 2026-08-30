@@ -76,6 +76,21 @@ const ConfigurationsApiHandlersInferred = HttpApiBuilder.group(
           })
           .pipe(E.catch(mapConfigurationError));
       })
+      .handle("updateConfiguration", ({ params, payload }) => {
+        const configuration = {
+          dungeonId: payload.configuration.dungeonId,
+          dungeonLevel: payload.configuration.dungeonLevel,
+          milestones: payload.configuration.milestones,
+        } satisfies FellowshipMilestoneConfiguration;
+
+        return configurationApiService
+          .update({
+            configuration,
+            id: params.id,
+            label: payload.label,
+          })
+          .pipe(E.catch(mapConfigurationError));
+      })
       .handle("deleteConfiguration", ({ params }) => {
         return configurationApiService
           .delete({
