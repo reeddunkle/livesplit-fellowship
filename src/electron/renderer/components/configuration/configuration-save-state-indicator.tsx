@@ -7,13 +7,13 @@ export function ConfigurationSaveStateIndicator({
 }: {
   readonly saveState: ConfigurationSaveState;
 }) {
-  if (saveState.type === "UPDATE") {
+  if (saveState.type === "EXISTING") {
     return (
       <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
         <AlertTriangleIcon className="size-4 shrink-0" />
 
         <span>
-          Saving will update the existing configuration "{saveState.label}".
+          "Save" will update another configuration "{saveState.label}".
         </span>
       </div>
     );
@@ -23,7 +23,7 @@ export function ConfigurationSaveStateIndicator({
     <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
       <CirclePlusIcon className="size-4 shrink-0" />
 
-      <span>Saving will create a new configuration.</span>
+      <span>"Save" will create a new configuration.</span>
     </div>
   );
 }

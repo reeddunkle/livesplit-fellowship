@@ -25,7 +25,7 @@ export function createWindow({
           nodeIntegration: false,
           sandbox: true,
         },
-        width: 1400,
+        width: 1500,
       });
 
       if (rendererDevServerUrl) {

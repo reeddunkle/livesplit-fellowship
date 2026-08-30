@@ -1,5 +1,3 @@
-import { useRouter } from "@tanstack/react-router";
-import * as E from "effect/Effect";
 import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
 import {
@@ -9,9 +7,7 @@ import {
   SaveIcon,
   Trash2Icon,
 } from "lucide-react";
-import { useState } from "react";
 
-import * as configurationClient from "@/electron/renderer/api/configuration-client.ts";
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import { Card, CardContent } from "@/electron/renderer/components/ui/card.tsx";
 import {
@@ -24,8 +20,12 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/electron/renderer/components/ui/native-select.tsx";
-import { useSelectedConfigurationId } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
+import {
+  useConfigurationActions,
+  useSelectedConfigurationId,
+} from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
 import { ConfigurationEditorProvider } from "./configuration-editor-provider.tsx";
 import {
@@ -38,7 +38,6 @@ import {
   type DecodedConfigurationEditorValue,
 } from "./configuration-form-schema.ts";
 import { ConfigurationSaveStateIndicator } from "./configuration-save-state-indicator.tsx";
-import { saveConfigurationApiRequest } from "./helpers/configuration-editor-adapter.ts";
 import { type DungeonOption } from "./helpers/configuration-editor-types.ts";
 import { type ConfigurationSaveState } from "./helpers/configuration-save-state.ts";
 import { MilestoneEditor } from "./milestone/milestone-editor.tsx";
@@ -108,6 +107,19 @@ function hasUnsavedChanges({
   return true;
 }
 
+function shouldWarnAboutSaveOverwrite({
+  saveState,
+  selectedConfigurationId,
+}: {
+  readonly saveState: ConfigurationSaveState | undefined;
+  readonly selectedConfigurationId: ConfigurationId | null;
+}): boolean {
+  return (
+    saveState?.type === "EXISTING" &&
+    saveState.configurationId !== selectedConfigurationId
+  );
+}
+
 export function ConfigurationEditor({
   canDelete,
   defaultValue,
@@ -118,10 +130,9 @@ export function ConfigurationEditor({
   onNew,
   onSubmit,
 }: ConfigurationEditorProps) {
-  const router = useRouter();
   const selectedConfigurationId = useSelectedConfigurationId();
 
-  const [isUpdating, setIsUpdating] = useState(false);
+  const { isUpdating, update } = useConfigurationActions();
 
   const form = useConfigurationForm({
     defaultValues: defaultValue,
@@ -138,39 +149,6 @@ export function ConfigurationEditor({
     }
 
     return getSaveState(decoded);
-  };
-
-  const updateConfiguration = async (
-    value: ConfigurationEditorValue,
-  ): Promise<void> => {
-    if (selectedConfigurationId === null) {
-      return;
-    }
-
-    const decoded = decodeConfigurationEditorValue(value);
-
-    if (decoded === undefined) {
-      return;
-    }
-
-    const request = saveConfigurationApiRequest(decoded);
-
-    setIsUpdating(true);
-
-    try {
-      await E.runPromise(
-        configurationClient.updateConfiguration({
-          id: selectedConfigurationId,
-          request,
-        }),
-      );
-
-      await router.invalidate({
-        sync: true,
-      });
-    } finally {
-      setIsUpdating(false);
-    }
   };
 
   return (
@@ -220,10 +198,12 @@ export function ConfigurationEditor({
             </Button>
             <form.Subscribe selector={selectConfigurationEditorFormState}>
               {(state) => {
+                const decoded = decodeConfigurationEditorValue(state.values);
+
                 const isUpdateEnabled =
                   selectedConfigurationId !== null &&
                   hasUnsavedChanges(state) &&
-                  decodeConfigurationEditorValue(state.values) !== undefined;
+                  decoded !== undefined;
 
                 return (
                   <Button
@@ -231,7 +211,9 @@ export function ConfigurationEditor({
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      void updateConfiguration(state.values);
+                      if (decoded !== undefined) {
+                        update(decoded);
+                      }
                     }}
                   >
                     <PencilIcon />
@@ -272,6 +254,15 @@ export function ConfigurationEditor({
                   return null;
                 }
 
+                if (
+                  !shouldWarnAboutSaveOverwrite({
+                    saveState,
+                    selectedConfigurationId,
+                  })
+                ) {
+                  return null;
+                }
+
                 return (
                   <ConfigurationSaveStateIndicator saveState={saveState} />
                 );
@@ -292,12 +283,17 @@ export function ConfigurationEditor({
           <form.Subscribe selector={selectConfigurationEditorFormState}>
             {(state) => {
               const saveState = resolveSaveState(state.values);
-              const shouldHighlightSaveState = hasUnsavedChanges(state);
 
-              const saveStateClassName =
-                shouldHighlightSaveState && saveState?.type === "UPDATE"
-                  ? "border-amber-500/70"
-                  : "border-border";
+              const shouldWarn =
+                hasUnsavedChanges(state) &&
+                shouldWarnAboutSaveOverwrite({
+                  saveState,
+                  selectedConfigurationId,
+                });
+
+              const saveStateClassName = shouldWarn
+                ? "border-amber-500/70"
+                : "border-border";
 
               return (
                 <div

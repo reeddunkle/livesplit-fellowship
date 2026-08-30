@@ -19,7 +19,7 @@ export type ConfigurationSaveState =
   | {
       readonly configurationId: ConfigurationId;
       readonly label: string;
-      readonly type: "UPDATE";
+      readonly type: "EXISTING";
     };
 
 function getCanonicalJson(
@@ -58,7 +58,7 @@ export function makeConfigurationSaveStateLookup(
     return {
       configurationId: existingConfiguration.id,
       label: existingConfiguration.label,
-      type: "UPDATE",
+      type: "EXISTING",
     };
   }
 
