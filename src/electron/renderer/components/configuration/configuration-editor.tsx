@@ -2,7 +2,6 @@ import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
 import {
   FilePlus2Icon,
-  PencilIcon,
   PlusIcon,
   RotateCcwIcon,
   SaveIcon,
