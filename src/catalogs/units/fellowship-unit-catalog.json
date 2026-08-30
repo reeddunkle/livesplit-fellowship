@@ -1,8 +1,6 @@
 [
   {
-    "dungeonIds": [
-      "11"
-    ],
+    "dungeonIds": ["11"],
     "groupKey": null,
     "id": "CM_RubiliteTriggerstone",
     "name": "Rubilite Triggerstone",
@@ -10,9 +8,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "24"
-    ],
+    "dungeonIds": ["24"],
     "groupKey": null,
     "id": "SH_QuiveringEggSac",
     "name": "Quivering Egg Sac",
@@ -20,11 +16,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "12",
-      "23"
-    ],
+    "dungeonIds": ["5", "12", "23"],
     "groupKey": null,
     "id": "10",
     "name": "Ashen Arsonist",
@@ -32,9 +24,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23"
-    ],
+    "dungeonIds": ["23"],
     "groupKey": null,
     "id": "11",
     "name": "Icebite Reaver",
@@ -42,11 +32,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "12",
-      "23"
-    ],
+    "dungeonIds": ["5", "12", "23"],
     "groupKey": null,
     "id": "12",
     "name": "Raging Pillager",
@@ -54,11 +40,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "21",
-      "23",
-      "24"
-    ],
+    "dungeonIds": ["21", "23", "24"],
     "groupKey": null,
     "id": "13",
     "name": "Frenzied Looter",
@@ -66,9 +48,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23"
-    ],
+    "dungeonIds": ["23"],
     "groupKey": null,
     "id": "14",
     "name": "Craven Hiisi",
@@ -76,10 +56,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23",
-      "31"
-    ],
+    "dungeonIds": ["23", "31"],
     "groupKey": null,
     "id": "15",
     "name": "Coldbrine Fiend",
@@ -87,9 +64,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23"
-    ],
+    "dungeonIds": ["23"],
     "groupKey": null,
     "id": "18",
     "name": "Auga Handhafi the Blind",
@@ -97,9 +72,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23"
-    ],
+    "dungeonIds": ["23"],
     "groupKey": null,
     "id": "22",
     "name": "Kaldurson Isilagður",
@@ -107,9 +80,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23"
-    ],
+    "dungeonIds": ["23"],
     "groupKey": null,
     "id": "23",
     "name": "Kaldurson Eldsupptok",
@@ -117,9 +88,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23"
-    ],
+    "dungeonIds": ["23"],
     "groupKey": null,
     "id": "25",
     "name": "Fodir Kaldur",
@@ -127,9 +96,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23"
-    ],
+    "dungeonIds": ["23"],
     "groupKey": null,
     "id": "28",
     "name": "Chilgar the Drowned",
@@ -137,9 +104,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23"
-    ],
+    "dungeonIds": ["23"],
     "groupKey": null,
     "id": "29",
     "name": "Nightmist Whisperer",
@@ -147,9 +112,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23"
-    ],
+    "dungeonIds": ["23"],
     "groupKey": null,
     "id": "30",
     "name": "Shadow of Ulmorgat",
@@ -157,11 +120,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "12",
-      "23"
-    ],
+    "dungeonIds": ["5", "12", "23"],
     "groupKey": null,
     "id": "32",
     "name": "Nightmist Cutthroat",
@@ -169,9 +128,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23"
-    ],
+    "dungeonIds": ["23"],
     "groupKey": null,
     "id": "33",
     "name": "Bleakfrost Slaver",
@@ -179,9 +136,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23"
-    ],
+    "dungeonIds": ["23"],
     "groupKey": null,
     "id": "34",
     "name": "Bleakfrost Mystic",
@@ -189,9 +144,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "21"
-    ],
+    "dungeonIds": ["21"],
     "groupKey": null,
     "id": "36",
     "name": "Urrak Witch",
@@ -199,9 +152,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "21"
-    ],
+    "dungeonIds": ["21"],
     "groupKey": null,
     "id": "37",
     "name": "Urrak Slaver",
@@ -209,9 +160,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "21"
-    ],
+    "dungeonIds": ["21"],
     "groupKey": null,
     "id": "38",
     "name": "Slavebind Totem",
@@ -219,10 +168,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "11",
-      "21"
-    ],
+    "dungeonIds": ["11", "21"],
     "groupKey": null,
     "id": "39",
     "name": "Outrunner",
@@ -230,10 +176,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "11",
-      "21"
-    ],
+    "dungeonIds": ["11", "21"],
     "groupKey": null,
     "id": "40",
     "name": "Horned Seer",
@@ -241,10 +184,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "11",
-      "21"
-    ],
+    "dungeonIds": ["11", "21"],
     "groupKey": null,
     "id": "41",
     "name": "Gorestained Butcher",
@@ -252,10 +192,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "11",
-      "21"
-    ],
+    "dungeonIds": ["11", "21"],
     "groupKey": null,
     "id": "42",
     "name": "Desecrator",
@@ -263,9 +200,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "21"
-    ],
+    "dungeonIds": ["21"],
     "groupKey": null,
     "id": "43",
     "name": "Slavetrader Brull",
@@ -273,9 +208,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "21"
-    ],
+    "dungeonIds": ["21"],
     "groupKey": null,
     "id": "44",
     "name": "Drazhul the Fleshbroker",
@@ -283,11 +216,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "12",
-      "13",
-      "15"
-    ],
+    "dungeonIds": ["12", "13", "15"],
     "groupKey": null,
     "id": "48",
     "name": "Dire Rat",
@@ -295,9 +224,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "6"
-    ],
+    "dungeonIds": ["6"],
     "groupKey": null,
     "id": "87",
     "name": "Sin-Magir",
@@ -305,9 +232,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "24"
-    ],
+    "dungeonIds": ["24"],
     "groupKey": null,
     "id": "89",
     "name": "Spiderling",
@@ -315,9 +240,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "24"
-    ],
+    "dungeonIds": ["24"],
     "groupKey": null,
     "id": "90",
     "name": "Rotheart Recluse",
@@ -325,9 +248,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "24"
-    ],
+    "dungeonIds": ["24"],
     "groupKey": null,
     "id": "91",
     "name": "Gravesnare Kidnapper",
@@ -335,9 +256,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "24"
-    ],
+    "dungeonIds": ["24"],
     "groupKey": null,
     "id": "92",
     "name": "Vexira, Mother of Nightmares",
@@ -345,10 +264,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "6",
-      "15"
-    ],
+    "dungeonIds": ["6", "15"],
     "groupKey": null,
     "id": "94",
     "name": "Water Elemental",
@@ -356,9 +272,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "15"
-    ],
+    "dungeonIds": ["15"],
     "groupKey": null,
     "id": "97",
     "name": "Hollowed Corsair",
@@ -366,9 +280,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "15"
-    ],
+    "dungeonIds": ["15"],
     "groupKey": null,
     "id": "98",
     "name": "Fading Raider",
@@ -376,9 +288,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "15"
-    ],
+    "dungeonIds": ["15"],
     "groupKey": null,
     "id": "99",
     "name": "Deepbound Magi",
@@ -386,11 +296,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "6",
-      "13",
-      "15"
-    ],
+    "dungeonIds": ["6", "13", "15"],
     "groupKey": null,
     "id": "100",
     "name": "Lost Soul",
@@ -398,9 +304,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "15"
-    ],
+    "dungeonIds": ["15"],
     "groupKey": null,
     "id": "102",
     "name": "Tormented Spectre",
@@ -408,9 +312,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "15"
-    ],
+    "dungeonIds": ["15"],
     "groupKey": null,
     "id": "103",
     "name": "Vengeful Shade",
@@ -418,9 +320,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "15"
-    ],
+    "dungeonIds": ["15"],
     "groupKey": null,
     "id": "104",
     "name": "Witchreef Lasher",
@@ -428,9 +328,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "15"
-    ],
+    "dungeonIds": ["15"],
     "groupKey": null,
     "id": "105",
     "name": "Sinthara",
@@ -438,9 +336,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "13"
-    ],
+    "dungeonIds": ["13"],
     "groupKey": null,
     "id": "107",
     "name": "Tide Witch",
@@ -448,9 +344,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "13"
-    ],
+    "dungeonIds": ["13"],
     "groupKey": null,
     "id": "109",
     "name": "Jungle Stalker",
@@ -458,9 +352,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "13"
-    ],
+    "dungeonIds": ["13"],
     "groupKey": null,
     "id": "110",
     "name": "Bleachbone Brute",
@@ -468,9 +360,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "13"
-    ],
+    "dungeonIds": ["13"],
     "groupKey": null,
     "id": "114",
     "name": "Saltsworn Scallywag",
@@ -478,10 +368,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "6",
-      "13"
-    ],
+    "dungeonIds": ["6", "13"],
     "groupKey": null,
     "id": "115",
     "name": "Greedspawn Sentinel",
@@ -489,10 +376,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "6",
-      "13"
-    ],
+    "dungeonIds": ["6", "13"],
     "groupKey": null,
     "id": "116",
     "name": "Gravescythe",
@@ -500,10 +384,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "6",
-      "13"
-    ],
+    "dungeonIds": ["6", "13"],
     "groupKey": null,
     "id": "118",
     "name": "Greedbound Prism",
@@ -511,9 +392,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "13"
-    ],
+    "dungeonIds": ["13"],
     "groupKey": null,
     "id": "119",
     "name": "Scuttlejack Cannoneer",
@@ -521,9 +400,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "13"
-    ],
+    "dungeonIds": ["13"],
     "groupKey": null,
     "id": "121",
     "name": "Bael'Aurum",
@@ -531,9 +408,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "13"
-    ],
+    "dungeonIds": ["13"],
     "groupKey": null,
     "id": "124",
     "name": "Deathless Katrine",
@@ -541,9 +416,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "13"
-    ],
+    "dungeonIds": ["13"],
     "groupKey": null,
     "id": "125",
     "name": "First Mate Marrow",
@@ -551,9 +424,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "13"
-    ],
+    "dungeonIds": ["13"],
     "groupKey": null,
     "id": "126",
     "name": "Soulpowder Buccaneer",
@@ -561,9 +432,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "13"
-    ],
+    "dungeonIds": ["13"],
     "groupKey": null,
     "id": "127",
     "name": "Bilgerat",
@@ -571,12 +440,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "6",
-      "13",
-      "21"
-    ],
+    "dungeonIds": ["5", "6", "13", "21"],
     "groupKey": null,
     "id": "128",
     "name": "Barbarous Lasher",
@@ -584,9 +448,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "12"
-    ],
+    "dungeonIds": ["12"],
     "groupKey": null,
     "id": "129",
     "name": "Stormscreamer",
@@ -594,10 +456,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "12",
-      "24"
-    ],
+    "dungeonIds": ["12", "24"],
     "groupKey": null,
     "id": "130",
     "name": "Shinchopper",
@@ -605,10 +464,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "12",
-      "24"
-    ],
+    "dungeonIds": ["12", "24"],
     "groupKey": null,
     "id": "131",
     "name": "Facestabber",
@@ -616,10 +472,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "12",
-      "24"
-    ],
+    "dungeonIds": ["12", "24"],
     "groupKey": null,
     "id": "132",
     "name": "Bully Basher",
@@ -627,9 +480,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "12"
-    ],
+    "dungeonIds": ["12"],
     "groupKey": null,
     "id": "133",
     "name": "Warlord Brogg",
@@ -637,11 +488,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "12",
-      "21"
-    ],
+    "dungeonIds": ["5", "12", "21"],
     "groupKey": null,
     "id": "134",
     "name": "Mancatcher",
@@ -649,10 +496,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "11",
-      "25"
-    ],
+    "dungeonIds": ["11", "25"],
     "groupKey": null,
     "id": "136",
     "name": "Skittershard",
@@ -660,10 +504,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "11",
-      "21"
-    ],
+    "dungeonIds": ["11", "21"],
     "groupKey": null,
     "id": "137",
     "name": "Mangy Brute",
@@ -671,9 +512,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "11"
-    ],
+    "dungeonIds": ["11"],
     "groupKey": null,
     "id": "138",
     "name": "Corrupted Totemic",
@@ -681,9 +520,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "11"
-    ],
+    "dungeonIds": ["11"],
     "groupKey": null,
     "id": "139",
     "name": "Bloodstone Goliath",
@@ -691,9 +528,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "11"
-    ],
+    "dungeonIds": ["11"],
     "groupKey": null,
     "id": "140",
     "name": "Akari the Everdawn Lord",
@@ -701,9 +536,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "11"
-    ],
+    "dungeonIds": ["11"],
     "groupKey": null,
     "id": "141",
     "name": "Malgut the Fetid",
@@ -711,9 +544,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "11"
-    ],
+    "dungeonIds": ["11"],
     "groupKey": null,
     "id": "142",
     "name": "Blighted Dawnbloom",
@@ -721,9 +552,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "8"
-    ],
+    "dungeonIds": ["8"],
     "groupKey": null,
     "id": "151",
     "name": "Expedition Lookout",
@@ -731,10 +560,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "8",
-      "31"
-    ],
+    "dungeonIds": ["8", "31"],
     "groupKey": null,
     "id": "152",
     "name": "Ice Shardling",
@@ -742,10 +568,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7",
-      "8"
-    ],
+    "dungeonIds": ["7", "8"],
     "groupKey": null,
     "id": "153",
     "name": "Eldrin Chronomancer",
@@ -753,11 +576,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7",
-      "8",
-      "31"
-    ],
+    "dungeonIds": ["7", "8", "31"],
     "groupKey": null,
     "id": "154",
     "name": "Greater Ice Elemental",
@@ -765,12 +584,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7",
-      "8",
-      "23",
-      "31"
-    ],
+    "dungeonIds": ["7", "8", "23", "31"],
     "groupKey": null,
     "id": "155",
     "name": "Frozen Remnant",
@@ -778,9 +592,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "8"
-    ],
+    "dungeonIds": ["8"],
     "groupKey": null,
     "id": "156",
     "name": "Apostate Veras",
@@ -788,10 +600,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7",
-      "8"
-    ],
+    "dungeonIds": ["7", "8"],
     "groupKey": null,
     "id": "157",
     "name": "Coldheart Assassin",
@@ -799,11 +608,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7",
-      "8",
-      "31"
-    ],
+    "dungeonIds": ["7", "8", "31"],
     "groupKey": null,
     "id": "160",
     "name": "Spellbound Golem",
@@ -811,10 +616,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7",
-      "31"
-    ],
+    "dungeonIds": ["7", "31"],
     "groupKey": null,
     "id": "161",
     "name": "Ice Shardling",
@@ -822,11 +624,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7",
-      "8",
-      "31"
-    ],
+    "dungeonIds": ["7", "8", "31"],
     "groupKey": null,
     "id": "162",
     "name": "Tundra Stalker",
@@ -834,11 +632,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7",
-      "8",
-      "31"
-    ],
+    "dungeonIds": ["7", "8", "31"],
     "groupKey": null,
     "id": "163",
     "name": "Deceitful Scholar",
@@ -846,11 +640,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7",
-      "8",
-      "31"
-    ],
+    "dungeonIds": ["7", "8", "31"],
     "groupKey": null,
     "id": "164",
     "name": "Eldrin Sentinel",
@@ -858,11 +648,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7",
-      "8",
-      "31"
-    ],
+    "dungeonIds": ["7", "8", "31"],
     "groupKey": null,
     "id": "165",
     "name": "Eldrin Recruit",
@@ -870,11 +656,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7",
-      "8",
-      "31"
-    ],
+    "dungeonIds": ["7", "8", "31"],
     "groupKey": null,
     "id": "166",
     "name": "Blade of Cithrel",
@@ -882,10 +664,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7",
-      "31"
-    ],
+    "dungeonIds": ["7", "31"],
     "groupKey": null,
     "id": "167",
     "name": "Corrupter",
@@ -893,9 +672,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7"
-    ],
+    "dungeonIds": ["7"],
     "groupKey": null,
     "id": "168",
     "name": "Noor, The Betrayer",
@@ -903,9 +680,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7"
-    ],
+    "dungeonIds": ["7"],
     "groupKey": null,
     "id": "169",
     "name": "Ancient Koros",
@@ -913,9 +688,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "7"
-    ],
+    "dungeonIds": ["7"],
     "groupKey": null,
     "id": "170",
     "name": "Cithrel",
@@ -923,9 +696,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "25"
-    ],
+    "dungeonIds": ["25"],
     "groupKey": null,
     "id": "172",
     "name": "Godfall Titan",
@@ -933,9 +704,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "6"
-    ],
+    "dungeonIds": ["6"],
     "groupKey": null,
     "id": "173",
     "name": "Acolyte of Sinnari",
@@ -943,9 +712,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "6"
-    ],
+    "dungeonIds": ["6"],
     "groupKey": null,
     "id": "174",
     "name": "Nightbound Magi",
@@ -953,9 +720,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "6"
-    ],
+    "dungeonIds": ["6"],
     "groupKey": null,
     "id": "175",
     "name": "Tombguard Reaver",
@@ -963,9 +728,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "6"
-    ],
+    "dungeonIds": ["6"],
     "groupKey": null,
     "id": "176",
     "name": "Sandsworn Husk",
@@ -973,9 +736,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "6"
-    ],
+    "dungeonIds": ["6"],
     "groupKey": null,
     "id": "177",
     "name": "Gravebreaker Brute",
@@ -983,9 +744,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "6"
-    ],
+    "dungeonIds": ["6"],
     "groupKey": null,
     "id": "179",
     "name": "Dunesnare Hunter",
@@ -993,10 +752,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "21"
-    ],
+    "dungeonIds": ["5", "21"],
     "groupKey": null,
     "id": "182",
     "name": "Slaughtervine",
@@ -1004,12 +760,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "6",
-      "13",
-      "21"
-    ],
+    "dungeonIds": ["5", "6", "13", "21"],
     "groupKey": null,
     "id": "183",
     "name": "Ruins Lasher",
@@ -1017,10 +768,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "21"
-    ],
+    "dungeonIds": ["5", "21"],
     "groupKey": null,
     "id": "185",
     "name": "Bloodfang Raider",
@@ -1028,9 +776,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5"
-    ],
+    "dungeonIds": ["5"],
     "groupKey": null,
     "id": "186",
     "name": "Hulking Bulgore",
@@ -1038,10 +784,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "12"
-    ],
+    "dungeonIds": ["5", "12"],
     "groupKey": null,
     "id": "189",
     "name": "Executioner",
@@ -1049,9 +792,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5"
-    ],
+    "dungeonIds": ["5"],
     "groupKey": null,
     "id": "190",
     "name": "Sickle",
@@ -1059,10 +800,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "21"
-    ],
+    "dungeonIds": ["5", "21"],
     "groupKey": null,
     "id": "191",
     "name": "Hellcaller",
@@ -1070,10 +808,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "21"
-    ],
+    "dungeonIds": ["5", "21"],
     "groupKey": null,
     "id": "192",
     "name": "Initiate",
@@ -1081,10 +816,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "12"
-    ],
+    "dungeonIds": ["5", "12"],
     "groupKey": null,
     "id": "193",
     "name": "Profane Invoker",
@@ -1092,9 +824,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5"
-    ],
+    "dungeonIds": ["5"],
     "groupKey": null,
     "id": "198",
     "name": "Moar'gore, Master of Sacrifice",
@@ -1102,9 +832,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5"
-    ],
+    "dungeonIds": ["5"],
     "groupKey": null,
     "id": "199",
     "name": "Vun’Kahr, the Thorned Maw",
@@ -1112,9 +840,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5"
-    ],
+    "dungeonIds": ["5"],
     "groupKey": null,
     "id": "200",
     "name": "Prophet Ez'rath",
@@ -1122,10 +848,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "5",
-      "21"
-    ],
+    "dungeonIds": ["5", "21"],
     "groupKey": null,
     "id": "201",
     "name": "Bloodfang",
@@ -1133,9 +856,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "25"
-    ],
+    "dungeonIds": ["25"],
     "groupKey": null,
     "id": "241",
     "name": "Godfall Wardstone",
@@ -1143,9 +864,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "25"
-    ],
+    "dungeonIds": ["25"],
     "groupKey": null,
     "id": "243",
     "name": "Task Master",
@@ -1153,9 +872,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "25"
-    ],
+    "dungeonIds": ["25"],
     "groupKey": null,
     "id": "244",
     "name": "Nezari Bolter",
@@ -1163,9 +880,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "25"
-    ],
+    "dungeonIds": ["25"],
     "groupKey": null,
     "id": "245",
     "name": "Quarry Stalker",
@@ -1173,10 +888,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "21",
-      "25"
-    ],
+    "dungeonIds": ["21", "25"],
     "groupKey": null,
     "id": "246",
     "name": "Dredge",
@@ -1184,9 +896,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "25"
-    ],
+    "dungeonIds": ["25"],
     "groupKey": null,
     "id": "247",
     "name": "Enforcer",
@@ -1194,9 +904,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "25"
-    ],
+    "dungeonIds": ["25"],
     "groupKey": null,
     "id": "248",
     "name": "Arcane Warden",
@@ -1204,9 +912,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "25"
-    ],
+    "dungeonIds": ["25"],
     "groupKey": null,
     "id": "249",
     "name": "Enraged Earth Elemental",
@@ -1214,9 +920,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "24"
-    ],
+    "dungeonIds": ["24"],
     "groupKey": null,
     "id": "266",
     "name": "Venomdrinker",
@@ -1224,9 +928,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "24"
-    ],
+    "dungeonIds": ["24"],
     "groupKey": null,
     "id": "267",
     "name": "Eggbearer",
@@ -1234,9 +936,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "24"
-    ],
+    "dungeonIds": ["24"],
     "groupKey": null,
     "id": "268",
     "name": "Carrion Horror",
@@ -1244,9 +944,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "25"
-    ],
+    "dungeonIds": ["25"],
     "groupKey": null,
     "id": "270",
     "name": "Vaerith Vorn",
@@ -1494,10 +1192,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "23",
-      "31"
-    ],
+    "dungeonIds": ["23", "31"],
     "groupKey": null,
     "id": "313",
     "name": "Glacial Bear",
@@ -1505,11 +1200,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "12",
-      "23",
-      "31"
-    ],
+    "dungeonIds": ["12", "23", "31"],
     "groupKey": null,
     "id": "314",
     "name": "Dire Wolf",
@@ -1517,9 +1208,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "31"
-    ],
+    "dungeonIds": ["31"],
     "groupKey": null,
     "id": "315",
     "name": "Overlord Varux",
@@ -1527,10 +1216,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "29",
-      "30"
-    ],
+    "dungeonIds": ["29", "30"],
     "groupKey": null,
     "id": "316",
     "name": "Sanguine Echo",
@@ -1538,10 +1224,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "30",
-      "31"
-    ],
+    "dungeonIds": ["30", "31"],
     "groupKey": null,
     "id": "317",
     "name": "Sanguine Crusher",
@@ -1549,9 +1232,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "30"
-    ],
+    "dungeonIds": ["30"],
     "groupKey": null,
     "id": "318",
     "name": "Xul’vorith, Sentinel of the Bloodbound Gate",
@@ -1559,9 +1240,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "30"
-    ],
+    "dungeonIds": ["30"],
     "groupKey": null,
     "id": "319",
     "name": "Han-Eth, Sentry of Xul",
@@ -1569,9 +1248,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "30"
-    ],
+    "dungeonIds": ["30"],
     "groupKey": null,
     "id": "321",
     "name": "Vel’korath the Sanctified, Vision of the Covenant",
@@ -1579,10 +1256,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "29",
-      "30"
-    ],
+    "dungeonIds": ["29", "30"],
     "groupKey": null,
     "id": "326",
     "name": "Heart of Rot",
@@ -1590,9 +1264,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "29"
-    ],
+    "dungeonIds": ["29"],
     "groupKey": null,
     "id": "327",
     "name": "Undying Champion",
@@ -1600,9 +1272,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "29"
-    ],
+    "dungeonIds": ["29"],
     "groupKey": null,
     "id": "328",
     "name": "Meandering Acolyte",
@@ -1610,9 +1280,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "29"
-    ],
+    "dungeonIds": ["29"],
     "groupKey": null,
     "id": "329",
     "name": "Restless Protector",
@@ -1620,9 +1288,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "29"
-    ],
+    "dungeonIds": ["29"],
     "groupKey": null,
     "id": "330",
     "name": "Xurath, Fist of the Warden",
@@ -1630,11 +1296,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "29",
-      "30",
-      "31"
-    ],
+    "dungeonIds": ["29", "30", "31"],
     "groupKey": null,
     "id": "331",
     "name": "Sanguine Disciple",
@@ -1642,11 +1304,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "29",
-      "30",
-      "31"
-    ],
+    "dungeonIds": ["29", "30", "31"],
     "groupKey": null,
     "id": "332",
     "name": "Stalking Grim",
@@ -1654,11 +1312,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "29",
-      "30",
-      "31"
-    ],
+    "dungeonIds": ["29", "30", "31"],
     "groupKey": null,
     "id": "333",
     "name": "Heskyr Zealot",
@@ -1666,11 +1320,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "29",
-      "30",
-      "31"
-    ],
+    "dungeonIds": ["29", "30", "31"],
     "groupKey": null,
     "id": "334",
     "name": "Heskyr Brood",
@@ -1678,11 +1328,7 @@
     "variant": null
   },
   {
-    "dungeonIds": [
-      "29",
-      "30",
-      "31"
-    ],
+    "dungeonIds": ["29", "30", "31"],
     "groupKey": null,
     "id": "336",
     "name": "Heskyr Magus",

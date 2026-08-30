@@ -1,4 +1,3 @@
-import * as A from "effect/Array";
 import * as Match from "effect/Match";
 import * as R from "effect/Record";
 import { useState } from "react";

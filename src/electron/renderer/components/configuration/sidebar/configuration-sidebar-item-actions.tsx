@@ -10,8 +10,8 @@ import {
   PopoverTrigger,
 } from "@/electron/renderer/components/ui/popover.tsx";
 import { Separator } from "@/electron/renderer/components/ui/separator";
-import { formatLocalDateTime } from "@/electron/renderer/util/format-date-time";
-import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema";
+import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
+import { formatLocalDateTime } from "@/util/format-date-time.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
 type ConfigurationSidebarItemActionsProps = {

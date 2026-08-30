@@ -4,8 +4,8 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/electron/renderer/components/ui/sidebar.tsx";
-import { formatRelativeDateTime } from "@/electron/renderer/util/format-date-time.ts";
 import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
+import { formatRelativeDateTime } from "@/util/format-date-time.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
 import { ConfigurationSidebarItemActions } from "./configuration-sidebar-item-actions.tsx";
