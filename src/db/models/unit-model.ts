@@ -8,8 +8,6 @@ export const UnitStatusSchema = Schema.Union([
   Schema.Literal("INACTIVE"),
 ]);
 
-export type UnitStatus = typeof UnitStatusSchema.Type;
-
 export class UnitModel extends Model.Class<UnitModel>("UnitModel")({
   createdAt: Model.DateTimeInsertFromNumber,
   dungeonIds: Schema.Array(NonEmptyStringSchema),

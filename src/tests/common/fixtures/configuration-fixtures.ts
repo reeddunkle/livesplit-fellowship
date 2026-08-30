@@ -30,11 +30,11 @@ export const TEST_DUNGEON_ID = "11";
 
 export const TEST_DUNGEON_LEVEL = 63;
 
-export const TEST_CONFIGURATION_CREATED_AT = DateTime.makeUnsafe(
+const TEST_CONFIGURATION_CREATED_AT = DateTime.makeUnsafe(
   "2026-01-01T00:00:00.000Z",
 );
 
-export const TEST_CONFIGURATION_UPDATED_AT = DateTime.makeUnsafe(
+const TEST_CONFIGURATION_UPDATED_AT = DateTime.makeUnsafe(
   "2026-01-02T00:00:00.000Z",
 );
 
