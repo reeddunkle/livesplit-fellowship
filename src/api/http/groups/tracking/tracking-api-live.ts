@@ -12,8 +12,7 @@ import {
   type FellowshipTrackerStartError,
   type FellowshipTrackerStatus,
 } from "@/application/tracking/fellowship-tracker-service.ts";
-
-import { type TrackingApiStatus } from "./tracking-api-schema.ts";
+import { type TrackingApiStatus } from "@/application/tracking/tracking-api-schema.ts";
 
 function createTrackingApiStatus(
   status: FellowshipTrackerStatus,

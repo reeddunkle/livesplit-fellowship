@@ -7,6 +7,8 @@ export const StartTrackingApiRequestSchema = Schema.Struct({
   configurationId: ConfigurationIdSchema,
 });
 
+export type StartTrackingApiRequest = typeof StartTrackingApiRequestSchema.Type;
+
 const IdleTrackingApiStatusSchema = Schema.Struct({
   status: Schema.Literal("Idle"),
 });

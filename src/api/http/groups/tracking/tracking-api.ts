@@ -5,7 +5,7 @@ import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
 import {
   StartTrackingApiRequestSchema,
   TrackingApiStatusSchema,
-} from "./tracking-api-schema.ts";
+} from "@/application/tracking/tracking-api-schema.ts";
 
 const TRACKING_ROUTE = "/tracking" as const;
 
