@@ -1,7 +1,7 @@
-import * as Match from "effect/Match";
 import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
 import {
+  FilePlus2Icon,
   PencilIcon,
   PlusIcon,
   RotateCcwIcon,
@@ -115,26 +115,6 @@ function shouldWarnAboutSaveOverwrite({
   );
 }
 
-function shouldShowSaveStateIndicator({
-  saveState,
-  selectedConfigurationId,
-}: {
-  readonly saveState: ConfigurationSaveState | undefined;
-  readonly selectedConfigurationId: ConfigurationId | null;
-}): boolean {
-  if (saveState === undefined) {
-    return false;
-  }
-
-  return Match.value(saveState).pipe(
-    Match.when({ type: "CREATE" }, () => true),
-    Match.when({ type: "EXISTING" }, ({ configurationId }) => {
-      return configurationId !== selectedConfigurationId;
-    }),
-    Match.exhaustive,
-  );
-}
-
 export function ConfigurationEditor({
   defaultValue,
   dungeonOptions,
@@ -219,42 +199,54 @@ export function ConfigurationEditor({
               {(state) => {
                 const decoded = decodeConfigurationEditorValue(state.values);
 
-                const isUpdateEnabled =
+                const isSaveEnabled =
                   selectedConfigurationId !== null &&
                   hasUnsavedChanges(state) &&
                   decoded !== undefined;
 
                 return (
                   <Button
-                    disabled={!isUpdateEnabled || isUpdating}
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      form.handleSubmit({
-                        type: "UPDATE",
-                      });
-                    }}
+                    disabled={!isSaveEnabled || isUpdating}
+                    form={CONFIGURATION_FORM_DOM_ID}
+                    type="submit"
                   >
-                    <PencilIcon />
-                    Update
+                    <SaveIcon />
+                    Save
                   </Button>
                 );
               }}
             </form.Subscribe>
             <form.Subscribe
               selector={(state) => {
-                return [state.canSubmit, state.isSubmitting] as const;
+                return {
+                  canSubmit: state.canSubmit,
+                  isSubmitting: state.isSubmitting,
+                  values: state.values,
+                };
               }}
             >
-              {([canSubmit, isSubmitting]) => {
+              {({ canSubmit, isSubmitting, values }) => {
+                const saveState = resolveSaveState(values);
+
+                const isSaveNewEnabled =
+                  canSubmit &&
+                  !isSubmitting &&
+                  !isUpdating &&
+                  saveState?.type === "CREATE";
+
                 return (
                   <Button
-                    disabled={!canSubmit || isSubmitting || isUpdating}
-                    form={CONFIGURATION_FORM_DOM_ID}
-                    type="submit"
+                    disabled={!isSaveNewEnabled}
+                    onClick={() => {
+                      form.handleSubmit({
+                        type: "SAVE",
+                      });
+                    }}
+                    type="button"
+                    variant="secondary"
                   >
-                    <SaveIcon />
-                    Save
+                    <FilePlus2Icon />
+                    Save new
                   </Button>
                 );
               }}
@@ -270,7 +262,7 @@ export function ConfigurationEditor({
                 const saveState = resolveSaveState(state.values);
 
                 if (
-                  !shouldShowSaveStateIndicator({
+                  !shouldWarnAboutSaveOverwrite({
                     saveState,
                     selectedConfigurationId,
                   })
@@ -296,8 +288,12 @@ export function ConfigurationEditor({
             event.preventDefault();
             event.stopPropagation();
 
+            if (selectedConfigurationId === null) {
+              return;
+            }
+
             form.handleSubmit({
-              type: "SAVE",
+              type: "UPDATE",
             });
           }}
         >
