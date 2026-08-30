@@ -1,10 +1,5 @@
 import { useRouter } from "@tanstack/react-router";
-import * as A from "effect/Array";
-import * as DateTime from "effect/DateTime";
 import * as E from "effect/Effect";
-import * as Match from "effect/Match";
-import * as Order from "effect/Order";
-import * as Record from "effect/Record";
 import {
   createContext,
   type ReactNode,
@@ -25,15 +20,8 @@ import {
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
-type ConfigurationOptimisticAction =
-  | {
-      readonly configuration: ConfigurationApiConfiguration;
-      readonly type: "UPSERT";
-    }
-  | {
-      readonly id: ConfigurationId;
-      readonly type: "DELETE";
-    };
+import { groupConfigurations } from "./configuration-grouping";
+import { reduceConfigurations } from "./configuration-optimistic-state";
 
 type SaveConfigurationActionInput = {
   readonly previousSelectedConfigurationId: ConfigurationId | null;
@@ -75,13 +63,13 @@ type ConfigurationActionContextValue = {
   readonly isUpdating: boolean;
   readonly newConfiguration: () => void;
   readonly save: (value: DecodedConfigurationEditorValue) => void;
-  readonly saveRevision: number;
   readonly savedConfiguration: ConfigurationApiConfiguration | undefined;
+  readonly saveRevision: number;
   readonly selectConfiguration: (id: ConfigurationId) => void;
   readonly update: (value: DecodedConfigurationEditorValue) => void;
+  readonly updatedConfiguration: ConfigurationApiConfiguration | undefined;
   readonly updateError: unknown | undefined;
   readonly updateRevision: number;
-  readonly updatedConfiguration: ConfigurationApiConfiguration | undefined;
 };
 
 type ConfigurationProviderProps = {
@@ -109,29 +97,6 @@ const INITIAL_DELETE_ACTION_STATE: ConfigurationDeleteActionState = {
   error: undefined,
 };
 
-export const ConfigurationUpdatedAtAscendingOrder = Order.mapInput(
-  Order.Number,
-  (configuration: ConfigurationApiConfiguration) => {
-    return DateTime.toEpochMillis(configuration.updatedAt);
-  },
-);
-
-export const ConfigurationUpdatedAtDescendingOrder = Order.flip(
-  ConfigurationUpdatedAtAscendingOrder,
-);
-
-const ConfigurationDungeonLevelAscendingOrder = Order.mapInput(
-  Order.Number,
-  (group: ConfigurationLevelGroup) => group.dungeonLevel,
-);
-
-export function sortConfigurations(
-  configurations: ConfigurationApiConfigurationList,
-  order: Order.Order<ConfigurationApiConfiguration>,
-): ConfigurationApiConfigurationList {
-  return A.sort(configurations, order);
-}
-
 const ConfigurationStateContext = createContext<
   ConfigurationStateContextValue | undefined
 >(undefined);
@@ -152,71 +117,6 @@ function invalidateRouter(router: ReturnType<typeof useRouter>) {
 
 function invalidateRouterSafely(router: ReturnType<typeof useRouter>) {
   return invalidateRouter(router).pipe(E.ignore);
-}
-
-function reduceConfigurations(
-  configurations: ConfigurationApiConfigurationList,
-  action: ConfigurationOptimisticAction,
-): ConfigurationApiConfigurationList {
-  return Match.value(action).pipe(
-    Match.when({ type: "DELETE" }, ({ id }) => {
-      return configurations.filter((configuration) => {
-        return configuration.id !== id;
-      });
-    }),
-    Match.when({ type: "UPSERT" }, ({ configuration }) => {
-      const exists = configurations.some((candidate) => {
-        return candidate.id === configuration.id;
-      });
-
-      if (!exists) {
-        return [...configurations, configuration];
-      }
-
-      return configurations.map((candidate) => {
-        return candidate.id === configuration.id ? configuration : candidate;
-      });
-    }),
-    Match.exhaustive,
-  );
-}
-
-function groupConfigurations(
-  configurations: ConfigurationApiConfigurationList,
-): ReadonlyArray<ConfigurationDungeonGroup> {
-  const configurationsByDungeon = A.groupBy(
-    configurations,
-    (configuration) => configuration.dungeonId,
-  );
-
-  return Record.toEntries(configurationsByDungeon).map(
-    ([dungeonId, dungeonConfigurations]) => {
-      const configurationsByLevel = A.groupBy(
-        dungeonConfigurations,
-        (configuration) => String(configuration.dungeonLevel),
-      );
-
-      const levels = A.sort(
-        Record.toEntries(configurationsByLevel).map(
-          ([dungeonLevel, levelConfigurations]) => {
-            return {
-              configurations: sortConfigurations(
-                levelConfigurations,
-                ConfigurationUpdatedAtDescendingOrder,
-              ),
-              dungeonLevel: Number(dungeonLevel),
-            } satisfies ConfigurationLevelGroup;
-          },
-        ),
-        ConfigurationDungeonLevelAscendingOrder,
-      );
-
-      return {
-        dungeonId,
-        levels,
-      } satisfies ConfigurationDungeonGroup;
-    },
-  );
 }
 
 export function ConfigurationProvider({

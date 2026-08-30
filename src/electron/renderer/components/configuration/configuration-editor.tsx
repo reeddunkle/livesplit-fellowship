@@ -2,9 +2,11 @@ import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
 import {
   FilePlus2Icon,
+  PlayIcon,
   PlusIcon,
   RotateCcwIcon,
   SaveIcon,
+  SquareIcon,
   Trash2Icon,
 } from "lucide-react";
 
@@ -279,6 +281,25 @@ export function ConfigurationEditor({
               }}
             </form.Subscribe>
           </div>
+        </section>
+        <section className="flex justify-end gap-3">
+          <Button
+            className="min-w-32 bg-green-600 text-white hover:bg-green-700"
+            size="xl"
+            type="button"
+          >
+            <PlayIcon />
+            Start
+          </Button>
+          <Button
+            className="min-w-32"
+            size="xl"
+            type="button"
+            variant="destructive"
+          >
+            <SquareIcon />
+            Stop
+          </Button>
         </section>
         <form
           className="grid gap-8"
