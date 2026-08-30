@@ -3,6 +3,7 @@ import { ConfigurationSidebar } from "@/electron/renderer/components/configurati
 import { AppLayout } from "@/electron/renderer/components/core/app-layout.tsx";
 import { ConfigurationProvider } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { FellowshipDataProvider } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
+import { TrackingProvider } from "@/electron/renderer/stores/tracking-store/tracking-store";
 import { type AbilityApiAbilityList } from "@/services/api/ability/ability-api-schema.ts";
 import { type ConfigurationApiConfigurationList } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type DungeonApiDungeonList } from "@/services/api/dungeon/dungeon-api-schema.ts";
@@ -31,11 +32,13 @@ export function HomePage({
       encounters={encounters}
       units={units}
     >
-      <ConfigurationProvider configurations={configurations}>
-        <AppLayout sidebar={<ConfigurationSidebar />}>
-          <ConfigurationEditorContainer />
-        </AppLayout>
-      </ConfigurationProvider>
+      <TrackingProvider>
+        <ConfigurationProvider configurations={configurations}>
+          <AppLayout sidebar={<ConfigurationSidebar />}>
+            <ConfigurationEditorContainer />
+          </AppLayout>
+        </ConfigurationProvider>
+      </TrackingProvider>
     </FellowshipDataProvider>
   );
 }
