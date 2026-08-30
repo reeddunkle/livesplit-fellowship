@@ -6,8 +6,9 @@ import { createConfigurationEditorValue } from "@/electron/renderer/components/c
 import { type DungeonOption } from "@/electron/renderer/components/configuration/helpers/configuration-editor-types.ts";
 import { makeConfigurationSaveStateLookup } from "@/electron/renderer/components/configuration/helpers/configuration-save-state.ts";
 import {
-  useConfigurationActions,
+  useConfigurationSaveStatus,
   useConfigurations,
+  useConfigurationUpdateStatus,
   useSelectedConfiguration,
   useSelectedConfigurationId,
 } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
@@ -29,8 +30,8 @@ export function ConfigurationEditorContainer() {
   const selectedConfiguration = useSelectedConfiguration();
   const selectedConfigurationId = useSelectedConfigurationId();
 
-  const { deleteConfiguration, newConfiguration, save, saveRevision } =
-    useConfigurationActions();
+  const { revision: saveRevision } = useConfigurationSaveStatus();
+  const { revision: updateRevision } = useConfigurationUpdateStatus();
 
   const dungeons = useFellowshipDataStore((state) => state.dungeons);
 
@@ -54,21 +55,11 @@ export function ConfigurationEditorContainer() {
 
   return (
     <ConfigurationEditor
-      canDelete={selectedConfigurationId !== null}
       defaultValue={defaultValue}
       dungeonOptions={dungeonOptions}
       eventTypes={eventTypes}
       getSaveState={configurationSaveState.get}
-      key={`${selectedConfigurationId ?? "new"}:${saveRevision}`}
-      onDelete={() => {
-        if (selectedConfigurationId === null) {
-          return;
-        }
-
-        deleteConfiguration(selectedConfigurationId);
-      }}
-      onNew={newConfiguration}
-      onSubmit={save}
+      key={`${selectedConfigurationId ?? "new"}:${saveRevision}:${updateRevision}`}
     />
   );
 }

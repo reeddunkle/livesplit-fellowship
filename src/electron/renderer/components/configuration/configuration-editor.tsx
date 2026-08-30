@@ -1,3 +1,4 @@
+import * as Match from "effect/Match";
 import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
 import {
@@ -45,18 +46,12 @@ import { MilestoneEditor } from "./milestone/milestone-editor.tsx";
 const CONFIGURATION_FORM_DOM_ID = "configuration-form";
 
 type ConfigurationEditorProps = {
-  readonly canDelete: boolean;
   readonly defaultValue: ConfigurationEditorValue;
   readonly dungeonOptions: ReadonlyArray<DungeonOption>;
   readonly eventTypes: ReadonlyArray<MilestoneRequirementEventType>;
   readonly getSaveState: (
     value: DecodedConfigurationEditorValue,
   ) => ConfigurationSaveState;
-  readonly onDelete: () => void | Promise<void>;
-  readonly onNew: () => void;
-  readonly onSubmit: (
-    value: DecodedConfigurationEditorValue,
-  ) => void | Promise<void>;
 };
 
 type ConfigurationEditorFormState = {
@@ -120,23 +115,41 @@ function shouldWarnAboutSaveOverwrite({
   );
 }
 
+function shouldShowSaveStateIndicator({
+  saveState,
+  selectedConfigurationId,
+}: {
+  readonly saveState: ConfigurationSaveState | undefined;
+  readonly selectedConfigurationId: ConfigurationId | null;
+}): boolean {
+  if (saveState === undefined) {
+    return false;
+  }
+
+  return Match.value(saveState).pipe(
+    Match.when({ type: "CREATE" }, () => true),
+    Match.when({ type: "EXISTING" }, ({ configurationId }) => {
+      return configurationId !== selectedConfigurationId;
+    }),
+    Match.exhaustive,
+  );
+}
+
 export function ConfigurationEditor({
-  canDelete,
   defaultValue,
   dungeonOptions,
   eventTypes,
   getSaveState,
-  onDelete,
-  onNew,
-  onSubmit,
 }: ConfigurationEditorProps) {
   const selectedConfigurationId = useSelectedConfigurationId();
 
-  const { isUpdating, update } = useConfigurationActions();
+  const { deleteConfiguration, isUpdating, newConfiguration, save, update } =
+    useConfigurationActions();
 
   const form = useConfigurationForm({
     defaultValues: defaultValue,
-    onSubmit,
+    onSave: save,
+    onUpdate: update,
   });
 
   const resolveSaveState = (
@@ -164,7 +177,7 @@ export function ConfigurationEditor({
         </header>
         <section className="grid gap-2">
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={onNew}>
+            <Button type="button" variant="outline" onClick={newConfiguration}>
               <PlusIcon />
               New
             </Button>
@@ -188,10 +201,16 @@ export function ConfigurationEditor({
               }}
             </form.Subscribe>
             <Button
-              disabled={!canDelete}
+              disabled={selectedConfigurationId === null}
               type="button"
               variant="destructive"
-              onClick={onDelete}
+              onClick={() => {
+                if (selectedConfigurationId === null) {
+                  return;
+                }
+
+                deleteConfiguration(selectedConfigurationId);
+              }}
             >
               <Trash2Icon />
               Delete
@@ -211,13 +230,13 @@ export function ConfigurationEditor({
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      if (decoded !== undefined) {
-                        update(decoded);
-                      }
+                      form.handleSubmit({
+                        type: "UPDATE",
+                      });
                     }}
                   >
                     <PencilIcon />
-                    {isUpdating ? "Updating..." : "Update"}
+                    Update
                   </Button>
                 );
               }}
@@ -235,7 +254,7 @@ export function ConfigurationEditor({
                     type="submit"
                   >
                     <SaveIcon />
-                    {isSubmitting ? "Saving..." : "Save"}
+                    Save
                   </Button>
                 );
               }}
@@ -250,16 +269,16 @@ export function ConfigurationEditor({
 
                 const saveState = resolveSaveState(state.values);
 
-                if (saveState === undefined) {
-                  return null;
-                }
-
                 if (
-                  !shouldWarnAboutSaveOverwrite({
+                  !shouldShowSaveStateIndicator({
                     saveState,
                     selectedConfigurationId,
                   })
                 ) {
+                  return null;
+                }
+
+                if (saveState === undefined) {
                   return null;
                 }
 
@@ -277,7 +296,9 @@ export function ConfigurationEditor({
             event.preventDefault();
             event.stopPropagation();
 
-            form.handleSubmit();
+            form.handleSubmit({
+              type: "SAVE",
+            });
           }}
         >
           <form.Subscribe selector={selectConfigurationEditorFormState}>

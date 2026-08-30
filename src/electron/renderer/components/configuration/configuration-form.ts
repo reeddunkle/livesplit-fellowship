@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import * as Match from "effect/Match";
 import * as Schema from "effect/Schema";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
@@ -22,6 +23,12 @@ export const EMPTY_CONFIGURATION_EDITOR_VALUE: ConfigurationEditorValue = {
 
 type CreateRequirementEditorValueOptions = {
   readonly suggestedValues?: SuggestedRequirementValues;
+};
+
+export type ConfigurationSubmitType = "SAVE" | "UPDATE";
+
+export type ConfigurationSubmitMeta = {
+  readonly type: ConfigurationSubmitType;
 };
 
 export function createRequirementEditorValue({
@@ -48,19 +55,23 @@ export function createMilestoneEditorValue(): MilestoneEditorValue {
 
 type UseConfigurationFormOptions = {
   readonly defaultValues: ConfigurationEditorValue;
-  readonly onSubmit: (
+  readonly onSave: (
+    value: DecodedConfigurationEditorValue,
+  ) => void | Promise<void>;
+  readonly onUpdate: (
     value: DecodedConfigurationEditorValue,
   ) => void | Promise<void>;
 };
 
 export function useConfigurationForm({
   defaultValues,
-  onSubmit,
+  onSave,
+  onUpdate,
 }: UseConfigurationFormOptions) {
   return useForm({
     defaultValues,
 
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ meta, value }) => {
       /*
        * Standard Schema validation does not replace TanStack Form's editable
        * values with Effect Schema's transformed output. Decode once more at
@@ -70,8 +81,14 @@ export function useConfigurationForm({
         value,
       );
 
-      await onSubmit(decoded);
+      await Match.value(meta).pipe(
+        Match.when({ type: "SAVE" }, () => onSave(decoded)),
+        Match.when({ type: "UPDATE" }, () => onUpdate(decoded)),
+        Match.exhaustive,
+      );
     },
+
+    onSubmitMeta: {} as ConfigurationSubmitMeta,
 
     validators: {
       onChange: ConfigurationEditorStandardSchema,
