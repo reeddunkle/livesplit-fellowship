@@ -1,7 +1,17 @@
+import { useRouter } from "@tanstack/react-router";
+import * as E from "effect/Effect";
 import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
-import { PlusIcon, RotateCcwIcon, SaveIcon, Trash2Icon } from "lucide-react";
+import {
+  PencilIcon,
+  PlusIcon,
+  RotateCcwIcon,
+  SaveIcon,
+  Trash2Icon,
+} from "lucide-react";
+import { useState } from "react";
 
+import * as configurationClient from "@/electron/renderer/api/configuration-client.ts";
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import { Card, CardContent } from "@/electron/renderer/components/ui/card.tsx";
 import {
@@ -14,6 +24,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/electron/renderer/components/ui/native-select.tsx";
+import { useSelectedConfigurationId } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
 import { ConfigurationEditorProvider } from "./configuration-editor-provider.tsx";
@@ -27,6 +38,7 @@ import {
   type DecodedConfigurationEditorValue,
 } from "./configuration-form-schema.ts";
 import { ConfigurationSaveStateIndicator } from "./configuration-save-state-indicator.tsx";
+import { saveConfigurationApiRequest } from "./helpers/configuration-editor-adapter.ts";
 import { type DungeonOption } from "./helpers/configuration-editor-types.ts";
 import { type ConfigurationSaveState } from "./helpers/configuration-save-state.ts";
 import { MilestoneEditor } from "./milestone/milestone-editor.tsx";
@@ -106,6 +118,11 @@ export function ConfigurationEditor({
   onNew,
   onSubmit,
 }: ConfigurationEditorProps) {
+  const router = useRouter();
+  const selectedConfigurationId = useSelectedConfigurationId();
+
+  const [isUpdating, setIsUpdating] = useState(false);
+
   const form = useConfigurationForm({
     defaultValues: defaultValue,
     onSubmit,
@@ -123,6 +140,39 @@ export function ConfigurationEditor({
     return getSaveState(decoded);
   };
 
+  const updateConfiguration = async (
+    value: ConfigurationEditorValue,
+  ): Promise<void> => {
+    if (selectedConfigurationId === null) {
+      return;
+    }
+
+    const decoded = decodeConfigurationEditorValue(value);
+
+    if (decoded === undefined) {
+      return;
+    }
+
+    const request = saveConfigurationApiRequest(decoded);
+
+    setIsUpdating(true);
+
+    try {
+      await E.runPromise(
+        configurationClient.updateConfiguration({
+          id: selectedConfigurationId,
+          request,
+        }),
+      );
+
+      await router.invalidate({
+        sync: true,
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <ConfigurationEditorProvider form={form}>
       <main className="mx-auto grid w-full gap-6 p-6">
@@ -130,7 +180,6 @@ export function ConfigurationEditor({
           <h1 className="text-2xl font-semibold tracking-tight">
             Configure a run
           </h1>
-
           <p className="text-sm text-muted-foreground">
             Select a saved configuration from the sidebar or create a new one.
           </p>
@@ -169,6 +218,28 @@ export function ConfigurationEditor({
               <Trash2Icon />
               Delete
             </Button>
+            <form.Subscribe selector={selectConfigurationEditorFormState}>
+              {(state) => {
+                const isUpdateEnabled =
+                  selectedConfigurationId !== null &&
+                  hasUnsavedChanges(state) &&
+                  decodeConfigurationEditorValue(state.values) !== undefined;
+
+                return (
+                  <Button
+                    disabled={!isUpdateEnabled || isUpdating}
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      void updateConfiguration(state.values);
+                    }}
+                  >
+                    <PencilIcon />
+                    {isUpdating ? "Updating..." : "Update"}
+                  </Button>
+                );
+              }}
+            </form.Subscribe>
             <form.Subscribe
               selector={(state) => {
                 return [state.canSubmit, state.isSubmitting] as const;
@@ -177,7 +248,7 @@ export function ConfigurationEditor({
               {([canSubmit, isSubmitting]) => {
                 return (
                   <Button
-                    disabled={!canSubmit || isSubmitting}
+                    disabled={!canSubmit || isSubmitting || isUpdating}
                     form={CONFIGURATION_FORM_DOM_ID}
                     type="submit"
                   >
@@ -223,13 +294,10 @@ export function ConfigurationEditor({
               const saveState = resolveSaveState(state.values);
               const shouldHighlightSaveState = hasUnsavedChanges(state);
 
-              const saveStateClassName = !shouldHighlightSaveState
-                ? "border-border"
-                : saveState?.type === "UPDATE"
+              const saveStateClassName =
+                shouldHighlightSaveState && saveState?.type === "UPDATE"
                   ? "border-amber-500/70"
-                  : saveState?.type === "CREATE"
-                    ? "border-green-500/70"
-                    : "border-border";
+                  : "border-border";
 
               return (
                 <div
@@ -248,7 +316,6 @@ export function ConfigurationEditor({
                               <FieldLabel htmlFor={field.name}>
                                 Configuration label
                               </FieldLabel>
-
                               <Input
                                 aria-invalid={isInvalid}
                                 id={field.name}
@@ -260,7 +327,6 @@ export function ConfigurationEditor({
                                   field.handleChange(event.target.value);
                                 }}
                               />
-
                               {isInvalid && (
                                 <FieldError errors={field.state.meta.errors} />
                               )}
@@ -281,7 +347,6 @@ export function ConfigurationEditor({
                               <FieldLabel htmlFor={field.name}>
                                 Dungeon
                               </FieldLabel>
-
                               <NativeSelect
                                 aria-invalid={isInvalid}
                                 id={field.name}
@@ -295,7 +360,6 @@ export function ConfigurationEditor({
                                 <NativeSelectOption value="" disabled>
                                   Select a dungeon
                                 </NativeSelectOption>
-
                                 {dungeonOptions.map((dungeon) => {
                                   return (
                                     <NativeSelectOption
@@ -307,7 +371,6 @@ export function ConfigurationEditor({
                                   );
                                 })}
                               </NativeSelect>
-
                               {isInvalid && (
                                 <FieldError errors={field.state.meta.errors} />
                               )}
@@ -326,7 +389,6 @@ export function ConfigurationEditor({
                               <FieldLabel htmlFor={field.name}>
                                 Eternal level
                               </FieldLabel>
-
                               <Input
                                 aria-invalid={isInvalid}
                                 id={field.name}
@@ -339,7 +401,6 @@ export function ConfigurationEditor({
                                   field.handleChange(event.target.value);
                                 }}
                               />
-
                               {isInvalid && (
                                 <FieldError errors={field.state.meta.errors} />
                               )}
@@ -368,7 +429,6 @@ export function ConfigurationEditor({
                               );
                             },
                           )}
-
                           <Card className="min-h-64 border-dashed">
                             <CardContent className="flex h-full min-h-64 items-center justify-center">
                               <Button

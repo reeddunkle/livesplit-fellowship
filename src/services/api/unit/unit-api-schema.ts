@@ -4,13 +4,13 @@ import { UnitStatusSchema } from "@/db/models/unit-model.ts";
 import { NonEmptyStringSchema } from "@/validation/common.ts";
 
 export const UnitApiUnitSchema = Schema.Struct({
-  createdAt: Schema.DateTimeUtc,
+  createdAt: Schema.DateTimeUtcFromString,
   dungeonIds: Schema.Array(NonEmptyStringSchema),
   groupKey: Schema.NullOr(NonEmptyStringSchema),
   id: NonEmptyStringSchema,
   name: NonEmptyStringSchema,
   status: UnitStatusSchema,
-  updatedAt: Schema.DateTimeUtc,
+  updatedAt: Schema.DateTimeUtcFromString,
   variant: Schema.NullOr(NonEmptyStringSchema),
 });
 

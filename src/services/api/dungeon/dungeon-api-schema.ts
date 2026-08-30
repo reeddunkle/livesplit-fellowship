@@ -4,11 +4,11 @@ import { DungeonIdSchema } from "@/services/fellowship/validation/fellowship-com
 import { NonEmptyStringSchema } from "@/validation/common.ts";
 
 export const DungeonApiDungeonSchema = Schema.Struct({
-  createdAt: Schema.DateTimeUtc,
+  createdAt: Schema.DateTimeUtcFromString,
   id: DungeonIdSchema,
   mapId: NonEmptyStringSchema,
   name: NonEmptyStringSchema,
-  updatedAt: Schema.DateTimeUtc,
+  updatedAt: Schema.DateTimeUtcFromString,
 });
 
 export type DungeonApiDungeon = typeof DungeonApiDungeonSchema.Type;

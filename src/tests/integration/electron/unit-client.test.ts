@@ -1,3 +1,4 @@
+import * as DateTime from "effect/DateTime";
 import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
@@ -22,12 +23,17 @@ import { runTest } from "@/tests/common/run-test.ts";
 const UNIT_ID = "42";
 const UNKNOWN_UNIT_ID = "999999";
 
+const TEST_CREATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+const TEST_UPDATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+
 const unit = {
+  createdAt: TEST_CREATED_AT,
   dungeonIds: ["24"],
   groupKey: null,
   id: UNIT_ID,
   name: "Desecrator",
   status: "ACTIVE",
+  updatedAt: TEST_UPDATED_AT,
   variant: null,
 } satisfies UnitApiUnit;
 

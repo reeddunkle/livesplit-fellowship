@@ -364,6 +364,112 @@ describe("configuration routes", () => {
     await runTest(program);
   });
 
+  test("PUT /configurations/:id updates a configuration", async () => {
+    const updatedConfiguration = {
+      ...TEST_CONFIGURATION,
+      label: TEST_UPDATED_CONFIGURATION_LABEL,
+    } satisfies ConfigurationApiConfiguration;
+
+    const updatedRequest = {
+      ...TEST_SAVE_CONFIGURATION_REQUEST,
+      label: TEST_UPDATED_CONFIGURATION_LABEL,
+    } as const;
+
+    const configurationApiServiceTest = makeConfigurationApiServiceMock({
+      update: ({ configuration, id, label }) => {
+        expect(id).toBe(TEST_CONFIGURATION_ID);
+        expect(configuration).toEqual(updatedRequest.configuration);
+        expect(label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
+
+        return E.succeed(updatedConfiguration);
+      },
+    });
+
+    const program = E.scoped(
+      E.gen(function* () {
+        const httpServer = yield* HttpServer.HttpServer;
+        const baseUrl = getHttpUrl(httpServer.address);
+
+        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
+          baseUrl,
+        });
+
+        const response = yield* request(
+          urls.configurations.updateConfiguration({
+            params: {
+              id: TEST_CONFIGURATION_ID,
+            },
+          }),
+          {
+            body: JSON.stringify(updatedRequest),
+            headers: {
+              "content-type": "application/json",
+            },
+            method: "PUT",
+          },
+        );
+
+        const json = yield* parseResponseJson(response);
+
+        const body = yield* Schema.decodeUnknownEffect(
+          ConfigurationApiConfigurationSchema,
+        )(json);
+
+        expect(response.status).toBe(200);
+        expect(body).toEqual(updatedConfiguration);
+        expect(body.id).toBe(TEST_CONFIGURATION_ID);
+        expect(body.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
+      }).pipe(
+        E.provide(
+          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
+        ),
+      ),
+    );
+
+    await runTest(program);
+  });
+
+  test("PUT /configurations/:id returns 400 for an invalid request body", async () => {
+    const configurationApiServiceTest = makeConfigurationApiServiceMock();
+
+    const program = E.scoped(
+      E.gen(function* () {
+        const httpServer = yield* HttpServer.HttpServer;
+        const baseUrl = getHttpUrl(httpServer.address);
+
+        const urls = HttpApiClient.urlBuilder(AppHttpApi, {
+          baseUrl,
+        });
+
+        const response = yield* request(
+          urls.configurations.updateConfiguration({
+            params: {
+              id: TEST_CONFIGURATION_ID,
+            },
+          }),
+          {
+            body: JSON.stringify({
+              invalid: true,
+            }),
+            headers: {
+              "content-type": "application/json",
+            },
+            method: "PUT",
+          },
+        );
+
+        expect(response.status).toBe(400);
+        expect(yield* E.promise(() => response.text())).toBe("");
+      }).pipe(
+        E.provide(
+          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
+        ),
+      ),
+    );
+
+    await runTest(program);
+  });
+
   test("DELETE /configurations/:id deletes a configuration", async () => {
     let deletedConfigurationId: string | undefined;
 
@@ -445,7 +551,7 @@ describe("configuration routes", () => {
         const response = yield* request(
           urls.configurations.getConfigurations(),
           {
-            method: "PUT",
+            method: "PATCH",
           },
         );
 

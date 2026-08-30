@@ -1,3 +1,4 @@
+import * as DateTime from "effect/DateTime";
 import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
@@ -23,10 +24,15 @@ const ABILITY_ID = "634";
 const UNIT_ID = "133";
 const UNKNOWN_ABILITY_ID = "999999";
 
+const TEST_CREATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+const TEST_UPDATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+
 const ability = {
+  createdAt: TEST_CREATED_AT,
   id: ABILITY_ID,
   name: "Stormy Retreat",
   unitId: UNIT_ID,
+  updatedAt: TEST_UPDATED_AT,
 } satisfies AbilityApiAbility;
 
 function makeAbilityApiServerTestLayer(

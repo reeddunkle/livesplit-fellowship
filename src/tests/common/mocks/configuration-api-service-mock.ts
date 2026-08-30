@@ -1,3 +1,4 @@
+import * as DateTime from "effect/DateTime";
 import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
@@ -14,6 +15,9 @@ import {
 
 export type MakeConfigurationApiServiceMockOptions =
   Partial<ConfigurationApiServiceShape>;
+
+const TEST_CREATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+const TEST_UPDATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
 
 export function makeConfigurationApiServiceMock({
   delete: deleteConfiguration = () => {
@@ -32,9 +36,11 @@ export function makeConfigurationApiServiceMock({
     return E.succeed(
       createConfigurationApiResponse({
         configuration,
+        createdAt: TEST_CREATED_AT,
         fingerprint: TEST_CONFIGURATION_FINGERPRINT,
         id: TEST_CONFIGURATION_ID,
         label,
+        updatedAt: TEST_UPDATED_AT,
       }),
     );
   },
@@ -42,9 +48,23 @@ export function makeConfigurationApiServiceMock({
     return E.succeed(
       createConfigurationApiResponse({
         configuration,
+        createdAt: TEST_CREATED_AT,
         fingerprint: TEST_CONFIGURATION_FINGERPRINT,
         id: TEST_CONFIGURATION_ID,
         label,
+        updatedAt: TEST_UPDATED_AT,
+      }),
+    );
+  },
+  update = ({ configuration, id, label }) => {
+    return E.succeed(
+      createConfigurationApiResponse({
+        configuration,
+        createdAt: TEST_CREATED_AT,
+        fingerprint: TEST_CONFIGURATION_FINGERPRINT,
+        id,
+        label,
+        updatedAt: TEST_UPDATED_AT,
       }),
     );
   },
@@ -56,6 +76,7 @@ export function makeConfigurationApiServiceMock({
     getById,
     save,
     saveReplacingDungeonAndLevel,
+    update,
   } satisfies ConfigurationApiServiceShape);
 }
 

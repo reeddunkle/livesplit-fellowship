@@ -2,6 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import * as A from "effect/Array";
 import * as DateTime from "effect/DateTime";
 import * as E from "effect/Effect";
+import * as Match from "effect/Match";
 import * as Order from "effect/Order";
 import * as Record from "effect/Record";
 import {
@@ -27,7 +28,7 @@ import { type ConfigurationId } from "@/validation/configuration/configuration-i
 type ConfigurationOptimisticAction =
   | {
       readonly configuration: ConfigurationApiConfiguration;
-      readonly type: "SAVE";
+      readonly type: "UPSERT";
     }
   | {
       readonly id: ConfigurationId;
@@ -39,15 +40,20 @@ type SaveConfigurationActionInput = {
   readonly value: DecodedConfigurationEditorValue;
 };
 
+type UpdateConfigurationActionInput = {
+  readonly id: ConfigurationId;
+  readonly value: DecodedConfigurationEditorValue;
+};
+
 type DeleteConfigurationActionInput = {
   readonly configuration: ConfigurationApiConfiguration;
   readonly previousSelectedConfigurationId: ConfigurationId | null;
 };
 
-type ConfigurationSaveActionState = {
+type ConfigurationPersistenceActionState = {
+  readonly configuration: ConfigurationApiConfiguration | undefined;
   readonly error: unknown | undefined;
   readonly revision: number;
-  readonly savedConfiguration: ConfigurationApiConfiguration | undefined;
 };
 
 type ConfigurationDeleteActionState = {
@@ -66,11 +72,16 @@ type ConfigurationActionContextValue = {
   readonly error: unknown | undefined;
   readonly isDeleting: boolean;
   readonly isSaving: boolean;
+  readonly isUpdating: boolean;
   readonly newConfiguration: () => void;
   readonly save: (value: DecodedConfigurationEditorValue) => void;
   readonly saveRevision: number;
   readonly savedConfiguration: ConfigurationApiConfiguration | undefined;
   readonly selectConfiguration: (id: ConfigurationId) => void;
+  readonly update: (value: DecodedConfigurationEditorValue) => void;
+  readonly updateError: unknown | undefined;
+  readonly updateRevision: number;
+  readonly updatedConfiguration: ConfigurationApiConfiguration | undefined;
 };
 
 type ConfigurationProviderProps = {
@@ -88,10 +99,10 @@ export type ConfigurationDungeonGroup = {
   readonly levels: ReadonlyArray<ConfigurationLevelGroup>;
 };
 
-const INITIAL_SAVE_ACTION_STATE: ConfigurationSaveActionState = {
+const INITIAL_PERSISTENCE_ACTION_STATE: ConfigurationPersistenceActionState = {
+  configuration: undefined,
   error: undefined,
   revision: 0,
-  savedConfiguration: undefined,
 };
 
 const INITIAL_DELETE_ACTION_STATE: ConfigurationDeleteActionState = {
@@ -129,33 +140,45 @@ const ConfigurationActionContext = createContext<
   ConfigurationActionContextValue | undefined
 >(undefined);
 
+function invalidateRouter(router: ReturnType<typeof useRouter>) {
+  return E.tryPromise({
+    catch: (error) => error,
+    try: () =>
+      router.invalidate({
+        sync: true,
+      }),
+  });
+}
+
+function invalidateRouterSafely(router: ReturnType<typeof useRouter>) {
+  return invalidateRouter(router).pipe(E.ignore);
+}
+
 function reduceConfigurations(
   configurations: ConfigurationApiConfigurationList,
   action: ConfigurationOptimisticAction,
 ): ConfigurationApiConfigurationList {
-  switch (action.type) {
-    case "DELETE": {
+  return Match.value(action).pipe(
+    Match.when({ type: "DELETE" }, ({ id }) => {
       return configurations.filter((configuration) => {
-        return configuration.id !== action.id;
+        return configuration.id !== id;
       });
-    }
-
-    case "SAVE": {
-      const exists = configurations.some((configuration) => {
-        return configuration.id === action.configuration.id;
+    }),
+    Match.when({ type: "UPSERT" }, ({ configuration }) => {
+      const exists = configurations.some((candidate) => {
+        return candidate.id === configuration.id;
       });
 
       if (!exists) {
-        return [...configurations, action.configuration];
+        return [...configurations, configuration];
       }
 
-      return configurations.map((configuration) => {
-        return configuration.id === action.configuration.id
-          ? action.configuration
-          : configuration;
+      return configurations.map((candidate) => {
+        return candidate.id === configuration.id ? configuration : candidate;
       });
-    }
-  }
+    }),
+    Match.exhaustive,
+  );
 }
 
 function groupConfigurations(
@@ -207,98 +230,151 @@ export function ConfigurationProvider({
   const [optimisticConfigurations, updateOptimisticConfigurations] =
     useOptimistic(configurations, reduceConfigurations);
 
+  const applyPersistedConfiguration = (
+    configuration: ConfigurationApiConfiguration,
+  ) => {
+    return E.sync(() => {
+      updateOptimisticConfigurations({
+        configuration,
+        type: "UPSERT",
+      });
+
+      setSelectedConfigurationId(configuration.id);
+    });
+  };
+
   const [saveState, dispatchSave, isSaving] = useActionState(
-    async (
-      previousState: ConfigurationSaveActionState,
+    (
+      previousState: ConfigurationPersistenceActionState,
       input: SaveConfigurationActionInput,
-    ): Promise<ConfigurationSaveActionState> => {
+    ): Promise<ConfigurationPersistenceActionState> => {
       const request = saveConfigurationApiRequest(input.value);
 
-      try {
-        const savedConfiguration = await E.runPromise(
-          configurationClient.saveConfiguration({
-            request,
+      return configurationClient
+        .saveConfiguration({
+          request,
+        })
+        .pipe(
+          /*
+           * The API response owns persisted identity. This covers both:
+           *
+           * - creating a new configuration, where the client did not have an ID
+           * - saving a semantic duplicate, where the server may resolve the save
+           *   to an already-existing configuration ID
+           */
+          E.tap(applyPersistedConfiguration),
+          E.tap(() => invalidateRouter(router)),
+          E.map((savedConfiguration) => {
+            return {
+              configuration: savedConfiguration,
+              error: undefined,
+              revision: previousState.revision + 1,
+            };
           }),
+          E.catch((error) => {
+            return E.gen(function* () {
+              yield* E.sync(() => {
+                setSelectedConfigurationId(
+                  input.previousSelectedConfigurationId,
+                );
+              });
+
+              yield* invalidateRouterSafely(router);
+
+              return {
+                configuration: undefined,
+                error,
+                revision: previousState.revision,
+              };
+            });
+          }),
+          E.runPromise,
         );
-
-        /*
-         * The API response owns persisted identity. This covers both:
-         *
-         * - creating a new configuration, where the client did not have an ID
-         * - saving a semantic duplicate, where the server may resolve the save
-         *   to an already-existing configuration ID
-         */
-        updateOptimisticConfigurations({
-          configuration: savedConfiguration,
-          type: "SAVE",
-        });
-
-        setSelectedConfigurationId(savedConfiguration.id);
-
-        await router.invalidate({
-          sync: true,
-        });
-
-        return {
-          error: undefined,
-          revision: previousState.revision + 1,
-          savedConfiguration,
-        };
-      } catch (error) {
-        setSelectedConfigurationId(input.previousSelectedConfigurationId);
-
-        return {
-          error,
-          revision: previousState.revision,
-          savedConfiguration: undefined,
-        };
-      }
     },
-    INITIAL_SAVE_ACTION_STATE,
+    INITIAL_PERSISTENCE_ACTION_STATE,
+  );
+
+  const [updateState, dispatchUpdate, isUpdating] = useActionState(
+    (
+      previousState: ConfigurationPersistenceActionState,
+      input: UpdateConfigurationActionInput,
+    ): Promise<ConfigurationPersistenceActionState> => {
+      const request = saveConfigurationApiRequest(input.value);
+
+      return configurationClient
+        .updateConfiguration({
+          id: input.id,
+          request,
+        })
+        .pipe(
+          E.tap(applyPersistedConfiguration),
+          E.tap(() => invalidateRouter(router)),
+          E.map((updatedConfiguration) => {
+            return {
+              configuration: updatedConfiguration,
+              error: undefined,
+              revision: previousState.revision + 1,
+            };
+          }),
+          E.catch((error) => {
+            return invalidateRouterSafely(router).pipe(
+              E.as({
+                configuration: undefined,
+                error,
+                revision: previousState.revision,
+              }),
+            );
+          }),
+          E.runPromise,
+        );
+    },
+    INITIAL_PERSISTENCE_ACTION_STATE,
   );
 
   const [deleteState, dispatchDelete, isDeleting] = useActionState(
-    async (
+    (
       _previousState: ConfigurationDeleteActionState,
       input: DeleteConfigurationActionInput,
     ): Promise<ConfigurationDeleteActionState> => {
       const isSelected =
         input.configuration.id === input.previousSelectedConfigurationId;
 
-      updateOptimisticConfigurations({
-        id: input.configuration.id,
-        type: "DELETE",
+      const optimisticallyDeleteConfiguration = E.sync(() => {
+        updateOptimisticConfigurations({
+          id: input.configuration.id,
+          type: "DELETE",
+        });
+
+        if (isSelected) {
+          setSelectedConfigurationId(null);
+        }
       });
 
-      if (isSelected) {
-        setSelectedConfigurationId(null);
-      }
-
-      try {
-        await E.runPromise(
+      return optimisticallyDeleteConfiguration.pipe(
+        E.andThen(
           configurationClient.deleteConfiguration({
             id: input.configuration.id,
           }),
-        );
-
-        await router.invalidate({
-          sync: true,
-        });
-
-        return {
+        ),
+        E.andThen(invalidateRouter(router)),
+        E.as({
           error: undefined,
-        };
-      } catch (error) {
-        setSelectedConfigurationId(input.previousSelectedConfigurationId);
+        }),
+        E.catch((error) => {
+          return E.gen(function* () {
+            yield* E.sync(() => {
+              setSelectedConfigurationId(input.previousSelectedConfigurationId);
+            });
 
-        await router.invalidate({
-          sync: true,
-        });
+            yield* invalidateRouterSafely(router);
 
-        return {
-          error,
-        };
-      }
+            return {
+              error,
+            };
+          });
+        }),
+        E.runPromise,
+      );
     },
     INITIAL_DELETE_ACTION_STATE,
   );
@@ -331,16 +407,14 @@ export function ConfigurationProvider({
           });
         });
       },
-
       deleteError: deleteState.error,
       error: saveState.error,
       isDeleting,
       isSaving,
-
+      isUpdating,
       newConfiguration: () => {
         setSelectedConfigurationId(null);
       },
-
       save: (value) => {
         startTransition(() => {
           dispatchSave({
@@ -349,26 +423,44 @@ export function ConfigurationProvider({
           });
         });
       },
-      savedConfiguration: saveState.savedConfiguration,
-
+      savedConfiguration: saveState.configuration,
       saveRevision: saveState.revision,
-
       selectConfiguration: (id) => {
         setSelectedConfigurationId(id);
       },
+      update: (value) => {
+        if (selectedConfigurationId === null) {
+          return;
+        }
+
+        startTransition(() => {
+          dispatchUpdate({
+            id: selectedConfigurationId,
+            value,
+          });
+        });
+      },
+      updatedConfiguration: updateState.configuration,
+      updateError: updateState.error,
+      updateRevision: updateState.revision,
     };
   }, [
     deleteState.error,
     dispatchDelete,
     dispatchSave,
+    dispatchUpdate,
     isDeleting,
     isSaving,
+    isUpdating,
     optimisticConfigurations,
+    saveState.configuration,
     saveState.error,
     saveState.revision,
-    saveState.savedConfiguration,
     selectedConfigurationId,
     setSelectedConfigurationId,
+    updateState.configuration,
+    updateState.error,
+    updateState.revision,
   ]);
 
   const stateContextValue = useMemo<ConfigurationStateContextValue>(() => {
@@ -468,5 +560,24 @@ export function useConfigurationSaveStatus(): ConfigurationSaveStatus {
     isSaving,
     revision: saveRevision,
     savedConfiguration,
+  };
+}
+
+export type ConfigurationUpdateStatus = {
+  readonly error: unknown | undefined;
+  readonly isUpdating: boolean;
+  readonly revision: number;
+  readonly updatedConfiguration: ConfigurationApiConfiguration | undefined;
+};
+
+export function useConfigurationUpdateStatus(): ConfigurationUpdateStatus {
+  const { isUpdating, updateError, updateRevision, updatedConfiguration } =
+    useConfigurationActions();
+
+  return {
+    error: updateError,
+    isUpdating,
+    revision: updateRevision,
+    updatedConfiguration,
   };
 }

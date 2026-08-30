@@ -10,6 +10,7 @@ import {
   getConfigurationBase,
   getConfigurationsBase,
   saveConfigurationBase,
+  updateConfigurationBase,
 } from "@/electron/renderer/api/configuration-client.ts";
 import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
@@ -219,6 +220,52 @@ describe("configuration client", () => {
 
         expect(result.id).toBe(TEST_CONFIGURATION_ID);
         expect(result.fingerprint).toBe(TEST_CONFIGURATION_FINGERPRINT);
+        expect(result.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
+      }).pipe(
+        E.provide(
+          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
+        ),
+      ),
+    );
+
+    await runTest(program);
+  });
+
+  test("updates a configuration", async () => {
+    const updatedConfiguration = {
+      ...TEST_CONFIGURATION,
+      label: TEST_UPDATED_CONFIGURATION_LABEL,
+    } satisfies ConfigurationApiConfiguration;
+
+    const updatedRequest = {
+      ...TEST_SAVE_CONFIGURATION_REQUEST,
+      label: TEST_UPDATED_CONFIGURATION_LABEL,
+    } as const;
+
+    const configurationApiServiceTest = makeConfigurationApiServiceMock({
+      update: ({ configuration: updatedValue, id, label }) => {
+        expect(id).toBe(TEST_CONFIGURATION_ID);
+        expect(updatedValue).toEqual(updatedRequest.configuration);
+        expect(label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
+
+        return E.succeed(updatedConfiguration);
+      },
+    });
+
+    const program = E.scoped(
+      E.gen(function* () {
+        const httpServer = yield* HttpServer.HttpServer;
+        const baseUrl = getHttpUrl(httpServer.address);
+
+        const updateConfiguration = updateConfigurationBase(baseUrl);
+
+        const result = yield* updateConfiguration({
+          id: TEST_CONFIGURATION_ID,
+          request: updatedRequest,
+        });
+
+        expect(result).toEqual(updatedConfiguration);
+        expect(result.id).toBe(TEST_CONFIGURATION_ID);
         expect(result.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
       }).pipe(
         E.provide(

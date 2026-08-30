@@ -7,7 +7,6 @@ import { getApiBaseUrl } from "@/electron/renderer/api/api-url.ts";
 import {
   type DeleteConfigurationsByDungeonAndLevelApiRequest,
   type SaveConfigurationApiRequest,
-  type UpdateConfigurationApiRequest,
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
@@ -21,7 +20,7 @@ export type SaveConfigurationArgs = {
 
 export type UpdateConfigurationArgs = {
   readonly id: ConfigurationId;
-  readonly request: UpdateConfigurationApiRequest;
+  readonly request: SaveConfigurationApiRequest;
 };
 
 export type DeleteConfigurationsByDungeonAndLevelArgs = {
@@ -87,7 +86,7 @@ export function updateConfigurationBase(baseUrl: string) {
     return E.gen(function* () {
       const client = yield* makeHttpApiClient(baseUrl);
 
-      client.configurations.updateConfiguration({
+      return yield* client.configurations.updateConfiguration({
         params: {
           id,
         },

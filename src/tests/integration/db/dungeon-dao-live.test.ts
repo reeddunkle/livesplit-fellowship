@@ -1,3 +1,4 @@
+import * as DateTime from "effect/DateTime";
 import * as E from "effect/Effect";
 import * as Option from "effect/Option";
 import { describe, expect, test } from "vitest";
@@ -26,16 +27,16 @@ describe("DungeonDAOLive", () => {
 
       expect(dungeons).toEqual(
         expect.arrayContaining([
-          {
+          expect.objectContaining({
             id: CITHRELS_FALL_DUNGEON_ID,
             mapId: "1",
             name: "Cithrel's Fall",
-          },
-          {
+          }),
+          expect.objectContaining({
             id: EVERDAWN_GROVE_DUNGEON_ID,
             mapId: "26",
             name: "Everdawn Grove",
-          },
+          }),
         ]),
       );
     }).pipe(E.provide(makeTestLayer()));
@@ -54,11 +55,14 @@ describe("DungeonDAOLive", () => {
       expect(Option.isSome(result)).toBe(true);
 
       if (Option.isSome(result)) {
-        expect(result.value).toEqual({
+        expect(result.value).toMatchObject({
           id: EVERDAWN_GROVE_DUNGEON_ID,
           mapId: "26",
           name: "Everdawn Grove",
         });
+
+        expect(DateTime.isUtc(result.value.createdAt)).toBe(true);
+        expect(DateTime.isUtc(result.value.updatedAt)).toBe(true);
       }
     }).pipe(E.provide(makeTestLayer()));
 
