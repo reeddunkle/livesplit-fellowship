@@ -2,30 +2,32 @@ import * as E from "effect/Effect";
 import * as Match from "effect/Match";
 
 import {
-  RUN_PROCESSING_EVENT,
-  type RunProcessingEvent,
-} from "@/services/fellowship/dungeon-runs/process-run-event.ts";
+  DUNGEON_RUN_PROCESSING_EVENT,
+  type DungeonRunProcessingEvent,
+} from "@/services/fellowship/dungeon-runs/process-dungeon-run-event.ts";
 
-export function handleLogRunEvent(event: RunProcessingEvent): E.Effect<void> {
+export function handleLogRunEvent(
+  event: DungeonRunProcessingEvent,
+): E.Effect<void> {
   return Match.value(event).pipe(
-    Match.when({ type: RUN_PROCESSING_EVENT.RUN_STARTED }, () =>
+    Match.when({ type: DUNGEON_RUN_PROCESSING_EVENT.RUN_STARTED }, () =>
       E.logInfo("Run started.", {
-        runEvent: RUN_PROCESSING_EVENT.RUN_STARTED,
+        runEvent: DUNGEON_RUN_PROCESSING_EVENT.RUN_STARTED,
       }),
     ),
-    Match.when({ type: RUN_PROCESSING_EVENT.RUN_EXITED }, () =>
+    Match.when({ type: DUNGEON_RUN_PROCESSING_EVENT.RUN_EXITED }, () =>
       E.logInfo("Run exited.", {
-        runEvent: RUN_PROCESSING_EVENT.RUN_EXITED,
+        runEvent: DUNGEON_RUN_PROCESSING_EVENT.RUN_EXITED,
       }),
     ),
     Match.when(
-      { type: RUN_PROCESSING_EVENT.MILESTONE_COMPLETED },
+      { type: DUNGEON_RUN_PROCESSING_EVENT.MILESTONE_COMPLETED },
       ({ milestone }) =>
         E.logInfo("Milestone completed.", {
           elapsedMilliseconds: milestone.elapsedMilliseconds,
           label: milestone.label,
           milestoneId: milestone.milestoneId,
-          runEvent: RUN_PROCESSING_EVENT.MILESTONE_COMPLETED,
+          runEvent: DUNGEON_RUN_PROCESSING_EVENT.MILESTONE_COMPLETED,
         }),
     ),
     Match.exhaustive,

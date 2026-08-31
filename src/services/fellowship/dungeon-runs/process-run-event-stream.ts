@@ -1,9 +1,9 @@
 import * as Stream from "effect/Stream";
 
 import {
-  type ProcessRunEventResult,
-  processRunEvent,
-} from "@/services/fellowship/dungeon-runs/process-run-event.ts";
+  type ProcessDungeonRunEventResult,
+  processDungeonRunEvent,
+} from "@/services/fellowship/dungeon-runs/process-dungeon-run-event.ts";
 import { createInitialRunState } from "@/services/fellowship/dungeon-runs/run-processing-state.ts";
 import { compileMilestoneConfiguration } from "@/services/fellowship/milestones/compile-milestone-configuration.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
@@ -14,7 +14,7 @@ export type ProcessRunEventStreamOptions<Error> = {
   readonly events: Stream.Stream<FellowshipEvent, Error>;
 };
 
-type ProcessRunEventStreamResult = ProcessRunEventResult & {
+type ProcessRunEventStreamResult = ProcessDungeonRunEventResult & {
   readonly configuration: ReturnType<typeof compileMilestoneConfiguration>;
 };
 
@@ -26,7 +26,7 @@ export function processRunEventStream<Error>({
 
   return events.pipe(
     Stream.mapAccum(createInitialRunState, (state, event) => {
-      const result = processRunEvent({
+      const result = processDungeonRunEvent({
         configuration: compiledConfiguration,
         event,
         state,
