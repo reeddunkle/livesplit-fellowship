@@ -3,7 +3,7 @@ import * as E from "effect/Effect";
 import * as HashMap from "effect/HashMap";
 import { describe, expect, test } from "vitest";
 
-import { publishDungeonRunState } from "@/api/websocket/publish-run-api-state.ts";
+import { publishDungeonRunState } from "@/api/websocket/publish-dungeon-run-state.ts";
 import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import {
   type DungeonRunTrackerState,
