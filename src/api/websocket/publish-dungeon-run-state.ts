@@ -4,19 +4,19 @@ import { type WebSocketBroadcasterService } from "@/services/api/websocket-broad
 import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 
-type CreateRunApiMessageOptions = {
+type CreateDungeonRunApiMessageOptions = {
   readonly configuration: CompiledFellowshipMilestoneConfiguration;
   readonly state: DungeonRunProcessingState;
 };
 
-type PublishRunApiStateOptions = CreateRunApiMessageOptions & {
+type PublishDungeonRunStateApiOptions = CreateDungeonRunApiMessageOptions & {
   readonly webSocketBroadcaster: WebSocketBroadcasterService;
 };
 
-function createRunApiMessage({
+function createDungeonRunApiMessage({
   configuration,
   state,
-}: CreateRunApiMessageOptions): DungeonRunApiMessage {
+}: CreateDungeonRunApiMessageOptions): DungeonRunApiMessage {
   return {
     state: createRunApiState({
       configuration,
@@ -26,12 +26,12 @@ function createRunApiMessage({
   };
 }
 
-export function publishRunState({
+export function publishDungeonRunState({
   configuration,
   state,
   webSocketBroadcaster,
-}: PublishRunApiStateOptions) {
-  const message = createRunApiMessage({
+}: PublishDungeonRunStateApiOptions) {
+  const message = createDungeonRunApiMessage({
     configuration,
     state,
   });
