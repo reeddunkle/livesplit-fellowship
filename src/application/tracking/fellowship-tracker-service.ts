@@ -8,15 +8,15 @@ import * as Semaphore from "effect/Semaphore";
 import * as Stream from "effect/Stream";
 import * as SubscriptionRef from "effect/SubscriptionRef";
 
-import { publishRunApiState } from "@/api/websocket/publish-run-api-state.ts";
 import { handleLogRunEvent } from "@/application/run-processing/handle-log-run-event.ts";
+import { publishRunApiState } from "@/application/tracking/publish-run-api-state.ts";
 import { ConfigurationDAO } from "@/db/daos/configuration/configuration-dao.ts";
 import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
 import {
   FellowshipTrackerAlreadyRunningError,
   FellowshipTrackerConfigurationNotFoundError,
 } from "@/errors/fellowship-tracker-error.ts";
-import { WebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
+import { RunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { processRunEventStream } from "@/services/fellowship/runs/process-run-event-stream.ts";
@@ -108,7 +108,7 @@ const make = E.gen(function* () {
   const configurationDAO = yield* ConfigurationDAO;
   const fellowship = yield* Fellowship;
   const liveSplit = yield* LiveSplit;
-  const webSocketBroadcaster = yield* WebSocketBroadcaster;
+  const runWebSocketBroadcaster = yield* RunWebSocketBroadcaster;
   const scope = yield* E.scope;
 
   const semaphore = yield* Semaphore.make(1);
@@ -176,10 +176,7 @@ const make = E.gen(function* () {
       "fellowship.dungeonId",
       configuration.dungeonId,
     );
-    yield* E.annotateCurrentSpan(
-      "fellowship.milestone-count",
-      configuration.milestones.length,
-    );
+
     yield* E.annotateCurrentSpan("fellowship.tracker.source", source._tag);
 
     return yield* semaphore.withPermit(
@@ -216,7 +213,7 @@ const make = E.gen(function* () {
               ? publishRunApiState({
                   configuration: result.configuration,
                   state: result.state,
-                  webSocketBroadcaster,
+                  webSocketBroadcaster: runWebSocketBroadcaster,
                 })
               : E.void;
 

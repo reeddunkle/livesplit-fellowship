@@ -22,10 +22,15 @@ export interface WebSocketBroadcasterService {
   readonly sendLatestToClient: (writer: WebSocketWriter) => E.Effect<void>;
 }
 
-export class WebSocketBroadcaster extends Context.Service<
-  WebSocketBroadcaster,
+export class RunWebSocketBroadcaster extends Context.Service<
+  RunWebSocketBroadcaster,
   WebSocketBroadcasterService
->()("app/WebSocketBroadcaster") {}
+>()("app/RunWebSocketBroadcaster") {}
+
+export class TrackingWebSocketBroadcaster extends Context.Service<
+  TrackingWebSocketBroadcaster,
+  WebSocketBroadcasterService
+>()("app/TrackingWebSocketBroadcaster") {}
 
 const make = E.gen(function* () {
   const clients = yield* Ref.make(HashSet.empty<WebSocketWriter>());
@@ -51,15 +56,15 @@ const make = E.gen(function* () {
     readonly writer: WebSocketWriter;
   }): E.Effect<void> => {
     return writer(message).pipe(
-      E.catch((error) =>
-        E.gen(function* () {
+      E.catch((error) => {
+        return E.gen(function* () {
           yield* removeClient(writer);
 
           yield* E.logWarning("WebSocket client write failed.", {
             error,
           });
-        }),
-      ),
+        });
+      }),
     );
   };
 
@@ -121,7 +126,12 @@ const make = E.gen(function* () {
   } satisfies WebSocketBroadcasterService;
 });
 
-export const WebSocketBroadcasterLive = Layer.effect(
-  WebSocketBroadcaster,
+export const RunWebSocketBroadcasterLive = Layer.effect(
+  RunWebSocketBroadcaster,
+  make,
+);
+
+export const TrackingWebSocketBroadcasterLive = Layer.effect(
+  TrackingWebSocketBroadcaster,
   make,
 );

@@ -4,11 +4,11 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { ROUTES } from "@/api/constants/routes.ts";
-import { WebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
+import { RunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 
 const handleEventsRequest = E.gen(function* () {
   const request = yield* HttpServerRequest.HttpServerRequest;
-  const webSocketBroadcaster = yield* WebSocketBroadcaster;
+  const runWebSocketBroadcaster = yield* RunWebSocketBroadcaster;
 
   yield* E.logDebug("WebSocket upgrade requested.", {
     method: request.method,
@@ -24,9 +24,9 @@ const handleEventsRequest = E.gen(function* () {
         return writer(message);
       };
 
-      yield* webSocketBroadcaster.registerClient(writeMessage);
+      yield* runWebSocketBroadcaster.registerClient(writeMessage);
 
-      const clientCount = yield* webSocketBroadcaster.clientCount;
+      const clientCount = yield* runWebSocketBroadcaster.clientCount;
 
       yield* E.logInfo("WebSocket client connected.", {
         clientCount,
@@ -43,7 +43,7 @@ const handleEventsRequest = E.gen(function* () {
               url: request.url,
             });
 
-            yield* webSocketBroadcaster.sendLatestToClient(writeMessage);
+            yield* runWebSocketBroadcaster.sendLatestToClient(writeMessage);
           }),
         },
       );
@@ -51,7 +51,7 @@ const handleEventsRequest = E.gen(function* () {
   ).pipe(
     E.ensuring(
       E.gen(function* () {
-        const clientCount = yield* webSocketBroadcaster.clientCount;
+        const clientCount = yield* runWebSocketBroadcaster.clientCount;
 
         yield* E.logInfo("WebSocket client disconnected.", {
           clientCount,

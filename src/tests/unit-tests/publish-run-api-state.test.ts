@@ -3,7 +3,7 @@ import * as E from "effect/Effect";
 import * as HashMap from "effect/HashMap";
 import { describe, expect, test } from "vitest";
 
-import { publishRunApiState } from "@/api/websocket/publish-run-api-state.ts";
+import { publishRunApiState } from "@/application/tracking/publish-run-api-state.ts";
 import { compileMilestoneConfiguration } from "@/services/fellowship/milestones/compile-milestone-configuration.ts";
 import {
   initialMilestoneProcessorState,
