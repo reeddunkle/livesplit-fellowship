@@ -11,13 +11,23 @@ import { publishRunApiState } from "@/api/websocket/publish-run-api-state.ts";
 import { handleLogRunEvent } from "@/application/run-processing/handle-log-run-event.ts";
 import { ConfigurationDAO } from "@/db/daos/configuration/configuration-dao.ts";
 import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
+import {
+  FellowshipTrackerAlreadyRunningError,
+  FellowshipTrackerConfigurationNotFoundError,
+} from "@/errors/fellowship-tracker-error.ts";
 import { WebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { processRunEventStream } from "@/services/fellowship/runs/process-run-event-stream.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
+import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+
+export {
+  FellowshipTrackerAlreadyRunningError,
+  FellowshipTrackerConfigurationNotFoundError,
+} from "@/errors/fellowship-tracker-error.ts";
 
 type FellowshipTrackerConfigurationSource =
   | {
@@ -46,21 +56,10 @@ type StartFellowshipTrackerConfigurationOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
 };
 
-export class FellowshipTrackerAlreadyRunningError extends Error {
-  readonly _tag = "FellowshipTrackerAlreadyRunningError";
-
-  constructor() {
-    super("Fellowship tracker is already running.");
-  }
-}
-
-export class FellowshipTrackerConfigurationNotFoundError extends Error {
-  readonly _tag = "FellowshipTrackerConfigurationNotFoundError";
-
-  constructor(readonly configurationId: ConfigurationId) {
-    super(`Configuration not found: ${configurationId}`);
-  }
-}
+type ReplayFellowshipTrackerLogOptions = {
+  readonly configuration: FellowshipMilestoneConfiguration;
+  readonly logFilePath: string;
+};
 
 export type FellowshipTrackerStartError =
   | ConfigurationDAOError
@@ -68,6 +67,10 @@ export type FellowshipTrackerStartError =
   | FellowshipTrackerConfigurationNotFoundError;
 
 export type FellowshipTrackerServiceShape = {
+  readonly replayLog: (
+    options: ReplayFellowshipTrackerLogOptions,
+  ) => E.Effect<void, unknown>;
+
   readonly start: (
     options: StartFellowshipTrackerOptions,
   ) => E.Effect<void, FellowshipTrackerStartError>;
@@ -94,6 +97,7 @@ type ActiveTracker = {
 
 type StartTrackingOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
+  readonly events: Stream.Stream<FellowshipEvent, unknown>;
   readonly source: FellowshipTrackerConfigurationSource;
 };
 
@@ -131,14 +135,25 @@ const make = E.gen(function* () {
     ),
   );
 
-  const stop: FellowshipTrackerServiceShape["stop"] = () => {
-    return semaphore.withPermit(
+  const stop: FellowshipTrackerServiceShape["stop"] = E.fn(
+    "fellowship.tracker.stop",
+  )(function* () {
+    yield* semaphore.withPermit(
       E.gen(function* () {
         const activeTracker = yield* Ref.get(activeTrackerRef);
 
         if (Option.isNone(activeTracker)) {
           return;
         }
+
+        yield* E.annotateCurrentSpan(
+          "fellowship.dungeonId",
+          activeTracker.value.dungeonId,
+        );
+        yield* E.annotateCurrentSpan(
+          "fellowship.tracker.source",
+          activeTracker.value.source._tag,
+        );
 
         yield* Fiber.interrupt(activeTracker.value.fiber);
         yield* Ref.set(activeTrackerRef, Option.none());
@@ -149,16 +164,24 @@ const make = E.gen(function* () {
         });
       }),
     );
-  };
+  });
 
-  const startTracking = ({
+  const startTracking = E.fn("fellowship.tracker.start-tracking")(function* ({
     configuration,
+    events,
     source,
-  }: StartTrackingOptions): E.Effect<
-    void,
-    FellowshipTrackerAlreadyRunningError
-  > => {
-    return semaphore.withPermit(
+  }: StartTrackingOptions) {
+    yield* E.annotateCurrentSpan(
+      "fellowship.dungeonId",
+      configuration.dungeonId,
+    );
+    yield* E.annotateCurrentSpan(
+      "fellowship.milestone-count",
+      configuration.milestones.length,
+    );
+    yield* E.annotateCurrentSpan("fellowship.tracker.source", source._tag);
+
+    return yield* semaphore.withPermit(
       E.gen(function* () {
         const activeTracker = yield* Ref.get(activeTrackerRef);
 
@@ -168,7 +191,7 @@ const make = E.gen(function* () {
 
         const trackingEffect = processRunEventStream({
           configuration,
-          events: fellowship.liveEvents(),
+          events,
         }).pipe(
           Stream.runForEach((result) => {
             const handleEvents = E.forEach(
@@ -227,45 +250,68 @@ const make = E.gen(function* () {
           milestoneCount: configuration.milestones.length,
           source,
         });
+
+        return fiber;
       }),
     );
-  };
+  });
 
-  const start: FellowshipTrackerServiceShape["start"] = ({
-    configurationId,
-  }) => {
-    return E.gen(function* () {
-      const persistedConfiguration = yield* configurationDAO.getById({
-        id: configurationId,
-      });
+  const start: FellowshipTrackerServiceShape["start"] = E.fn(
+    "fellowship.tracker.start",
+  )(function* ({ configurationId }) {
+    yield* E.annotateCurrentSpan("fellowship.configurationId", configurationId);
 
-      if (Option.isNone(persistedConfiguration)) {
-        return yield* E.fail(
-          new FellowshipTrackerConfigurationNotFoundError(configurationId),
-        );
-      }
-
-      yield* startTracking({
-        configuration: persistedConfiguration.value.configuration,
-        source: {
-          _tag: "Persisted",
-          configurationId,
-        },
-      });
+    const persistedConfiguration = yield* configurationDAO.getById({
+      id: configurationId,
     });
-  };
+
+    if (Option.isNone(persistedConfiguration)) {
+      return yield* E.fail(
+        new FellowshipTrackerConfigurationNotFoundError(configurationId),
+      );
+    }
+
+    yield* startTracking({
+      configuration: persistedConfiguration.value.configuration,
+      events: fellowship.liveEvents(),
+      source: {
+        _tag: "Persisted",
+        configurationId,
+      },
+    });
+  });
 
   const startConfiguration: FellowshipTrackerServiceShape["startConfiguration"] =
-    ({ configuration }) => {
-      return startTracking({
+    E.fn("fellowship.tracker.start-configuration")(function* ({
+      configuration,
+    }) {
+      yield* startTracking({
         configuration,
+        events: fellowship.liveEvents(),
         source: {
           _tag: "External",
         },
       });
-    };
+    });
+
+  const replayLog: FellowshipTrackerServiceShape["replayLog"] = E.fn(
+    "fellowship.tracker.replay-log",
+  )(function* ({ configuration, logFilePath }) {
+    yield* E.annotateCurrentSpan("fellowship.log-file-path", logFilePath);
+
+    const fiber = yield* startTracking({
+      configuration,
+      events: fellowship.streamEvents(logFilePath),
+      source: {
+        _tag: "External",
+      },
+    });
+
+    yield* Fiber.join(fiber);
+  });
 
   return {
+    replayLog,
     start,
     startConfiguration,
     status,

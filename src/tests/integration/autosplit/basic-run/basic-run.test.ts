@@ -2,7 +2,7 @@ import path from "node:path";
 import * as E from "effect/Effect";
 import { describe, expect, test } from "vitest";
 
-import { replayLog } from "@/application/run-processing/replay-log.ts";
+import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
 import {
   appendEOL,
   LiveSplitSendCommand,
@@ -21,9 +21,13 @@ describe("LiveSplit replay", () => {
 
         const logFilePath = path.join(import.meta.dirname, "log.txt");
 
-        yield* replayLog({
-          configuration,
-          logFilePath,
+        yield* E.gen(function* () {
+          const fellowshipTracker = yield* FellowshipTracker;
+
+          yield* fellowshipTracker.replayLog({
+            configuration,
+            logFilePath,
+          });
         }).pipe(E.provide(layer));
 
         const commands = yield* harness.getCommands();

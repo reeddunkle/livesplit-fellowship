@@ -1,9 +1,7 @@
 import * as E from "effect/Effect";
 
-import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
+import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
-
-import { processLiveSplitEventStream } from "./process-live-split-event-stream.ts";
 
 export type ReplayLogOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
@@ -14,7 +12,7 @@ export const replayLog = E.fn("fellowship.replay-log")(function* ({
   configuration,
   logFilePath,
 }: ReplayLogOptions) {
-  const fellowship = yield* Fellowship;
+  const fellowshipTracker = yield* FellowshipTracker;
 
   yield* E.annotateCurrentSpan("fellowship.dungeonId", configuration.dungeonId);
 
@@ -23,8 +21,8 @@ export const replayLog = E.fn("fellowship.replay-log")(function* ({
     configuration.milestones.length,
   );
 
-  return yield* processLiveSplitEventStream({
+  return yield* fellowshipTracker.replayLog({
     configuration,
-    events: fellowship.streamEvents(logFilePath),
+    logFilePath,
   });
 });
