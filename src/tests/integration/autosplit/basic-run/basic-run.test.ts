@@ -6,7 +6,7 @@ import { replayLog } from "@/application/run-processing/replay-log.ts";
 import {
   appendEOL,
   LiveSplitSendCommand,
-} from "@/services/live-split/client/live-split-command.ts";
+} from "@/services/live-split/core/live-split-command.ts";
 import { makeLiveSplitAppMock } from "@/tests/common/layers/live-split-app-mock-layer.ts";
 import { dungeonStartCommands } from "@/tests/common/live-split-test-commands.ts";
 import { runTest } from "@/tests/common/run-test.ts";

@@ -8,9 +8,9 @@ import * as Stream from "effect/Stream";
 import {
   LiveSplitClient,
   makeLiveSplitClient,
-} from "@/services/live-split/client/live-split-client-service.ts";
-import { appendEOL } from "@/services/live-split/client/live-split-command.ts";
-import { type LiveSplitTransport } from "@/services/live-split/client/node-live-split-transport.ts";
+} from "@/services/live-split/core/live-split-client-service.ts";
+import { appendEOL } from "@/services/live-split/core/live-split-command.ts";
+import { type LiveSplitTransport } from "@/services/live-split/core/node-live-split-transport.ts";
 
 export function makeLiveSplitTestHarness() {
   return E.gen(function* () {

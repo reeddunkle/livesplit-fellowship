@@ -4,7 +4,7 @@ import * as Stream from "effect/Stream";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { processRunEventStream } from "@/services/fellowship/runs/process-run-event-stream.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
-import { LiveSplitClient } from "@/services/live-split/client/live-split-client-service.ts";
+import { LiveSplitClient } from "@/services/live-split/core/live-split-client-service.ts";
 
 import { handleLiveSplitRunEvent } from "./handle-live-split-run-event.ts";
 import { handleLogRunEvent } from "./handle-log-run-event.ts";

@@ -29,3 +29,15 @@ export class LiveSplitClientUnavailableError extends Data.TaggedError(
     return `The LiveSplit client is unavailable: ${this.reason}.`;
   }
 }
+
+const LIVE_SPLIT_CONNECTION_ERROR = "LiveSplitConnectionError" as const;
+
+export class LiveSplitConnectionError extends Data.TaggedError(
+  LIVE_SPLIT_CONNECTION_ERROR,
+)<{
+  readonly cause: unknown;
+}> {
+  override get message(): string {
+    return "Failed to connect to LiveSplit.";
+  }
+}

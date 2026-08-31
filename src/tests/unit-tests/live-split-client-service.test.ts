@@ -4,7 +4,7 @@ import { describe, expect, test } from "vitest";
 import {
   appendEOL,
   LiveSplitRequestCommand,
-} from "@/services/live-split/client/live-split-command.ts";
+} from "@/services/live-split/core/live-split-command.ts";
 import { makeLiveSplitTestHarness } from "@/tests/common/harnesses/live-split-test-harness.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 

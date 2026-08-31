@@ -1,7 +1,7 @@
 import * as Layer from "effect/Layer";
 
 import { type MakeAppLiveOptions, makeAppLive } from "@/layers/app-layer.ts";
-import { LiveSplitClientLive } from "@/services/live-split/client/live-split-client-service.ts";
+import { LiveSplitClientLive } from "@/services/live-split/core/live-split-client-service.ts";
 
 export type MakeLiveSplitAppLiveOptions = MakeAppLiveOptions;
 

@@ -5,7 +5,7 @@ import {
   RUN_PROCESSING_EVENT,
   type RunProcessingEvent,
 } from "@/services/fellowship/runs/process-run-event.ts";
-import { type LiveSplitClient } from "@/services/live-split/client/live-split-client-service.ts";
+import { type LiveSplitClient } from "@/services/live-split/core/live-split-client-service.ts";
 
 export function handleLiveSplitRunEvent({
   event,

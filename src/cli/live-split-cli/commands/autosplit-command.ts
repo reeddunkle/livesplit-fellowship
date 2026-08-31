@@ -6,7 +6,7 @@ import * as Schema from "effect/Schema";
 import { processLiveSplitLog } from "@/application/run-processing/process-live-split-log.ts";
 import { DungeonDAO } from "@/db/daos/dungeon/dungeon-dao.ts";
 import { loadMilestoneConfiguration } from "@/services/fellowship/milestones/load-milestone-configuration.ts";
-import { LiveSplitClient } from "@/services/live-split/client/live-split-client-service.ts";
+import { LiveSplitClient } from "@/services/live-split/core/live-split-client-service.ts";
 import { generateLSSFile } from "@/services/live-split/files/lss/generate-lss-file.ts";
 import { getLSSFileName } from "@/services/live-split/files/lss/get-lss-file-name.ts";
 import { NonEmptyStringSchema } from "@/validation/common.ts";
