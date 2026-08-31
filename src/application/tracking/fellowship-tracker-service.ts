@@ -19,7 +19,7 @@ import { type DungeonId } from "@/services/fellowship/validation/fellowship-comm
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
-export type FellowshipTrackerConfigurationSource =
+type FellowshipTrackerConfigurationSource =
   | {
       readonly _tag: "Persisted";
       readonly configurationId: ConfigurationId;
