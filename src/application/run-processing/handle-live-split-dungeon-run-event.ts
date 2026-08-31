@@ -7,7 +7,7 @@ import {
 } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event.ts";
 import { type LiveSplitClientService } from "@/services/live-split/core/live-split-client-service.ts";
 
-export function handleLiveSplitRunEvent({
+export function handleLiveSplitDungeonRunEvent({
   event,
   liveSplitClient,
 }: {

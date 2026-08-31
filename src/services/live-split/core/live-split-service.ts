@@ -3,14 +3,16 @@ import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 
-import { handleLiveSplitRunEvent } from "@/application/run-processing/handle-live-split-run-event.ts";
+import { handleLiveSplitDungeonRunEvent } from "@/application/run-processing/handle-live-split-dungeon-run-event.ts";
 import { type LiveSplitConnectionError } from "@/errors/live-split-client-error.ts";
 import {
   LiveSplitConnectionManager,
   type LiveSplitConnectionStatus,
 } from "@/services/live-split/core/live-split-connection-manager-service.ts";
 
-type LiveSplitRunEvent = Parameters<typeof handleLiveSplitRunEvent>[0]["event"];
+type LiveSplitRunEvent = Parameters<
+  typeof handleLiveSplitDungeonRunEvent
+>[0]["event"];
 
 export interface LiveSplitService {
   readonly connect: () => E.Effect<void, LiveSplitConnectionError>;
@@ -37,7 +39,7 @@ const make = E.gen(function* () {
         return;
       }
 
-      yield* handleLiveSplitRunEvent({
+      yield* handleLiveSplitDungeonRunEvent({
         event,
         liveSplitClient: client.value,
       }).pipe(
