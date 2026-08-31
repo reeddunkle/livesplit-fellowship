@@ -3,7 +3,7 @@ import * as E from "effect/Effect";
 import * as HashMap from "effect/HashMap";
 import { describe, expect, test } from "vitest";
 
-import { publishRunApiState } from "@/application/tracking/publish-run-api-state.ts";
+import { publishDungeonRunState } from "@/api/websocket/publish-run-api-state.ts";
 import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import {
   type DungeonRunTrackerState,
@@ -90,7 +90,7 @@ describe("publishRunApiState", () => {
         },
       });
 
-      yield* publishRunApiState({
+      yield* publishDungeonRunState({
         configuration,
         state,
         webSocketBroadcaster: webSocketBroadcasterHarness.webSocketBroadcaster,
@@ -168,7 +168,7 @@ describe("publishRunApiState", () => {
         },
       });
 
-      yield* publishRunApiState({
+      yield* publishDungeonRunState({
         configuration,
         state,
         webSocketBroadcaster: webSocketBroadcasterHarness.webSocketBroadcaster,
@@ -217,7 +217,7 @@ describe("publishRunApiState", () => {
       const webSocketBroadcasterHarness =
         yield* makeWebSocketBroadcasterTestHarness();
 
-      yield* publishRunApiState({
+      yield* publishDungeonRunState({
         configuration,
         state: createRunProcessingState(),
         webSocketBroadcaster: webSocketBroadcasterHarness.webSocketBroadcaster,
