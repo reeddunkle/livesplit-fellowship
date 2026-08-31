@@ -9,19 +9,19 @@ import { compileMilestoneConfiguration } from "@/services/fellowship/milestones/
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
-export type ProcessRunEventStreamOptions<Error> = {
+export type ProcessDungeonRunEventStreamOptions<Error> = {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly events: Stream.Stream<FellowshipEvent, Error>;
 };
 
-type ProcessRunEventStreamResult = ProcessDungeonRunEventResult & {
+type ProcessDungeonRunEventStreamResult = ProcessDungeonRunEventResult & {
   readonly configuration: ReturnType<typeof compileMilestoneConfiguration>;
 };
 
-export function processRunEventStream<Error>({
+export function processDungeonRunEventStream<Error>({
   configuration,
   events,
-}: ProcessRunEventStreamOptions<Error>) {
+}: ProcessDungeonRunEventStreamOptions<Error>) {
   const compiledConfiguration = compileMilestoneConfiguration(configuration);
 
   return events.pipe(
@@ -35,7 +35,7 @@ export function processRunEventStream<Error>({
       const streamResult = {
         ...result,
         configuration: compiledConfiguration,
-      } satisfies ProcessRunEventStreamResult;
+      } satisfies ProcessDungeonRunEventStreamResult;
 
       return [result.state, [streamResult]];
     }),

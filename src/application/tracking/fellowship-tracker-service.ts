@@ -17,7 +17,7 @@ import {
   FellowshipTrackerConfigurationNotFoundError,
 } from "@/errors/fellowship-tracker-error.ts";
 import { RunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
-import { processRunEventStream } from "@/services/fellowship/dungeon-runs/process-run-event-stream.ts";
+import { processDungeonRunEventStream } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event-stream.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
@@ -187,7 +187,7 @@ const make = E.gen(function* () {
           return yield* E.fail(new FellowshipTrackerAlreadyRunningError());
         }
 
-        const trackingEffect = processRunEventStream({
+        const trackingEffect = processDungeonRunEventStream({
           configuration,
           events,
         }).pipe(
