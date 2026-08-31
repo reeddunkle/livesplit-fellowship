@@ -13,7 +13,7 @@ import { runTest } from "@/tests/common/run-test.ts";
 
 import { configuration } from "./configuration.ts";
 
-describe("replayLog", () => {
+describe("LiveSplit replay", () => {
   test("sends LiveSplit commands for the configured run", async () => {
     const program = E.scoped(
       E.gen(function* () {
@@ -34,24 +34,18 @@ describe("replayLog", () => {
           return splitCommand;
         });
 
-        expect(commands).toEqual([
+        const expectedCommands = [
           ...dungeonStartCommands,
           ...configuredMilestoneCommands,
-        ]);
+        ];
 
-        expect(commands.slice(0, dungeonStartCommands.length)).toEqual(
-          dungeonStartCommands,
-        );
+        expect(commands).toEqual(expectedCommands);
 
         expect(
           commands.filter((command) => {
             return command === splitCommand;
           }),
         ).toHaveLength(configuration.milestones.length);
-
-        expect(commands).toHaveLength(
-          dungeonStartCommands.length + configuration.milestones.length,
-        );
       }),
     );
 

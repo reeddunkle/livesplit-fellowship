@@ -28,22 +28,27 @@ const FellowshipWithDependencies = FellowshipLive.pipe(
   Layer.provide(FileMonitorWithPlatform),
 );
 
-const LiveSplitWithDependencies = LiveSplitLive.pipe(
-  Layer.provide(LiveSplitConnectionManagerLive),
-);
-
 export function makeAppServicesLive(options: MakeAppServicesLiveOptions) {
   return Layer.mergeAll(
     PlatformLive,
     FileMonitorWithPlatform,
     FellowshipWithDependencies,
-    LiveSplitConnectionManagerLive,
-    LiveSplitWithDependencies,
     LiveSplitFileLive,
     makePersistenceLayer(options),
   );
 }
 
 export function makeAppLive(options: MakeAppLiveOptions) {
-  return Layer.mergeAll(AppLoggerWithPlatform, makeAppServicesLive(options));
+  const appServicesLive = makeAppServicesLive(options);
+
+  const liveSplitWithDependencies = LiveSplitLive.pipe(
+    Layer.provide(LiveSplitConnectionManagerLive),
+  );
+
+  return Layer.mergeAll(
+    AppLoggerWithPlatform,
+    appServicesLive,
+    LiveSplitConnectionManagerLive,
+    liveSplitWithDependencies,
+  );
 }

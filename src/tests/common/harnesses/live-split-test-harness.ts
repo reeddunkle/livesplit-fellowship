@@ -1,14 +1,10 @@
 import * as E from "effect/Effect";
 import * as Fiber from "effect/Fiber";
-import * as Layer from "effect/Layer";
 import * as Queue from "effect/Queue";
 import * as Ref from "effect/Ref";
 import * as Stream from "effect/Stream";
 
-import {
-  LiveSplitClient,
-  makeLiveSplitClient,
-} from "@/services/live-split/core/live-split-client-service.ts";
+import { makeLiveSplitClient } from "@/services/live-split/core/live-split-client-service.ts";
 import { appendEOL } from "@/services/live-split/core/live-split-command.ts";
 import { type LiveSplitTransport } from "@/services/live-split/core/node-live-split-transport.ts";
 
@@ -35,8 +31,6 @@ export function makeLiveSplitTestHarness() {
     const client = yield* makeLiveSplitClient({
       transport,
     });
-
-    const clientLayer = Layer.succeed(LiveSplitClient, client);
 
     const start = <A, Error>(effect: E.Effect<A, Error>) => {
       return E.gen(function* () {
@@ -66,7 +60,6 @@ export function makeLiveSplitTestHarness() {
 
     return {
       client,
-      clientLayer,
       getCommands,
       sendChunk,
       sendResponse,
