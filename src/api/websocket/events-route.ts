@@ -4,11 +4,11 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { ROUTES } from "@/api/constants/routes.ts";
-import { RunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
+import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 
 const handleEventsRequest = E.gen(function* () {
   const request = yield* HttpServerRequest.HttpServerRequest;
-  const runWebSocketBroadcaster = yield* RunWebSocketBroadcaster;
+  const runWebSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
 
   yield* E.logDebug("WebSocket upgrade requested.", {
     method: request.method,

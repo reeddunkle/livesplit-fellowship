@@ -22,10 +22,10 @@ export interface WebSocketBroadcasterService {
   readonly sendLatestToClient: (writer: WebSocketWriter) => E.Effect<void>;
 }
 
-export class RunWebSocketBroadcaster extends Context.Service<
-  RunWebSocketBroadcaster,
+export class DungeonRunWebSocketBroadcaster extends Context.Service<
+  DungeonRunWebSocketBroadcaster,
   WebSocketBroadcasterService
->()("app/RunWebSocketBroadcaster") {}
+>()("app/DungeonRunWebSocketBroadcaster") {}
 
 export class TrackingWebSocketBroadcaster extends Context.Service<
   TrackingWebSocketBroadcaster,
@@ -127,7 +127,7 @@ const make = E.gen(function* () {
 });
 
 export const RunWebSocketBroadcasterLive = Layer.effect(
-  RunWebSocketBroadcaster,
+  DungeonRunWebSocketBroadcaster,
   make,
 );
 

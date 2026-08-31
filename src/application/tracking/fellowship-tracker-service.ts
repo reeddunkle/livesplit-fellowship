@@ -16,7 +16,7 @@ import {
   FellowshipTrackerAlreadyRunningError,
   FellowshipTrackerConfigurationNotFoundError,
 } from "@/errors/fellowship-tracker-error.ts";
-import { RunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
+import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import { processDungeonRunEventStream } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event-stream.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
@@ -108,7 +108,7 @@ const make = E.gen(function* () {
   const configurationDAO = yield* ConfigurationDAO;
   const fellowship = yield* Fellowship;
   const liveSplit = yield* LiveSplit;
-  const runWebSocketBroadcaster = yield* RunWebSocketBroadcaster;
+  const runWebSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
   const scope = yield* E.scope;
 
   const semaphore = yield* Semaphore.make(1);
