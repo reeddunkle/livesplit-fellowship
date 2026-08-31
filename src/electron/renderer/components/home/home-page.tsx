@@ -1,9 +1,9 @@
 import { ConfigurationEditorContainer } from "@/electron/renderer/components/configuration/configuration-editor-container.tsx";
-import { ConfigurationSidebar } from "@/electron/renderer/components/configuration/sidebar/configuration-sidebar";
+import { ConfigurationSidebar } from "@/electron/renderer/components/configuration/sidebar/configuration-sidebar.tsx";
 import { AppLayout } from "@/electron/renderer/components/core/app-layout.tsx";
+import { HomeTrackingControls } from "@/electron/renderer/components/home/home-tracking-controls.tsx";
 import { ConfigurationProvider } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { FellowshipDataProvider } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
-import { TrackingProvider } from "@/electron/renderer/stores/tracking-store/tracking-store";
 import { type AbilityApiAbilityList } from "@/services/api/ability/ability-api-schema.ts";
 import { type ConfigurationApiConfigurationList } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type DungeonApiDungeonList } from "@/services/api/dungeon/dungeon-api-schema.ts";
@@ -32,13 +32,14 @@ export function HomePage({
       encounters={encounters}
       units={units}
     >
-      <TrackingProvider>
-        <ConfigurationProvider configurations={configurations}>
-          <AppLayout sidebar={<ConfigurationSidebar />}>
+      <ConfigurationProvider configurations={configurations}>
+        <AppLayout sidebar={<ConfigurationSidebar />}>
+          <main className="mx-auto grid w-full gap-6 p-6">
+            <HomeTrackingControls />
             <ConfigurationEditorContainer />
-          </AppLayout>
-        </ConfigurationProvider>
-      </TrackingProvider>
+          </main>
+        </AppLayout>
+      </ConfigurationProvider>
     </FellowshipDataProvider>
   );
 }
