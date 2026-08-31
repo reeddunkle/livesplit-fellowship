@@ -9,7 +9,6 @@
     "check": "run-s lint test typecheck typecheck:renderer knip",
     "cli:api": "tsx src/cli/api-cli/api-cli.ts",
     "cli:dev": "tsx src/cli/dev-cli/dev-cli.ts",
-    "cli:livesplit": "tsx src/cli/live-split-cli/live-split-cli.ts",
     "cli": "tsx src/cli/public-cli/public-cli.ts",
     "db:setup": "pnpm cli:dev setup-database",
     "dev": "pnpm electron:build:main && run-p electron:dev:renderer electron:dev:start",
