@@ -1,8 +1,8 @@
 import { type RunApiMessage } from "@/api/websocket/run-api-message-schema.ts";
 import { createRunApiState } from "@/api/websocket/run-api-state.ts";
 import { type WebSocketBroadcasterService } from "@/services/api/websocket-broadcaster-service.ts";
+import { type RunProcessingState } from "@/services/fellowship/dungeon-runs/run-processing-state.ts";
 import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
-import { type RunProcessingState } from "@/services/fellowship/runs/run-processing-state.ts";
 
 type CreateRunApiMessageOptions = {
   readonly configuration: CompiledFellowshipMilestoneConfiguration;

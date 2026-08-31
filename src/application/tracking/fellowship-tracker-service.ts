@@ -17,9 +17,9 @@ import {
   FellowshipTrackerConfigurationNotFoundError,
 } from "@/errors/fellowship-tracker-error.ts";
 import { RunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
+import { processRunEventStream } from "@/services/fellowship/dungeon-runs/process-run-event-stream.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
-import { processRunEventStream } from "@/services/fellowship/runs/process-run-event-stream.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";

@@ -3,13 +3,13 @@ import {
   type RunApiRequirement,
   type RunApiState,
 } from "@/api/websocket/run-api-message-schema.ts";
+import { type RunProcessingState } from "@/services/fellowship/dungeon-runs/run-processing-state.ts";
 import {
   analyzeMilestoneProgress,
   type MilestoneProgress,
   type RequirementProgress,
 } from "@/services/fellowship/milestones/analyze-milestone-progress.ts";
 import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
-import { type RunProcessingState } from "@/services/fellowship/runs/run-processing-state.ts";
 import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
 
 export type CreateRunApiStateOptions = {

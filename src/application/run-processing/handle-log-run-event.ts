@@ -4,7 +4,7 @@ import * as Match from "effect/Match";
 import {
   RUN_PROCESSING_EVENT,
   type RunProcessingEvent,
-} from "@/services/fellowship/runs/process-run-event.ts";
+} from "@/services/fellowship/dungeon-runs/process-run-event.ts";
 
 export function handleLogRunEvent(event: RunProcessingEvent): E.Effect<void> {
   return Match.value(event).pipe(

@@ -4,7 +4,7 @@ import * as Match from "effect/Match";
 import {
   RUN_PROCESSING_EVENT,
   type RunProcessingEvent,
-} from "@/services/fellowship/runs/process-run-event.ts";
+} from "@/services/fellowship/dungeon-runs/process-run-event.ts";
 import { type LiveSplitClientService } from "@/services/live-split/core/live-split-client-service.ts";
 
 export function handleLiveSplitRunEvent({
