@@ -6,7 +6,7 @@ import {
   type DungeonRunProcessingEvent,
 } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event.ts";
 
-export function handleLogRunEvent(
+export function handleLogDungeonRunEvent(
   event: DungeonRunProcessingEvent,
 ): E.Effect<void> {
   return Match.value(event).pipe(
