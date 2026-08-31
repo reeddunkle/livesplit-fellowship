@@ -26,7 +26,7 @@ function createRunApiMessage({
   };
 }
 
-export function publishRunApiState({
+export function publishRunState({
   configuration,
   state,
   webSocketBroadcaster,
