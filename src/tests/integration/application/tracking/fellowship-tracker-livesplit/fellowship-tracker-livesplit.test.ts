@@ -13,7 +13,7 @@ import { runTest } from "@/tests/common/run-test.ts";
 
 import { configuration } from "./configuration.ts";
 
-describe("LiveSplit replay", () => {
+describe("FellowshipTracker LiveSplit", () => {
   test("sends LiveSplit commands for the configured run", async () => {
     const program = E.scoped(
       E.gen(function* () {

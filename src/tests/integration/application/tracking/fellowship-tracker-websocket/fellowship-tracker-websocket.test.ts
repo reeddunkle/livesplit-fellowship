@@ -4,27 +4,27 @@ import * as Schema from "effect/Schema";
 import { describe, expect, test } from "vitest";
 
 import { RunApiMessageSchema } from "@/api/websocket/run-api-message-schema.ts";
-import { processApiEventStream } from "@/application/run-processing/process-api-event-stream.ts";
-import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
-import { makeApiAppMock } from "@/tests/common/layers/api-app-mock-layer.ts";
+import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
+import { makeLiveSplitAppMock } from "@/tests/common/layers/live-split-app-mock-layer.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
 import { configuration } from "./configuration.ts";
 
-describe("processApiEventStream", () => {
-  test("publishes API state updates for the run", async () => {
+describe("FellowshipTracker WebSocket messages", () => {
+  test("broadcasts run state updates while processing a run", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const { layer, webSocketBroadcasterHarness } = yield* makeApiAppMock();
+        const { layer, webSocketBroadcasterHarness } =
+          yield* makeLiveSplitAppMock();
+
+        const logFilePath = path.join(import.meta.dirname, "log.txt");
 
         yield* E.gen(function* () {
-          const fellowship = yield* Fellowship;
+          const fellowshipTracker = yield* FellowshipTracker;
 
-          const logFilePath = path.join(import.meta.dirname, "log.txt");
-
-          yield* processApiEventStream({
+          yield* fellowshipTracker.replayLog({
             configuration,
-            events: fellowship.streamEvents(logFilePath),
+            logFilePath,
           });
         }).pipe(E.provide(layer));
 
