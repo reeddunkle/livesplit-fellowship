@@ -3,7 +3,7 @@ import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 
-import { handleLiveSplitDungeonRunEvent } from "@/application/run-processing/handle-live-split-dungeon-run-event.ts";
+import { handleLiveSplitDungeonRunEvent } from "@/application/dungeon-run-processing/handle-live-split-dungeon-run-event.ts";
 import { type LiveSplitConnectionError } from "@/errors/live-split-client-error.ts";
 import {
   LiveSplitConnectionManager,
