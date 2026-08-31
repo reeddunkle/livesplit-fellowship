@@ -4,9 +4,8 @@ import * as Stream from "effect/Stream";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { processRunEventStream } from "@/services/fellowship/runs/process-run-event-stream.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
-import { LiveSplitClient } from "@/services/live-split/core/live-split-client-service.ts";
+import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
 
-import { handleLiveSplitRunEvent } from "./handle-live-split-run-event.ts";
 import { handleLogRunEvent } from "./handle-log-run-event.ts";
 
 export type ProcessLiveSplitEventStreamOptions<Error> = {
@@ -19,7 +18,7 @@ export function processLiveSplitEventStream<Error>({
   events,
 }: ProcessLiveSplitEventStreamOptions<Error>) {
   return E.gen(function* () {
-    const liveSplitClient = yield* LiveSplitClient;
+    const liveSplit = yield* LiveSplit;
 
     return yield* processRunEventStream({
       configuration,
@@ -30,13 +29,7 @@ export function processLiveSplitEventStream<Error>({
           result.events,
           (event) => {
             return E.all(
-              [
-                handleLogRunEvent(event),
-                handleLiveSplitRunEvent({
-                  event,
-                  liveSplitClient,
-                }),
-              ],
+              [handleLogRunEvent(event), liveSplit.handleRunEvent(event)],
               {
                 concurrency: "unbounded",
                 discard: true,

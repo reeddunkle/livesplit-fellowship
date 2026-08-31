@@ -5,31 +5,36 @@ import * as Match from "effect/Match";
 import type * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 
+import {
+  AutosplitCommandInputSchema,
+  runAutosplitCommand,
+} from "@/cli/public-cli/commands/autosplit-command.ts";
+import {
+  FilterLogCommandInputSchema,
+  runFilterLogCommand,
+} from "@/cli/public-cli/commands/filter-log-command.ts";
+import {
+  GenerateLSSCommandInputSchema,
+  runGenerateLSSCommand,
+} from "@/cli/public-cli/commands/generate-lss-command.ts";
+import {
+  runSplitLogCommand,
+  SplitLogCommandInputSchema,
+} from "@/cli/public-cli/commands/split-log-command.ts";
 import { toError } from "@/cli/util/to-error.ts";
 import { validateNoExtraPositionals } from "@/cli/util/validate-no-extra-positionals.ts";
 import { type DungeonDAO } from "@/db/daos/dungeon/dungeon-dao.ts";
 import { type Fellowship } from "@/services/fellowship/fellowship-service.ts";
+import { type LiveSplit } from "@/services/live-split/core/live-split-service.ts";
 import { type LiveSplitFile } from "@/services/live-split/files/live-split-file-service.ts";
-
-import {
-  FilterLogCommandInputSchema,
-  runFilterLogCommand,
-} from "./commands/filter-log-command.ts";
-import {
-  GenerateLSSCommandInputSchema,
-  runGenerateLSSCommand,
-} from "./commands/generate-lss-command.ts";
-import {
-  runSplitLogCommand,
-  SplitLogCommandInputSchema,
-} from "./commands/split-log-command.ts";
 
 type CLIEnvironment =
   | DungeonDAO
-  | FileSystem.FileSystem
   | Fellowship
-  | Path.Path
-  | LiveSplitFile;
+  | FileSystem.FileSystem
+  | LiveSplit
+  | LiveSplitFile
+  | Path.Path;
 
 type ParsedArguments = ReturnType<typeof parseArgs>;
 
@@ -59,6 +64,16 @@ function parseArguments(
         strict: true,
       });
     },
+  });
+}
+
+function parseAutosplitInput({ positionals, values }: ParsedArguments) {
+  return E.gen(function* () {
+    yield* validateNoExtraPositionals(positionals);
+
+    return yield* Schema.decodeUnknownEffect(AutosplitCommandInputSchema)({
+      configurationFilePath: values.configuration,
+    });
   });
 }
 
@@ -103,6 +118,13 @@ export function runCLI(
     const [commandName] = parsedArguments.positionals;
 
     return yield* Match.value(commandName).pipe(
+      Match.when("autosplit", () =>
+        E.gen(function* () {
+          const input = yield* parseAutosplitInput(parsedArguments);
+
+          yield* runAutosplitCommand(input);
+        }),
+      ),
       Match.when("filter-log", () =>
         E.gen(function* () {
           const input = yield* parseFilterLogInput(parsedArguments);

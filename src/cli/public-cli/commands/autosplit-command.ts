@@ -6,7 +6,7 @@ import * as Schema from "effect/Schema";
 import { processLiveSplitLog } from "@/application/run-processing/process-live-split-log.ts";
 import { DungeonDAO } from "@/db/daos/dungeon/dungeon-dao.ts";
 import { loadMilestoneConfiguration } from "@/services/fellowship/milestones/load-milestone-configuration.ts";
-import { LiveSplitClient } from "@/services/live-split/core/live-split-client-service.ts";
+import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
 import { generateLSSFile } from "@/services/live-split/files/lss/generate-lss-file.ts";
 import { getLSSFileName } from "@/services/live-split/files/lss/get-lss-file-name.ts";
 import { NonEmptyStringSchema } from "@/validation/common.ts";
@@ -21,7 +21,7 @@ const prepareAutosplit = E.fn("cli.autosplit.prepare")(function* (
   input: AutosplitCommandInput,
 ) {
   const dungeonDAO = yield* DungeonDAO;
-  const liveSplitClient = yield* LiveSplitClient;
+  const liveSplit = yield* LiveSplit;
   const path = yield* Path.Path;
 
   const configuration = yield* loadMilestoneConfiguration({
@@ -67,9 +67,9 @@ const prepareAutosplit = E.fn("cli.autosplit.prepare")(function* (
     filePath: lssFilePath,
   });
 
-  yield* liveSplitClient.reset();
+  yield* liveSplit.connect();
 
-  // TODO: Load LSS into LiveServer
+  // TODO: Load LSS into LiveSplit Server.
 
   yield* E.logInfo("Starting Fellowship LiveSplit autosplitter.", metadata);
 

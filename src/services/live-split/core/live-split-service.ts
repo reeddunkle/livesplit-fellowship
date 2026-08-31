@@ -29,14 +29,6 @@ export class LiveSplit extends Context.Service<LiveSplit, LiveSplitService>()(
 const make = E.gen(function* () {
   const connectionManager = yield* LiveSplitConnectionManager;
 
-  const connect: LiveSplitService["connect"] = () => {
-    return connectionManager.connect();
-  };
-
-  const disconnect: LiveSplitService["disconnect"] = () => {
-    return connectionManager.disconnect();
-  };
-
   const handleRunEvent: LiveSplitService["handleRunEvent"] = (event) => {
     return E.gen(function* () {
       const client = yield* connectionManager.client;
@@ -63,8 +55,8 @@ const make = E.gen(function* () {
   };
 
   return {
-    connect,
-    disconnect,
+    connect: connectionManager.connect,
+    disconnect: connectionManager.disconnect,
     handleRunEvent,
     status: connectionManager.status,
   } satisfies LiveSplitService;

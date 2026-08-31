@@ -1,9 +1,7 @@
 import * as Cause from "effect/Cause";
-import * as Context from "effect/Context";
 import * as Deferred from "effect/Deferred";
 import * as E from "effect/Effect";
 import * as Exit from "effect/Exit";
-import * as Layer from "effect/Layer";
 import * as Queue from "effect/Queue";
 import * as Ref from "effect/Ref";
 import * as Result from "effect/Result";
@@ -24,10 +22,7 @@ import {
   LiveSplitSendCommand,
   type LiveSplitSendCommandInput,
 } from "./live-split-command.ts";
-import {
-  type LiveSplitTransport,
-  makeNodeLiveSplitTransport,
-} from "./node-live-split-transport.ts";
+import { type LiveSplitTransport } from "./node-live-split-transport.ts";
 
 const RESPONSE_TIMEOUT = "5 seconds";
 
@@ -76,11 +71,6 @@ export interface LiveSplitClientService {
     filePath: string,
   ) => E.Effect<void, InvalidLiveSplitResponseError | LiveSplitRequestError>;
 }
-
-export class LiveSplitClient extends Context.Service<
-  LiveSplitClient,
-  LiveSplitClientService
->()("app/LiveSplitClient") {}
 
 export function makeLiveSplitClient({
   transport,
@@ -366,16 +356,3 @@ export function makeLiveSplitClient({
     } satisfies LiveSplitClientService;
   });
 }
-
-const makeLiveSplitClientLive = E.gen(function* () {
-  const transport = yield* makeNodeLiveSplitTransport();
-
-  return yield* makeLiveSplitClient({
-    transport,
-  });
-});
-
-export const LiveSplitClientLive = Layer.effect(
-  LiveSplitClient,
-  makeLiveSplitClientLive,
-);

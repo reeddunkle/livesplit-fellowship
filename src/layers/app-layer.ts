@@ -8,6 +8,8 @@ import {
 } from "@/layers/persistence-layer.ts";
 import { FellowshipLive } from "@/services/fellowship/fellowship-service.ts";
 import { FileMonitorLive } from "@/services/filesystem/file-monitor-service.ts";
+import { LiveSplitConnectionManagerLive } from "@/services/live-split/core/live-split-connection-manager-service.ts";
+import { LiveSplitLive } from "@/services/live-split/core/live-split-service.ts";
 import { LiveSplitFileLive } from "@/services/live-split/files/live-split-file-service.ts";
 
 export type MakeAppServicesLiveOptions = MakePersistenceLayerOptions;
@@ -26,11 +28,17 @@ const FellowshipWithDependencies = FellowshipLive.pipe(
   Layer.provide(FileMonitorWithPlatform),
 );
 
+const LiveSplitWithDependencies = LiveSplitLive.pipe(
+  Layer.provide(LiveSplitConnectionManagerLive),
+);
+
 export function makeAppServicesLive(options: MakeAppServicesLiveOptions) {
   return Layer.mergeAll(
     PlatformLive,
     FileMonitorWithPlatform,
     FellowshipWithDependencies,
+    LiveSplitConnectionManagerLive,
+    LiveSplitWithDependencies,
     LiveSplitFileLive,
     makePersistenceLayer(options),
   );
