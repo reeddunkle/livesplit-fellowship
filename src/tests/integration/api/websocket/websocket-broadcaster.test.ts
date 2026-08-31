@@ -128,7 +128,7 @@ describe("WebSocketBroadcaster integration", () => {
 
         const websocketUrl = `${address
           .replace(/^http:/, "ws:")
-          .replace("0.0.0.0", "127.0.0.1")}${ROUTES.events}`;
+          .replace("0.0.0.0", "127.0.0.1")}${ROUTES.runEvents}`;
 
         const websocket = yield* E.acquireRelease(
           E.sync(() => {

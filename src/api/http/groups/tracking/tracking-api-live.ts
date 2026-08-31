@@ -1,75 +1,16 @@
 import * as E from "effect/Effect";
 import type * as Layer from "effect/Layer";
-import * as Match from "effect/Match";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
 import * as HttpApiError from "effect/unstable/httpapi/HttpApiError";
 
 import { AppHttpApi } from "@/api/http/http-api.ts";
+import { createTrackingApiStatus } from "@/application/tracking/create-tracking-api-status.ts";
 import {
   FellowshipTracker,
   FellowshipTrackerAlreadyRunningError,
   FellowshipTrackerConfigurationNotFoundError,
   type FellowshipTrackerStartError,
-  type FellowshipTrackerStatus,
 } from "@/application/tracking/fellowship-tracker-service.ts";
-import { type TrackingApiStatus } from "@/application/tracking/tracking-api-schema.ts";
-
-function createTrackingApiStatus(
-  status: FellowshipTrackerStatus,
-): TrackingApiStatus {
-  return Match.value(status).pipe(
-    Match.when(
-      {
-        _tag: "Idle",
-      },
-      (): TrackingApiStatus => {
-        return {
-          status: "Idle",
-        };
-      },
-    ),
-    Match.when(
-      {
-        _tag: "Tracking",
-      },
-      ({ dungeonId, source }): TrackingApiStatus => {
-        return Match.value(source).pipe(
-          Match.when(
-            {
-              _tag: "Persisted",
-            },
-            ({ configurationId }): TrackingApiStatus => {
-              return {
-                dungeonId,
-                source: {
-                  configurationId,
-                  type: "Persisted",
-                },
-                status: "Tracking",
-              };
-            },
-          ),
-          Match.when(
-            {
-              _tag: "External",
-            },
-            (): TrackingApiStatus => {
-              return {
-                dungeonId,
-                source: {
-                  type: "External",
-                },
-                status: "Tracking",
-              };
-            },
-          ),
-          Match.exhaustive,
-        );
-      },
-    ),
-    Match.exhaustive,
-  );
-}
 
 function mapFellowshipTrackerStartError(
   error: FellowshipTrackerStartError,

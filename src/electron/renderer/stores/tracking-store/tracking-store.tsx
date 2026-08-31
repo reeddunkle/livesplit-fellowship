@@ -32,7 +32,7 @@ type TrackingProviderProps = {
   readonly children: ReactNode;
 };
 
-export type TrackingStatus = {
+export type TrackingActionStatus = {
   readonly isStarting: boolean;
   readonly isStopping: boolean;
   readonly startError: unknown | undefined;
@@ -136,7 +136,7 @@ export function useTrackingActions(): TrackingActionContextValue {
   return context;
 }
 
-export function useTrackingStatus(): TrackingStatus {
+export function useTrackingStatus(): TrackingActionStatus {
   const { isStarting, isStopping, startError, stopError } =
     useTrackingActions();
 

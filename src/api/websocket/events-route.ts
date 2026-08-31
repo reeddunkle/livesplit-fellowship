@@ -65,5 +65,5 @@ const handleEventsRequest = E.gen(function* () {
 });
 
 export const EventsRoutes = HttpRouter.addAll([
-  HttpRouter.route("GET", ROUTES.events, handleEventsRequest),
+  HttpRouter.route("GET", ROUTES.runEvents, handleEventsRequest),
 ]);

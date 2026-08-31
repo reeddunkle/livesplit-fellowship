@@ -6,6 +6,7 @@ import * as Option from "effect/Option";
 import * as Ref from "effect/Ref";
 import * as Semaphore from "effect/Semaphore";
 import * as Stream from "effect/Stream";
+import * as SubscriptionRef from "effect/SubscriptionRef";
 
 import { publishRunApiState } from "@/api/websocket/publish-run-api-state.ts";
 import { handleLogRunEvent } from "@/application/run-processing/handle-log-run-event.ts";
@@ -81,6 +82,8 @@ export type FellowshipTrackerServiceShape = {
 
   readonly status: E.Effect<FellowshipTrackerStatus>;
 
+  readonly statusChanges: Stream.Stream<FellowshipTrackerStatus>;
+
   readonly stop: () => E.Effect<void>;
 };
 
@@ -114,26 +117,25 @@ const make = E.gen(function* () {
     Option.none(),
   );
 
-  const status: FellowshipTrackerServiceShape["status"] = Ref.get(
-    activeTrackerRef,
-  ).pipe(
-    E.map(
-      Option.match({
-        onNone: (): FellowshipTrackerStatus => {
-          return {
-            _tag: "Idle",
-          };
-        },
-        onSome: ({ dungeonId, source }): FellowshipTrackerStatus => {
-          return {
-            _tag: "Tracking",
-            dungeonId,
-            source,
-          };
-        },
-      }),
-    ),
-  );
+  const statusRef = yield* SubscriptionRef.make<FellowshipTrackerStatus>({
+    _tag: "Idle",
+  });
+
+  const status: FellowshipTrackerServiceShape["status"] =
+    SubscriptionRef.get(statusRef);
+
+  const statusChanges: FellowshipTrackerServiceShape["statusChanges"] =
+    SubscriptionRef.changes(statusRef);
+
+  const clearActiveTracker = (): E.Effect<void> => {
+    return E.gen(function* () {
+      yield* SubscriptionRef.set(statusRef, {
+        _tag: "Idle",
+      });
+
+      yield* Ref.set(activeTrackerRef, Option.none());
+    });
+  };
 
   const stop: FellowshipTrackerServiceShape["stop"] = E.fn(
     "fellowship.tracker.stop",
@@ -156,7 +158,6 @@ const make = E.gen(function* () {
         );
 
         yield* Fiber.interrupt(activeTracker.value.fiber);
-        yield* Ref.set(activeTrackerRef, Option.none());
 
         yield* E.logInfo("Stopped Fellowship tracker.", {
           dungeonId: activeTracker.value.dungeonId,
@@ -231,7 +232,7 @@ const make = E.gen(function* () {
               source,
             });
           }),
-          E.ensuring(Ref.set(activeTrackerRef, Option.none())),
+          E.ensuring(clearActiveTracker()),
         );
 
         const fiber = yield* E.forkIn(trackingEffect, scope);
@@ -244,6 +245,12 @@ const make = E.gen(function* () {
             source,
           }),
         );
+
+        yield* SubscriptionRef.set(statusRef, {
+          _tag: "Tracking",
+          dungeonId: configuration.dungeonId,
+          source,
+        });
 
         yield* E.logInfo("Started Fellowship tracker.", {
           dungeonId: configuration.dungeonId,
@@ -315,6 +322,7 @@ const make = E.gen(function* () {
     start,
     startConfiguration,
     status,
+    statusChanges,
     stop,
   } satisfies FellowshipTrackerServiceShape;
 });

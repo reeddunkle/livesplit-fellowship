@@ -10,6 +10,7 @@ import { TrackingApiLive } from "@/api/http/groups/tracking/tracking-api-live.ts
 import { UnitsApiLive } from "@/api/http/groups/units/units-api-live.ts";
 import { AppHttpApi } from "@/api/http/http-api.ts";
 import { EventsRoutes } from "@/api/websocket/events-route.ts";
+import { TrackingRoutes } from "@/api/websocket/tracking-route.ts";
 import { env } from "@/env.ts";
 
 const CorsLive = HttpRouter.cors({
@@ -27,7 +28,9 @@ const HttpApiRoutes = HttpApiBuilder.layer(AppHttpApi).pipe(
   Layer.provide(UnitsApiLive),
 );
 
-const ApiRoutes = Layer.mergeAll(HttpApiRoutes, EventsRoutes).pipe(
+const WebsocketRoutes = Layer.mergeAll(EventsRoutes, TrackingRoutes);
+
+const ApiRoutes = Layer.mergeAll(HttpApiRoutes, WebsocketRoutes).pipe(
   Layer.provide(CorsLive),
 );
 

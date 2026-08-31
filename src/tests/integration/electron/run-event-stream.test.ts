@@ -61,7 +61,7 @@ function getWebSocketUrl(address: HttpServer.Address): string {
   const hostname =
     address.hostname === "0.0.0.0" ? "127.0.0.1" : address.hostname;
 
-  return `ws://${hostname}:${address.port}${ROUTES.events}`;
+  return `ws://${hostname}:${address.port}${ROUTES.runEvents}`;
 }
 
 function collectClientEvents(
@@ -256,7 +256,7 @@ describe("run event stream", () => {
 
         const websocketUrl = getWebSocketUrl(httpServer.address);
         const invalidWebsocketUrl = websocketUrl.replace(
-          ROUTES.events,
+          ROUTES.runEvents,
           "/invalid",
         );
 
@@ -297,7 +297,7 @@ describe("run event stream", () => {
         const httpServer = yield* HttpServer.HttpServer;
 
         const websocketUrl = getWebSocketUrl(httpServer.address).replace(
-          ROUTES.events,
+          ROUTES.runEvents,
           NORMAL_CLOSE_ROUTE,
         );
 

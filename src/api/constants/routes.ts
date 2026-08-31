@@ -1,3 +1,4 @@
 export const ROUTES = {
-  events: "/events",
+  runEvents: "/run/events",
+  trackingEvents: "/tracking/events",
 } as const;
