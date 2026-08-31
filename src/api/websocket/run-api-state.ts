@@ -3,7 +3,7 @@ import {
   type RunApiRequirement,
   type RunApiState,
 } from "@/api/websocket/run-api-message-schema.ts";
-import { type RunProcessingState } from "@/services/fellowship/dungeon-runs/run-processing-state.ts";
+import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import {
   analyzeMilestoneProgress,
   type MilestoneProgress,
@@ -14,7 +14,7 @@ import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
 
 export type CreateRunApiStateOptions = {
   readonly configuration: CompiledFellowshipMilestoneConfiguration;
-  readonly state: RunProcessingState;
+  readonly state: DungeonRunProcessingState;
 };
 
 function createRunApiRequirement(
@@ -38,7 +38,7 @@ function createRunApiMilestone({
   runStart,
 }: {
   readonly progress: MilestoneProgress;
-  readonly runStart: RunProcessingState["runTracker"]["currentStart"];
+  readonly runStart: DungeonRunProcessingState["runTracker"]["currentStart"];
 }): RunApiMilestone {
   const completedAtMilliseconds =
     progress.completedAt?.epochMilliseconds ?? null;

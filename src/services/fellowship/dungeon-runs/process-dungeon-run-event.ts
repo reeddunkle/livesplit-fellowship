@@ -11,7 +11,7 @@ import { isDungeonExitEvent } from "@/services/fellowship/utilities/is-dungeon-e
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
-import { type RunProcessingState } from "./run-processing-state.ts";
+import { type DungeonRunProcessingState } from "./dungeon-run-processing-state.ts";
 
 export const DUNGEON_RUN_PROCESSING_EVENT = {
   MILESTONE_COMPLETED: "MILESTONE_COMPLETED",
@@ -36,13 +36,13 @@ export type DungeonRunProcessingEvent =
 export type ProcessDungeonRunEventOptions = {
   readonly configuration: CompiledFellowshipMilestoneConfiguration;
   readonly event: FellowshipEvent;
-  readonly state: RunProcessingState;
+  readonly state: DungeonRunProcessingState;
 };
 
 export type ProcessDungeonRunEventResult = {
   readonly events: ReadonlyArray<DungeonRunProcessingEvent>;
   readonly isStateUpdated: boolean;
-  readonly state: RunProcessingState;
+  readonly state: DungeonRunProcessingState;
 };
 
 type GetDungeonRunStartForEventOptions = {

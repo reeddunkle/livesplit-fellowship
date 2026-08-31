@@ -7,12 +7,12 @@ import {
   type MilestoneProcessorState,
 } from "@/services/fellowship/milestones/milestone-processor-state.ts";
 
-export type RunProcessingState = {
+export type DungeonRunProcessingState = {
   readonly milestoneProcessor: MilestoneProcessorState;
   readonly runTracker: DungeonRunTrackerState;
 };
 
-export function createInitialRunState(): RunProcessingState {
+export function createInitialDungeonRunState(): DungeonRunProcessingState {
   return {
     milestoneProcessor: initialMilestoneProcessorState,
     runTracker: initialDungeonRunTrackerState,
