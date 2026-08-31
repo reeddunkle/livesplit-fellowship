@@ -26,7 +26,7 @@ const LiveSplitApiHandlersInferred = HttpApiBuilder.group(
     const liveSplitApiService = yield* LiveSplitApiService;
 
     return handlers
-      .handle("getLiveSplit", () => {
+      .handle("getLiveSplitConnection", () => {
         return liveSplitApiService.getStatus();
       })
       .handle("connectLiveSplit", () => {
