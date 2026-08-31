@@ -5,7 +5,7 @@ import { describe, expect, test } from "vitest";
 
 import { RunApiMessageSchema } from "@/api/websocket/run-api-message-schema.ts";
 import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
-import { makeLiveSplitAppMock } from "@/tests/common/layers/live-split-app-mock-layer.ts";
+import { makeAppTestHarness } from "@/tests/common/harnesses/app-test-harness.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
 import { configuration } from "./configuration.ts";
@@ -15,7 +15,7 @@ describe("FellowshipTracker WebSocket messages", () => {
     const program = E.scoped(
       E.gen(function* () {
         const { layer, webSocketBroadcasterHarness } =
-          yield* makeLiveSplitAppMock();
+          yield* makeAppTestHarness();
 
         const logFilePath = path.join(import.meta.dirname, "log.txt");
 

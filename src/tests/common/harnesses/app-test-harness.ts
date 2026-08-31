@@ -10,16 +10,17 @@ import {
   type LiveSplitConnectionManagerService,
 } from "@/services/live-split/core/live-split-connection-manager-service.ts";
 import { LiveSplitLive } from "@/services/live-split/core/live-split-service.ts";
-import { makeLiveSplitTestHarness } from "@/tests/common/harnesses/live-split-test-harness.ts";
-import { makeWebSocketBroadcasterTestHarness } from "@/tests/common/harnesses/websocket-broadcaster-test-harness.ts";
 
-export type MakeLiveSplitAppMockOptions = {
+import { makeLiveSplitTestHarness } from "./live-split-test-harness.ts";
+import { makeWebSocketBroadcasterTestHarness } from "./websocket-broadcaster-test-harness.ts";
+
+export type MakeAppTestHarnessOptions = {
   readonly databaseFilename?: string;
 };
 
-export function makeLiveSplitAppMock({
+export function makeAppTestHarness({
   databaseFilename = ":memory:",
-}: MakeLiveSplitAppMockOptions = {}) {
+}: MakeAppTestHarnessOptions = {}) {
   return E.gen(function* () {
     const liveSplitHarness = yield* makeLiveSplitTestHarness();
 
@@ -30,49 +31,52 @@ export function makeLiveSplitAppMock({
       databaseFilename,
     });
 
-    const connectionManagerTest = Layer.succeed(LiveSplitConnectionManager, {
-      client: E.succeed(Option.some(liveSplitHarness.client)),
-      connect: () => {
-        return E.void;
-      },
-      disconnect: () => {
-        return E.void;
-      },
-      status: E.succeed({
-        _tag: "Connected",
-      }),
-    } satisfies LiveSplitConnectionManagerService);
-
-    const liveSplitTest = LiveSplitLive.pipe(
-      Layer.provide(connectionManagerTest),
+    const liveSplitConnectionManagerTest = Layer.succeed(
+      LiveSplitConnectionManager,
+      {
+        client: E.succeed(Option.some(liveSplitHarness.client)),
+        connect: () => {
+          return E.void;
+        },
+        disconnect: () => {
+          return E.void;
+        },
+        status: E.succeed({
+          _tag: "Connected",
+        }),
+      } satisfies LiveSplitConnectionManagerService,
     );
 
-    const WebSocketBroadcasterMock = Layer.succeed(
+    const liveSplitTest = LiveSplitLive.pipe(
+      Layer.provide(liveSplitConnectionManagerTest),
+    );
+
+    const webSocketBroadcasterTest = Layer.succeed(
       WebSocketBroadcaster,
       webSocketBroadcasterHarness.webSocketBroadcaster,
     );
 
-    const trackerDependencies = Layer.mergeAll(
+    const fellowshipTrackerDependencies = Layer.mergeAll(
       appServicesTest,
       liveSplitTest,
-      WebSocketBroadcasterMock,
+      webSocketBroadcasterTest,
     );
 
     const fellowshipTrackerTest = FellowshipTrackerLive.pipe(
-      Layer.provide(trackerDependencies),
+      Layer.provide(fellowshipTrackerDependencies),
     );
 
     const layer = Layer.mergeAll(
       appServicesTest,
-      connectionManagerTest,
+      liveSplitConnectionManagerTest,
       liveSplitTest,
-      WebSocketBroadcasterMock,
+      webSocketBroadcasterTest,
       fellowshipTrackerTest,
     );
 
     return {
-      harness: liveSplitHarness,
       layer,
+      liveSplitHarness,
       webSocketBroadcasterHarness,
     };
   });

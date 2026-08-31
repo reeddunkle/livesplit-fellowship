@@ -7,7 +7,7 @@ import {
   appendEOL,
   LiveSplitSendCommand,
 } from "@/services/live-split/core/live-split-command.ts";
-import { makeLiveSplitAppMock } from "@/tests/common/layers/live-split-app-mock-layer.ts";
+import { makeAppTestHarness } from "@/tests/common/harnesses/app-test-harness.ts";
 import { dungeonStartCommands } from "@/tests/common/live-split-test-commands.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
@@ -17,7 +17,7 @@ describe("FellowshipTracker LiveSplit", () => {
   test("sends LiveSplit commands for the configured run", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const { harness, layer } = yield* makeLiveSplitAppMock();
+        const { layer, liveSplitHarness } = yield* makeAppTestHarness();
 
         const logFilePath = path.join(import.meta.dirname, "log.txt");
 
@@ -30,7 +30,7 @@ describe("FellowshipTracker LiveSplit", () => {
           });
         }).pipe(E.provide(layer));
 
-        const commands = yield* harness.getCommands();
+        const commands = yield* liveSplitHarness.getCommands();
 
         const splitCommand = appendEOL(LiveSplitSendCommand.split);
 
