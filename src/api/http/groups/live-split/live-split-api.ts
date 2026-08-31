@@ -9,7 +9,7 @@ const LIVE_SPLIT_CONNECTION_ROUTE = `${LIVE_SPLIT_ROUTE}/connect` as const;
 
 const GetLiveSplitEndpoint = HttpApiEndpoint.get(
   "getLiveSplit",
-  LIVE_SPLIT_ROUTE,
+  LIVE_SPLIT_CONNECTION_ROUTE,
   {
     success: LiveSplitApiStatusSchema,
   },
