@@ -3,7 +3,7 @@ import * as Option from "effect/Option";
 import * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 
-import { processLiveSplitLog } from "@/application/run-processing/process-live-split-log.ts";
+import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
 import { DungeonDAO } from "@/db/daos/dungeon/dungeon-dao.ts";
 import { loadMilestoneConfiguration } from "@/services/fellowship/milestones/load-milestone-configuration.ts";
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
@@ -81,9 +81,13 @@ const prepareAutosplit = E.fn("cli.autosplit.prepare")(function* (
 export const runAutosplitCommand = E.fn(function* (
   input: AutosplitCommandInput,
 ) {
+  const fellowshipTracker = yield* FellowshipTracker;
+
   const { configuration } = yield* prepareAutosplit(input);
 
-  return yield* processLiveSplitLog({
+  yield* fellowshipTracker.startConfiguration({
     configuration,
   });
+
+  return yield* E.never;
 });

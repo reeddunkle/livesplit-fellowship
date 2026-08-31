@@ -9,8 +9,11 @@ import {
 export type MakeFellowshipTrackerMockOptions =
   Partial<FellowshipTrackerServiceShape>;
 
-function makeTrackerApiServiceMock({
+function makeFellowshipTrackerMock({
   start = () => {
+    return E.void;
+  },
+  startConfiguration = () => {
     return E.void;
   },
   status = E.succeed({
@@ -22,9 +25,10 @@ function makeTrackerApiServiceMock({
 }: MakeFellowshipTrackerMockOptions = {}) {
   return Layer.succeed(FellowshipTracker, {
     start,
+    startConfiguration,
     status,
     stop,
   } satisfies FellowshipTrackerServiceShape);
 }
 
-export const TrackerApiServiceMock = makeTrackerApiServiceMock();
+export const FellowshipTrackerMock = makeFellowshipTrackerMock();

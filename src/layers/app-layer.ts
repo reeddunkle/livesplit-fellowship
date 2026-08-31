@@ -1,11 +1,13 @@
 import { NodeFileSystem, NodePath } from "@effect/platform-node";
 import * as Layer from "effect/Layer";
 
+import { FellowshipTrackerLive } from "@/application/tracking/fellowship-tracker-service.ts";
 import { AppLoggerLive } from "@/layers/app-logger-live.ts";
 import {
   type MakePersistenceLayerOptions,
   makePersistenceLayer,
 } from "@/layers/persistence-layer.ts";
+import { WebSocketBroadcasterLive } from "@/services/api/websocket-broadcaster-service.ts";
 import { FellowshipLive } from "@/services/fellowship/fellowship-service.ts";
 import { FileMonitorLive } from "@/services/filesystem/file-monitor-service.ts";
 import { LiveSplitConnectionManagerLive } from "@/services/live-split/core/live-split-connection-manager-service.ts";
@@ -45,10 +47,29 @@ export function makeAppLive(options: MakeAppLiveOptions) {
     Layer.provide(LiveSplitConnectionManagerLive),
   );
 
-  return Layer.mergeAll(
+  console.log("!!! TEST !!!", {
     AppLoggerWithPlatform,
     appServicesLive,
+    FellowshipTrackerLive,
     LiveSplitConnectionManagerLive,
     liveSplitWithDependencies,
+    WebSocketBroadcasterLive,
+  });
+
+  const trackerDependencies = Layer.mergeAll(
+    appServicesLive,
+    liveSplitWithDependencies,
+    WebSocketBroadcasterLive,
+  );
+
+  const fellowshipTrackerWithDependencies = FellowshipTrackerLive.pipe(
+    Layer.provide(trackerDependencies),
+  );
+
+  return Layer.mergeAll(
+    AppLoggerWithPlatform,
+    trackerDependencies,
+    LiveSplitConnectionManagerLive,
+    fellowshipTrackerWithDependencies,
   );
 }

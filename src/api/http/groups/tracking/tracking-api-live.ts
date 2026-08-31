@@ -32,12 +32,39 @@ function createTrackingApiStatus(
       {
         _tag: "Tracking",
       },
-      ({ configurationId, dungeonId }): TrackingApiStatus => {
-        return {
-          configurationId,
-          dungeonId,
-          status: "Tracking",
-        };
+      ({ dungeonId, source }): TrackingApiStatus => {
+        return Match.value(source).pipe(
+          Match.when(
+            {
+              _tag: "Persisted",
+            },
+            ({ configurationId }): TrackingApiStatus => {
+              return {
+                dungeonId,
+                source: {
+                  configurationId,
+                  type: "Persisted",
+                },
+                status: "Tracking",
+              };
+            },
+          ),
+          Match.when(
+            {
+              _tag: "External",
+            },
+            (): TrackingApiStatus => {
+              return {
+                dungeonId,
+                source: {
+                  type: "External",
+                },
+                status: "Tracking",
+              };
+            },
+          ),
+          Match.exhaustive,
+        );
       },
     ),
     Match.exhaustive,

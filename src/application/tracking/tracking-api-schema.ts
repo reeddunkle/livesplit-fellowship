@@ -9,13 +9,27 @@ export const StartTrackingApiRequestSchema = Schema.Struct({
 
 export type StartTrackingApiRequest = typeof StartTrackingApiRequestSchema.Type;
 
+const PersistedTrackingApiSourceSchema = Schema.Struct({
+  configurationId: ConfigurationIdSchema,
+  type: Schema.Literal("Persisted"),
+});
+
+const ExternalTrackingApiSourceSchema = Schema.Struct({
+  type: Schema.Literal("External"),
+});
+
+const TrackingApiSourceSchema = Schema.Union([
+  PersistedTrackingApiSourceSchema,
+  ExternalTrackingApiSourceSchema,
+]);
+
 const IdleTrackingApiStatusSchema = Schema.Struct({
   status: Schema.Literal("Idle"),
 });
 
 const ActiveTrackingApiStatusSchema = Schema.Struct({
-  configurationId: ConfigurationIdSchema,
   dungeonId: DungeonIdSchema,
+  source: TrackingApiSourceSchema,
   status: Schema.Literal("Tracking"),
 });
 

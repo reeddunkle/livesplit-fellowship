@@ -18,6 +18,10 @@ import {
 } from "@/services/fellowship/fellowship-service.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import {
+  LiveSplit,
+  type LiveSplitService,
+} from "@/services/live-split/core/live-split-service.ts";
+import {
   TEST_CONFIGURATION_FINGERPRINT,
   TEST_CONFIGURATION_ID,
   TEST_CONFIGURATION_LABEL,
@@ -111,6 +115,21 @@ export function makeFellowshipTrackerTestHarness(
       },
     } satisfies ConfigurationDAOShape;
 
+    const liveSplit = {
+      connect: () => {
+        return E.void;
+      },
+      disconnect: () => {
+        return E.void;
+      },
+      handleRunEvent: () => {
+        return E.void;
+      },
+      status: E.succeed({
+        _tag: "Disconnected",
+      }),
+    } satisfies LiveSplitService;
+
     const ConfigurationDAOMock = Layer.succeed(
       ConfigurationDAO,
       configurationDAO,
@@ -121,6 +140,8 @@ export function makeFellowshipTrackerTestHarness(
       fellowshipHarness.fellowship,
     );
 
+    const LiveSplitMock = Layer.succeed(LiveSplit, liveSplit);
+
     const WebSocketBroadcasterMock = Layer.succeed(
       WebSocketBroadcaster,
       webSocketBroadcasterHarness.webSocketBroadcaster,
@@ -129,6 +150,7 @@ export function makeFellowshipTrackerTestHarness(
     const FellowshipTrackerTest = FellowshipTrackerLive.pipe(
       Layer.provide(ConfigurationDAOMock),
       Layer.provide(FellowshipMock),
+      Layer.provide(LiveSplitMock),
       Layer.provide(WebSocketBroadcasterMock),
     );
 

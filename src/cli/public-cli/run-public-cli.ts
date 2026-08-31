@@ -5,6 +5,7 @@ import * as Match from "effect/Match";
 import type * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 
+import { type FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
 import {
   AutosplitCommandInputSchema,
   runAutosplitCommand,
@@ -31,6 +32,7 @@ import { type LiveSplitFile } from "@/services/live-split/files/live-split-file-
 type CLIEnvironment =
   | DungeonDAO
   | Fellowship
+  | FellowshipTracker
   | FileSystem.FileSystem
   | LiveSplit
   | LiveSplitFile

@@ -60,8 +60,46 @@ describe("FellowshipTracker", () => {
 
     expect(result.status).toEqual({
       _tag: "Tracking",
-      configurationId: result.configurationId,
       dungeonId: result.dungeonId,
+      source: {
+        _tag: "Persisted",
+        configurationId: result.configurationId,
+      },
+    });
+  });
+
+  test("changes status to tracking for an external configuration", async () => {
+    const result = await E.runPromise(
+      E.scoped(
+        E.gen(function* () {
+          const harness = yield* makeFellowshipTrackerTestHarness();
+
+          const status = yield* E.gen(function* () {
+            const tracker = yield* FellowshipTracker;
+
+            yield* tracker.startConfiguration({
+              configuration: harness.configuration,
+            });
+
+            yield* Deferred.await(harness.trackingStarted);
+
+            return yield* tracker.status;
+          }).pipe(E.provide(harness.layer));
+
+          return {
+            dungeonId: harness.configuration.dungeonId,
+            status,
+          };
+        }),
+      ),
+    );
+
+    expect(result.status).toEqual({
+      _tag: "Tracking",
+      dungeonId: result.dungeonId,
+      source: {
+        _tag: "External",
+      },
     });
   });
 
