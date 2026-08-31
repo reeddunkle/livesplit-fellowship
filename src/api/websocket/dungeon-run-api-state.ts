@@ -1,8 +1,8 @@
 import {
-  type RunApiMilestone,
-  type RunApiRequirement,
-  type RunApiState,
-} from "@/api/websocket/run-api-message-schema.ts";
+  type DungeonRunMilestoneApi,
+  type DungeonRunRequirementApi,
+  type DungeonRunStateApi,
+} from "@/api/websocket/dungeon-run-api-message-schema.ts";
 import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import {
   analyzeMilestoneProgress,
@@ -19,7 +19,7 @@ export type CreateRunApiStateOptions = {
 
 function createRunApiRequirement(
   progress: RequirementProgress,
-): RunApiRequirement {
+): DungeonRunRequirementApi {
   return {
     observations: progress.observations.map((observation) => {
       return {
@@ -39,7 +39,7 @@ function createRunApiMilestone({
 }: {
   readonly progress: MilestoneProgress;
   readonly runStart: DungeonRunProcessingState["runTracker"]["currentStart"];
-}): RunApiMilestone {
+}): DungeonRunMilestoneApi {
   const completedAtMilliseconds =
     progress.completedAt?.epochMilliseconds ?? null;
 
@@ -60,7 +60,7 @@ function createRunApiMilestone({
 export function createRunApiState({
   configuration,
   state,
-}: CreateRunApiStateOptions): RunApiState {
+}: CreateRunApiStateOptions): DungeonRunStateApi {
   const analysis = analyzeMilestoneProgress({
     configuration,
     state: state.milestoneProcessor,
@@ -76,12 +76,12 @@ export function createRunApiState({
   });
 
   return {
-    milestones,
-    run:
+    dungeonRun:
       runStart === undefined
         ? null
         : {
             startedAtMilliseconds: runStart.startedAt.epochMilliseconds,
           },
+    milestones,
   };
 }

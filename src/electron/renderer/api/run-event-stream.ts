@@ -7,9 +7,9 @@ import * as Stream from "effect/Stream";
 import * as Socket from "effect/unstable/socket/Socket";
 
 import {
-  type RunApiMessage,
-  RunApiMessageSchema,
-} from "@/api/websocket/run-api-message-schema.ts";
+  type DungeonRunApiMessage,
+  DungeonRunApiMessageSchema,
+} from "@/api/websocket/dungeon-run-api-message-schema.ts";
 import { getApiWebSocketUrl } from "@/electron/renderer/api/api-url.ts";
 import { RunEventMessageDecodeError } from "@/errors/run-event-stream-error.ts";
 
@@ -28,7 +28,7 @@ export type RunEventStreamEvent =
       readonly type: "CONNECTION_STATE_CHANGED";
     }
   | {
-      readonly message: RunApiMessage;
+      readonly message: DungeonRunApiMessage;
       readonly type: "MESSAGE_RECEIVED";
     };
 
@@ -54,7 +54,7 @@ function offerConnectionState(
 
 function decodeMessage(
   message: string,
-): E.Effect<RunApiMessage, RunEventMessageDecodeError> {
+): E.Effect<DungeonRunApiMessage, RunEventMessageDecodeError> {
   return E.gen(function* () {
     const parsed = yield* E.try({
       catch: (cause) => {
@@ -67,7 +67,9 @@ function decodeMessage(
       },
     });
 
-    return yield* Schema.decodeUnknownEffect(RunApiMessageSchema)(parsed).pipe(
+    return yield* Schema.decodeUnknownEffect(DungeonRunApiMessageSchema)(
+      parsed,
+    ).pipe(
       E.mapError((cause) => {
         return new RunEventMessageDecodeError({
           cause,

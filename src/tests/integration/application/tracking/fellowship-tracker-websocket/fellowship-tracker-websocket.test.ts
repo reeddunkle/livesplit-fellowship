@@ -3,7 +3,7 @@ import * as E from "effect/Effect";
 import * as Schema from "effect/Schema";
 import { describe, expect, test } from "vitest";
 
-import { RunApiMessageSchema } from "@/api/websocket/run-api-message-schema.ts";
+import { DungeonRunApiMessageSchema } from "@/api/websocket/dungeon-run-api-message-schema.ts";
 import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
 import { makeAppTestHarness } from "@/tests/common/harnesses/app-test-harness.ts";
 import { runTest } from "@/tests/common/run-test.ts";
@@ -40,8 +40,9 @@ describe("FellowshipTracker WebSocket messages", () => {
           return;
         }
 
-        const decodedFirstMessage =
-          Schema.decodeUnknownSync(RunApiMessageSchema)(firstMessage);
+        const decodedFirstMessage = Schema.decodeUnknownSync(
+          DungeonRunApiMessageSchema,
+        )(firstMessage);
 
         expect(decodedFirstMessage).toMatchObject({
           state: {
@@ -60,8 +61,9 @@ describe("FellowshipTracker WebSocket messages", () => {
           return;
         }
 
-        const decodedFinalMessage =
-          Schema.decodeUnknownSync(RunApiMessageSchema)(finalMessage);
+        const decodedFinalMessage = Schema.decodeUnknownSync(
+          DungeonRunApiMessageSchema,
+        )(finalMessage);
 
         const desecrator1 = decodedFinalMessage.state.milestones.find(
           (milestone) => {

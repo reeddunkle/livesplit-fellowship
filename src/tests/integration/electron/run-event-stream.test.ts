@@ -12,7 +12,7 @@ import * as Socket from "effect/unstable/socket/Socket";
 import { describe, expect, test } from "vitest";
 
 import { ROUTES } from "@/api/constants/routes.ts";
-import { type RunApiMessage } from "@/api/websocket/run-api-message-schema.ts";
+import { type DungeonRunApiMessage } from "@/api/websocket/dungeon-run-api-message-schema.ts";
 import {
   API_CONNECTION_STATE,
   makeRunEventStreamForUrl,
@@ -29,6 +29,9 @@ const NORMAL_CLOSE_ROUTE = "/normal-close";
 
 const message = {
   state: {
+    dungeonRun: {
+      startedAtMilliseconds: 1_000,
+    },
     milestones: [
       {
         completedAtMilliseconds: null,
@@ -46,12 +49,9 @@ const message = {
         ],
       },
     ],
-    run: {
-      startedAtMilliseconds: 1_000,
-    },
   },
   version: 1,
-} satisfies RunApiMessage;
+} satisfies DungeonRunApiMessage;
 
 function getWebSocketUrl(address: HttpServer.Address): string {
   if (address._tag === "UnixAddress") {
