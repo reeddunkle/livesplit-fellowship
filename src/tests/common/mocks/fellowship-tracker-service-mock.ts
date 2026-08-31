@@ -10,6 +10,9 @@ export type MakeFellowshipTrackerMockOptions =
   Partial<FellowshipTrackerServiceShape>;
 
 function makeFellowshipTrackerMock({
+  replayLog = () => {
+    return E.void;
+  },
   start = () => {
     return E.void;
   },
@@ -24,6 +27,7 @@ function makeFellowshipTrackerMock({
   },
 }: MakeFellowshipTrackerMockOptions = {}) {
   return Layer.succeed(FellowshipTracker, {
+    replayLog,
     start,
     startConfiguration,
     status,

@@ -2,7 +2,7 @@ import * as Data from "effect/Data";
 
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
-export const FELLOWSHIP_TRACKER_ALREADY_RUNNING_ERROR =
+const FELLOWSHIP_TRACKER_ALREADY_RUNNING_ERROR =
   "FellowshipTrackerAlreadyRunningError" as const;
 
 export class FellowshipTrackerAlreadyRunningError extends Data.TaggedError(
@@ -13,7 +13,7 @@ export class FellowshipTrackerAlreadyRunningError extends Data.TaggedError(
   }
 }
 
-export const FELLOWSHIP_TRACKER_CONFIGURATION_NOT_FOUND_ERROR =
+const FELLOWSHIP_TRACKER_CONFIGURATION_NOT_FOUND_ERROR =
   "FellowshipTrackerConfigurationNotFoundError" as const;
 
 export class FellowshipTrackerConfigurationNotFoundError extends Data.TaggedError(

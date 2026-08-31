@@ -16,7 +16,7 @@ import { makeAbilityApiServiceMock } from "@/tests/common/mocks/ability-api-serv
 import { ConfigurationApiServiceMock } from "@/tests/common/mocks/configuration-api-service-mock.ts";
 import { DungeonApiServiceMock } from "@/tests/common/mocks/dungeon-api-service-mock.ts";
 import { EncounterApiServiceMock } from "@/tests/common/mocks/encounter-api-service-mock.ts";
-import { FellowshipTrackerMock } from "@/tests/common/mocks/tracker-api-service-mock.ts";
+import { FellowshipTrackerMock } from "@/tests/common/mocks/fellowship-tracker-service-mock.ts";
 import { UnitApiServiceMock } from "@/tests/common/mocks/unit-api-service-mock.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
