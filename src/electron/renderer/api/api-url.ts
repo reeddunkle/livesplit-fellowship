@@ -5,5 +5,5 @@ export function getApiBaseUrl(): string {
 }
 
 export function getApiWebSocketUrl(): string {
-  return `ws://${import.meta.env.PUBLIC_API_HOST}:${import.meta.env.PUBLIC_API_PORT}${ROUTES.runEvents}`;
+  return `ws://${import.meta.env.PUBLIC_API_HOST}:${import.meta.env.PUBLIC_API_PORT}${ROUTES.dungeonRunEvents}`;
 }

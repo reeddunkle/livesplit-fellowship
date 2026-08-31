@@ -1,4 +1,4 @@
 export const ROUTES = {
-  runEvents: "/run/events",
+  dungeonRunEvents: "/dungeon-run/events",
   trackingEvents: "/tracking/events",
 } as const;
