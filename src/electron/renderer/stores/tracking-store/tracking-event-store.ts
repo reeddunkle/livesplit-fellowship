@@ -7,7 +7,7 @@ import { type TrackingApiStatus } from "@/application/tracking/tracking-api-sche
 import {
   API_CONNECTION_STATE,
   type ApiConnectionState,
-} from "@/electron/renderer/api/dungeon-run-event-stream.ts";
+} from "@/electron/renderer/api/common.ts";
 import {
   makeTrackingEventStream,
   type TrackingEventStreamEvent,

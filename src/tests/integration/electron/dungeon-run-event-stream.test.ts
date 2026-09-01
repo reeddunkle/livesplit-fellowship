@@ -13,8 +13,8 @@ import { describe, expect, test } from "vitest";
 
 import { ROUTES } from "@/api/constants/routes.ts";
 import { type DungeonRunApiMessage } from "@/api/websocket/dungeon-run-api-message-schema.ts";
+import { API_CONNECTION_STATE } from "@/electron/renderer/api/common.ts";
 import {
-  API_CONNECTION_STATE,
   type DungeonRunEventStreamEvent,
   makeDungeonRunEventStreamForUrl,
 } from "@/electron/renderer/api/dungeon-run-event-stream.ts";

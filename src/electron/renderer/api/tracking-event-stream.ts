@@ -13,14 +13,7 @@ import {
 import { getApiWebSocketUrl } from "@/electron/renderer/api/api-url.ts";
 import { TrackingEventMessageDecodeError } from "@/errors/tracking-event-stream-error.ts";
 
-export const API_CONNECTION_STATE = {
-  CONNECTED: "CONNECTED",
-  CONNECTING: "CONNECTING",
-  DISCONNECTED: "DISCONNECTED",
-} as const;
-
-export type ApiConnectionState =
-  (typeof API_CONNECTION_STATE)[keyof typeof API_CONNECTION_STATE];
+import { API_CONNECTION_STATE, type ApiConnectionState } from "./common.ts";
 
 export type TrackingEventStreamEvent =
   | {

@@ -7,9 +7,11 @@ import { type DungeonRunStateApi } from "@/api/websocket/dungeon-run-api-message
 import {
   API_CONNECTION_STATE,
   type ApiConnectionState,
+} from "@/electron/renderer/api/common.ts";
+import {
   type DungeonRunEventStreamEvent,
   makeDungeonRunEventStream,
-} from "@/electron/renderer/api/dungeon-run-event-stream";
+} from "@/electron/renderer/api/dungeon-run-event-stream.ts";
 
 export type DungeonRunEventStoreSnapshot = {
   readonly connectionState: ApiConnectionState;
