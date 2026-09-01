@@ -37,7 +37,7 @@ export function ConfigurationSidebarItem({
           }}
         >
           <span className="flex min-w-0 items-center gap-2">
-            <FileTextIcon />
+            <FileTextIcon className="size-4" />
             <span className="min-w-0 flex-1 truncate">
               {configuration.label}
             </span>
