@@ -32,6 +32,11 @@ export class TrackingWebSocketBroadcaster extends Context.Service<
   WebSocketBroadcasterService
 >()("app/TrackingWebSocketBroadcaster") {}
 
+export class LiveSplitWebSocketBroadcaster extends Context.Service<
+  LiveSplitWebSocketBroadcaster,
+  WebSocketBroadcasterService
+>()("app/LiveSplitWebSocketBroadcaster") {}
+
 const make = E.gen(function* () {
   const clients = yield* Ref.make(HashSet.empty<WebSocketWriter>());
   const latestMessage = yield* Ref.make<string | undefined>(undefined);
@@ -133,5 +138,10 @@ export const DungeonRunWebSocketBroadcasterLive = Layer.effect(
 
 export const TrackingWebSocketBroadcasterLive = Layer.effect(
   TrackingWebSocketBroadcaster,
+  make,
+);
+
+export const LiveSplitWebSocketBroadcasterLive = Layer.effect(
+  LiveSplitWebSocketBroadcaster,
   make,
 );
