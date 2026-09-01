@@ -33,7 +33,7 @@ export function HomeTrackingControls() {
             start(selectedConfigurationId);
           }}
         >
-          <PlayIcon />
+          <PlayIcon className="fill-current" />
           {"Start"}
         </Button>
 
@@ -45,7 +45,7 @@ export function HomeTrackingControls() {
           variant="destructive"
           onClick={stop}
         >
-          <SquareIcon />
+          <SquareIcon className="fill-current" />
           {"Stop"}
         </Button>
       </div>
