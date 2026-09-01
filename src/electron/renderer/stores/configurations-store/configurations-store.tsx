@@ -1,5 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import * as E from "effect/Effect";
+import * as R from "effect/Record";
 import {
   createContext,
   type ReactNode,
@@ -20,8 +21,8 @@ import {
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
-import { groupConfigurations } from "./configuration-grouping";
-import { reduceConfigurations } from "./configuration-optimistic-state";
+import { groupConfigurations } from "./configuration-grouping.ts";
+import { reduceConfigurations } from "./configuration-optimistic-state.ts";
 
 type SaveConfigurationActionInput = {
   readonly previousSelectedConfigurationId: ConfigurationId | null;
@@ -48,8 +49,19 @@ type ConfigurationDeleteActionState = {
   readonly error: unknown | undefined;
 };
 
+function createConfigurationsById(
+  configurations: ConfigurationApiConfigurationList,
+) {
+  return R.fromIterableBy(configurations, (configuration) => {
+    return configuration.id;
+  });
+}
+
+type ConfigurationsById = ReturnType<typeof createConfigurationsById>;
+
 type ConfigurationStateContextValue = {
   readonly configurations: ConfigurationApiConfigurationList;
+  readonly configurationsById: ConfigurationsById;
   readonly selectedConfiguration: ConfigurationApiConfiguration | undefined;
   readonly selectedConfigurationId: ConfigurationId | null;
 };
@@ -129,6 +141,15 @@ export function ConfigurationProvider({
 
   const [optimisticConfigurations, updateOptimisticConfigurations] =
     useOptimistic(configurations, reduceConfigurations);
+
+  const configurationsById = useMemo(() => {
+    return createConfigurationsById(optimisticConfigurations);
+  }, [optimisticConfigurations]);
+
+  const selectedConfiguration =
+    selectedConfigurationId === null
+      ? undefined
+      : configurationsById[selectedConfigurationId];
 
   const applyPersistedConfiguration = (
     configuration: ConfigurationApiConfiguration,
@@ -279,22 +300,10 @@ export function ConfigurationProvider({
     INITIAL_DELETE_ACTION_STATE,
   );
 
-  const selectedConfiguration = useMemo(() => {
-    if (selectedConfigurationId === null) {
-      return undefined;
-    }
-
-    return optimisticConfigurations.find((configuration) => {
-      return configuration.id === selectedConfigurationId;
-    });
-  }, [optimisticConfigurations, selectedConfigurationId]);
-
   const actionContextValue = useMemo<ConfigurationActionContextValue>(() => {
     return {
       deleteConfiguration: (id) => {
-        const configuration = optimisticConfigurations.find((candidate) => {
-          return candidate.id === id;
-        });
+        const configuration = configurationsById[id];
 
         if (configuration === undefined) {
           return;
@@ -345,6 +354,7 @@ export function ConfigurationProvider({
       updateRevision: updateState.revision,
     };
   }, [
+    configurationsById,
     deleteState.error,
     dispatchDelete,
     dispatchSave,
@@ -352,7 +362,6 @@ export function ConfigurationProvider({
     isDeleting,
     isSaving,
     isUpdating,
-    optimisticConfigurations,
     saveState.configuration,
     saveState.error,
     saveState.revision,
@@ -366,10 +375,12 @@ export function ConfigurationProvider({
   const stateContextValue = useMemo<ConfigurationStateContextValue>(() => {
     return {
       configurations: optimisticConfigurations,
+      configurationsById,
       selectedConfiguration,
       selectedConfigurationId,
     };
   }, [
+    configurationsById,
     optimisticConfigurations,
     selectedConfiguration,
     selectedConfigurationId,
@@ -423,15 +434,13 @@ export function useConfigurationGroups(): ReadonlyArray<ConfigurationDungeonGrou
 export function useConfigurationById(
   id: ConfigurationId | null,
 ): ConfigurationApiConfiguration | undefined {
-  const configurations = useConfigurations();
+  const { configurationsById } = useConfigurationState();
 
   if (id === null) {
     return undefined;
   }
 
-  return configurations.find((configuration) => {
-    return configuration.id === id;
-  });
+  return configurationsById[id];
 }
 
 export function useSelectedConfiguration():

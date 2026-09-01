@@ -1,7 +1,11 @@
 import { PlayIcon, SquareIcon } from "lucide-react";
 
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
-import { useSelectedConfigurationId } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
+import {
+  useConfigurationById,
+  useSelectedConfiguration,
+  useSelectedConfigurationId,
+} from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import {
   useTrackingActionState,
   useTrackingActions,
@@ -9,6 +13,7 @@ import {
 } from "@/electron/renderer/stores/tracking-store/tracking-store.tsx";
 
 export function HomeTrackingControls() {
+  const selectedConfiguration = useSelectedConfiguration();
   const selectedConfigurationId = useSelectedConfigurationId();
 
   const { start, stop } = useTrackingActions();
@@ -16,6 +21,18 @@ export function HomeTrackingControls() {
   const { trackingStatus } = useTrackingServerState();
 
   const isTracking = trackingStatus?.status === "Tracking";
+
+  const trackingConfigurationId =
+    trackingStatus?.status === "Tracking" &&
+    trackingStatus.source.type === "Persisted"
+      ? trackingStatus.source.configurationId
+      : null;
+
+  const trackingConfiguration = useConfigurationById(trackingConfigurationId);
+
+  const configurationLabel = isTracking
+    ? trackingConfiguration?.label
+    : selectedConfiguration?.label;
 
   return (
     <section className="flex flex-col items-end gap-3">
@@ -50,7 +67,21 @@ export function HomeTrackingControls() {
         </Button>
       </div>
 
-      {selectedConfigurationId === null && (
+      {configurationLabel !== undefined && (
+        <p
+          className={
+            isTracking
+              ? "text-sm text-muted-foreground/60"
+              : "text-sm text-muted-foreground"
+          }
+        >
+          {isTracking
+            ? `Tracking a run using configuration "${configurationLabel}".`
+            : `Track a run using configuration "${configurationLabel}".`}
+        </p>
+      )}
+
+      {selectedConfigurationId === null && !isTracking && (
         <p className="text-sm text-muted-foreground">
           Save the configuration before starting a run.
         </p>
