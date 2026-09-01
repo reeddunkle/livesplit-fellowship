@@ -202,7 +202,6 @@ const make = E.gen(function* () {
                 );
               },
               {
-                concurrency: "unbounded",
                 discard: true,
               },
             );
