@@ -38,7 +38,7 @@ export function RequirementEditor({
 }: RequirementEditorProps) {
   const {
     focusedRequirementMetadata,
-    getSuggestedRequirementValues,
+    getRequirementValuesForEventType,
     setFocusedRequirement,
   } = useConfigurationEditor();
 
@@ -116,31 +116,28 @@ export function RequirementEditor({
                       const eventType = event.target
                         .value as MilestoneRequirementEventType;
 
-                      const suggestedValues = getSuggestedRequirementValues({
-                        eventType,
-                        location,
-                      });
+                      const requirementValues =
+                        getRequirementValuesForEventType({
+                          eventType,
+                          location,
+                        });
 
                       field.handleChange(eventType);
 
                       form.setFieldValue(
                         `${requirementPath}.targetId`,
-                        suggestedValues.targetId ?? "",
+                        requirementValues.targetId,
                       );
 
-                      if (suggestedValues.startOccurrence !== undefined) {
-                        form.setFieldValue(
-                          `${requirementPath}.startOccurrence`,
-                          suggestedValues.startOccurrence,
-                        );
-                      }
+                      form.setFieldValue(
+                        `${requirementPath}.startOccurrence`,
+                        requirementValues.startOccurrence,
+                      );
 
-                      if (suggestedValues.requiredCount !== undefined) {
-                        form.setFieldValue(
-                          `${requirementPath}.requiredCount`,
-                          suggestedValues.requiredCount,
-                        );
-                      }
+                      form.setFieldValue(
+                        `${requirementPath}.requiredCount`,
+                        requirementValues.requiredCount,
+                      );
                     }}
                   >
                     {selectableEventTypes.map((eventType) => {

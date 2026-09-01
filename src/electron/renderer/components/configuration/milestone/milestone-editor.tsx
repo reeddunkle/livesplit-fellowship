@@ -42,7 +42,7 @@ export function MilestoneEditor({
     string | undefined
   >();
 
-  const { getSuggestedRequirementValues } = useConfigurationEditor();
+  const { getRequirementValuesForEventType } = useConfigurationEditor();
 
   const milestonePath = `milestones[${milestoneIndex}]` as const;
 
@@ -119,7 +119,7 @@ export function MilestoneEditor({
                     const requirementIndex =
                       requirementsField.state.value.length;
 
-                    const suggestedValues = getSuggestedRequirementValues({
+                    const requirementValues = getRequirementValuesForEventType({
                       eventType: FELLOWSHIP_EVENT.UNIT_DEATH,
                       location: {
                         milestoneIndex,
@@ -128,7 +128,7 @@ export function MilestoneEditor({
                     });
 
                     const requirement = createRequirementEditorValue({
-                      suggestedValues,
+                      suggestedValues: requirementValues,
                     });
 
                     setAutoFocusRequirementId(requirement.id);

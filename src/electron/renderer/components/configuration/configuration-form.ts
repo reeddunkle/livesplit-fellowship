@@ -4,6 +4,7 @@ import * as Schema from "effect/Schema";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 
+import { type RequirementValuesForEventType } from "./configuration-editor-provider.tsx";
 import {
   ConfigurationEditorSchema,
   ConfigurationEditorStandardSchema,
@@ -12,7 +13,6 @@ import {
   type MilestoneEditorValue,
   type RequirementEditorValue,
 } from "./configuration-form-schema.ts";
-import { type SuggestedRequirementValues } from "./helpers/get-suggested-requirement-values.ts";
 
 export const EMPTY_CONFIGURATION_EDITOR_VALUE: ConfigurationEditorValue = {
   dungeonId: "",
@@ -22,7 +22,7 @@ export const EMPTY_CONFIGURATION_EDITOR_VALUE: ConfigurationEditorValue = {
 };
 
 type CreateRequirementEditorValueOptions = {
-  readonly suggestedValues?: SuggestedRequirementValues;
+  readonly suggestedValues?: Partial<RequirementValuesForEventType>;
 };
 
 export type ConfigurationSubmitType = "SAVE" | "UPDATE";
@@ -34,14 +34,12 @@ export type ConfigurationSubmitMeta = {
 export function createRequirementEditorValue({
   suggestedValues = {},
 }: CreateRequirementEditorValueOptions = {}): RequirementEditorValue {
-  const type = FELLOWSHIP_EVENT.UNIT_DEATH;
-
   return {
     id: crypto.randomUUID(),
     requiredCount: suggestedValues.requiredCount ?? "1",
     startOccurrence: suggestedValues.startOccurrence ?? "1",
     targetId: suggestedValues.targetId ?? "",
-    type,
+    type: FELLOWSHIP_EVENT.UNIT_DEATH,
   };
 }
 

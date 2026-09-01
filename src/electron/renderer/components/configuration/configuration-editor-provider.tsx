@@ -45,6 +45,12 @@ export type UnitDeathSuggestion = {
   readonly startOccurrence: string;
 };
 
+export type RequirementValuesForEventType = {
+  readonly requiredCount: string;
+  readonly startOccurrence: string;
+  readonly targetId: string;
+};
+
 type GetEncounterSuggestionsOptions = {
   readonly eventType:
     | typeof FELLOWSHIP_EVENT.ENCOUNTER_START
@@ -55,6 +61,11 @@ type GetEncounterSuggestionsOptions = {
 type GetUnitDeathSuggestionOptions = {
   readonly location: RequirementLocation;
   readonly targetId: string;
+};
+
+type GetRequirementValuesForEventTypeOptions = {
+  readonly eventType: MilestoneRequirementEventType;
+  readonly location: RequirementLocation;
 };
 
 type ConfigurationEditorContextValue = {
@@ -69,10 +80,9 @@ type ConfigurationEditorContextValue = {
     options?: CreateRequirementMetadataOptions,
   ) => ConfigurationEditorRequirementMetadata;
 
-  readonly getSuggestedRequirementValues: (options: {
-    readonly eventType: MilestoneRequirementEventType;
-    readonly location: RequirementLocation;
-  }) => SuggestedRequirementValues;
+  readonly getRequirementValuesForEventType: (
+    options: GetRequirementValuesForEventTypeOptions,
+  ) => RequirementValuesForEventType;
 
   readonly getUnitDeathSuggestion: (
     options: GetUnitDeathSuggestionOptions,
@@ -85,12 +95,6 @@ type ConfigurationEditorContextValue = {
   ) => void;
 
   readonly value: ConfigurationEditorValue;
-};
-
-export type SuggestedRequirementValues = {
-  readonly requiredCount?: string;
-  readonly startOccurrence?: string;
-  readonly targetId?: string;
 };
 
 type ConfigurationEditorProviderProps = {
@@ -189,14 +193,11 @@ function ConfigurationEditorProviderInner({
     [value],
   );
 
-  const getSuggestedRequirementValues = useCallback(
+  const getRequirementValuesForEventType = useCallback(
     ({
       eventType,
       location,
-    }: {
-      readonly eventType: MilestoneRequirementEventType;
-      readonly location: RequirementLocation;
-    }): SuggestedRequirementValues => {
+    }: GetRequirementValuesForEventTypeOptions): RequirementValuesForEventType => {
       return Match.value(eventType).pipe(
         Match.when(FELLOWSHIP_EVENT.UNIT_DEATH, () => {
           const metadata = createRequirementMetadata(value, {
@@ -209,6 +210,7 @@ function ConfigurationEditorProviderInner({
             return {
               requiredCount: "1",
               startOccurrence: "1",
+              targetId: "",
             };
           }
 
@@ -221,39 +223,35 @@ function ConfigurationEditorProviderInner({
             targetId,
           };
         }),
-        Match.when(
-          (eventType) => {
-            return (
-              eventType === FELLOWSHIP_EVENT.ENCOUNTER_START ||
-              eventType === FELLOWSHIP_EVENT.ENCOUNTER_END
-            );
-          },
+        Match.whenOr(
+          FELLOWSHIP_EVENT.ENCOUNTER_START,
+          FELLOWSHIP_EVENT.ENCOUNTER_END,
           (eventType) => {
             const suggestions = getEncounterSuggestions({
               eventType,
               location,
             });
 
-            if (suggestions.length !== 1) {
-              return {};
-            }
-
-            return A.head(suggestions).pipe(
+            const targetId = A.head(suggestions).pipe(
               Option.match({
-                onNone: () => {
-                  return {};
-                },
-                onSome: (suggestion) => {
-                  return {
-                    targetId: suggestion.targetId,
-                  };
-                },
+                onNone: () => "",
+                onSome: (suggestion) => suggestion.targetId,
               }),
             );
+
+            return {
+              requiredCount: "1",
+              startOccurrence: "1",
+              targetId,
+            };
           },
         ),
         Match.orElse(() => {
-          return {};
+          return {
+            requiredCount: "1",
+            startOccurrence: "1",
+            targetId: "",
+          };
         }),
       );
     },
@@ -299,7 +297,7 @@ function ConfigurationEditorProviderInner({
       focusedRequirementMetadata,
       getEncounterSuggestions,
       getRequirementMetadata,
-      getSuggestedRequirementValues,
+      getRequirementValuesForEventType,
       getUnitDeathSuggestion,
       requirementMetadata,
       setFocusedRequirement,
@@ -310,7 +308,7 @@ function ConfigurationEditorProviderInner({
     focusedRequirementMetadata,
     getEncounterSuggestions,
     getRequirementMetadata,
-    getSuggestedRequirementValues,
+    getRequirementValuesForEventType,
     getUnitDeathSuggestion,
     requirementMetadata,
     value,

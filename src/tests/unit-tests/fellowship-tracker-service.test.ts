@@ -4,10 +4,8 @@ import * as Result from "effect/Result";
 import * as Stream from "effect/Stream";
 import { describe, expect, test } from "vitest";
 
-import {
-  FellowshipTracker,
-  FellowshipTrackerAlreadyRunningError,
-} from "@/application/tracking/fellowship-tracker-service.ts";
+import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
+import { FellowshipTrackerAlreadyRunningError } from "@/errors/fellowship-tracker-error.ts";
 import { makeFellowshipTrackerTestHarness } from "@/tests/common/harnesses/fellowship-tracker-test-harness.ts";
 
 describe("FellowshipTracker", () => {
