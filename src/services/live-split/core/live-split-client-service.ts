@@ -26,10 +26,13 @@ import { type LiveSplitTransport } from "./node-live-split-transport.ts";
 
 const RESPONSE_TIMEOUT = "5 seconds";
 
-type LiveSplitRequestError =
+export type LiveSplitRequestError =
   | Cause.TimeoutError
   | LiveSplitClientUnavailableError
   | Socket.SocketError;
+
+export type LiveSplitClientUnavailabilityCause =
+  Cause.Cause<LiveSplitRequestError>;
 
 type PendingLiveSplitRequest = {
   readonly command: LiveSplitRequestCommandInput;
@@ -38,7 +41,7 @@ type PendingLiveSplitRequest = {
 
 type LiveSplitResponseQueueItem = Result.Result<
   string,
-  Cause.Cause<LiveSplitRequestError>
+  LiveSplitClientUnavailabilityCause
 >;
 
 export interface LiveSplitClientService {
@@ -70,6 +73,8 @@ export interface LiveSplitClientService {
   readonly switchSplits: (
     filePath: string,
   ) => E.Effect<void, InvalidLiveSplitResponseError | LiveSplitRequestError>;
+
+  readonly unavailability: Stream.Stream<LiveSplitClientUnavailabilityCause>;
 }
 
 export function makeLiveSplitClient({
@@ -87,8 +92,34 @@ export function makeLiveSplitClient({
      * future requests fail immediately rather than waiting for a timeout.
      */
     const responseChannelFailure = yield* Ref.make<
-      Cause.Cause<LiveSplitRequestError> | undefined
+      LiveSplitClientUnavailabilityCause | undefined
     >(undefined);
+
+    /*
+     * A LiveSplit client can only transition to unavailable once. The
+     * Deferred retains that first failure so consumers can subscribe before
+     * or after it occurs without missing the event.
+     */
+    const unavailabilityDeferred =
+      yield* Deferred.make<LiveSplitClientUnavailabilityCause>();
+
+    const unavailability: LiveSplitClientService["unavailability"] =
+      Stream.fromEffect(Deferred.await(unavailabilityDeferred));
+
+    const markUnavailable = (
+      cause: LiveSplitClientUnavailabilityCause,
+    ): E.Effect<void> => {
+      return E.gen(function* () {
+        const existingFailure = yield* Ref.get(responseChannelFailure);
+
+        if (existingFailure !== undefined) {
+          return;
+        }
+
+        yield* Ref.set(responseChannelFailure, cause);
+        yield* Deferred.succeed(unavailabilityDeferred, cause);
+      });
+    };
 
     /*
      * TCP gives us arbitrary chunks rather than guaranteed complete responses.
@@ -126,7 +157,7 @@ export function makeLiveSplitClient({
         ),
       );
 
-      let failureCause: Cause.Cause<LiveSplitRequestError>;
+      let failureCause: LiveSplitClientUnavailabilityCause;
 
       if (Exit.isFailure(exit)) {
         failureCause = exit.cause;
@@ -138,7 +169,7 @@ export function makeLiveSplitClient({
         );
       }
 
-      yield* Ref.set(responseChannelFailure, failureCause);
+      yield* markUnavailable(failureCause);
 
       yield* Queue.offer(responseQueue, Result.fail(failureCause));
     }).pipe(E.forkScoped);
@@ -160,7 +191,7 @@ export function makeLiveSplitClient({
     const send = (
       input: LiveSplitSendCommandInput,
     ): E.Effect<void, Socket.SocketError> => {
-      return writeCommand(input);
+      return writeCommand(input).pipe(E.tapCause(markUnavailable));
     };
 
     /*
@@ -181,11 +212,7 @@ export function makeLiveSplitClient({
               return yield* E.failCause(existingFailure);
             }
 
-            yield* writeCommand(command).pipe(
-              E.tapCause((cause) => {
-                return Ref.set(responseChannelFailure, cause);
-              }),
-            );
+            yield* writeCommand(command).pipe(E.tapCause(markUnavailable));
 
             const responseResult = yield* Queue.take(responseQueue).pipe(
               E.timeout(RESPONSE_TIMEOUT),
@@ -198,7 +225,7 @@ export function makeLiveSplitClient({
                   }),
                 );
 
-                return Ref.set(responseChannelFailure, failureCause);
+                return markUnavailable(failureCause);
               }),
             );
 
@@ -353,6 +380,8 @@ export function makeLiveSplitClient({
           }),
         );
       },
+
+      unavailability,
     } satisfies LiveSplitClientService;
   });
 }
