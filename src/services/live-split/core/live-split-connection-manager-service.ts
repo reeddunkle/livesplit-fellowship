@@ -69,13 +69,35 @@ const make = E.gen(function* () {
       const host = yield* Config.string("LIVE_SPLITS_HOST");
       const port = yield* Config.port("LIVE_SPLITS_PORT");
 
+      yield* E.logInfo("Connecting to LiveSplit.", {
+        host,
+        port,
+      });
+
       const transport = yield* makeNodeLiveSplitTransport({
+        host,
+        port,
+      });
+
+      yield* E.logDebug("LiveSplit transport created.", {
+        host,
+        port,
+      });
+
+      yield* transport.connected;
+
+      yield* E.logDebug("LiveSplit TCP connection confirmed.", {
         host,
         port,
       });
 
       const client = yield* makeLiveSplitClient({
         transport,
+      });
+
+      yield* E.logDebug("LiveSplit client created.", {
+        host,
+        port,
       });
 
       yield* client.unavailability.pipe(
@@ -86,13 +108,24 @@ const make = E.gen(function* () {
             });
 
             yield* SubscriptionRef.set(statusRef, DISCONNECTED_STATUS);
+
+            yield* E.logInfo(
+              "LiveSplit connection status changed to Disconnected.",
+            );
           });
         }),
         E.forkScoped,
       );
 
+      yield* E.logDebug("LiveSplit client availability watcher started.");
+
       return Option.some(client);
     }).pipe(
+      E.tapCause((cause) => {
+        return E.logError("Failed to acquire LiveSplit client.", {
+          cause,
+        });
+      }),
       E.mapError((cause) => {
         return new LiveSplitConnectionError({
           cause,
@@ -101,15 +134,26 @@ const make = E.gen(function* () {
     );
 
     return E.gen(function* () {
+      yield* E.logDebug("Installing LiveSplit client.");
+
       yield* ScopedRef.set(clientRef, acquireClient);
+
+      yield* E.logDebug("LiveSplit client installed.");
+
       yield* SubscriptionRef.set(statusRef, CONNECTED_STATUS);
+
+      yield* E.logInfo("LiveSplit connection status changed to Connected.");
     });
   };
 
   const disconnect: LiveSplitConnectionManagerService["disconnect"] = () => {
     return E.gen(function* () {
+      yield* E.logInfo("Disconnecting from LiveSplit.");
+
       yield* ScopedRef.set(clientRef, E.succeed(Option.none()));
       yield* SubscriptionRef.set(statusRef, DISCONNECTED_STATUS);
+
+      yield* E.logInfo("LiveSplit connection status changed to Disconnected.");
     });
   };
 
