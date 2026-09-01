@@ -1,0 +1,36 @@
+import * as Context from "effect/Context";
+import type * as E from "effect/Effect";
+
+import { type DungeonRunId } from "@/db/models/dungeon-run-model.ts";
+import { type DungeonRunObservationModel } from "@/db/models/dungeon-run-observation-model.ts";
+import { type DungeonRunObservationDAOError } from "@/errors/dungeon-run-observation-dao-error.ts";
+
+type ObserveDungeonRunOptions = {
+  readonly dungeonRunId: DungeonRunId;
+  readonly observedAt: DungeonRunObservationModel["observedAt"];
+  readonly occurrence: DungeonRunObservationModel["occurrence"];
+  readonly targetId: DungeonRunObservationModel["targetId"];
+  readonly type: DungeonRunObservationModel["type"];
+};
+
+type GetDungeonRunObservationsOptions = {
+  readonly dungeonRunId: DungeonRunId;
+};
+
+export type DungeonRunObservationDAOShape = {
+  readonly getByDungeonRunId: (
+    options: GetDungeonRunObservationsOptions,
+  ) => E.Effect<
+    ReadonlyArray<DungeonRunObservationModel>,
+    DungeonRunObservationDAOError
+  >;
+
+  readonly observe: (
+    options: ObserveDungeonRunOptions,
+  ) => E.Effect<void, DungeonRunObservationDAOError>;
+};
+
+export class DungeonRunObservationDAO extends Context.Service<
+  DungeonRunObservationDAO,
+  DungeonRunObservationDAOShape
+>()("app/DungeonRunObservationDAO") {}
