@@ -1,4 +1,5 @@
 import * as Data from "effect/Data";
+import * as Schema from "effect/Schema";
 
 const INVALID_LIVE_SPLIT_RESPONSE_ERROR =
   "InvalidLiveSplitResponseError" as const;
@@ -49,3 +50,8 @@ export class LiveSplitApiConnectionError extends Data.TaggedError(
 )<{
   readonly message: string;
 }> {}
+
+export const LiveSplitApiConnectionErrorSchema = Schema.Struct({
+  _tag: Schema.Literal(LIVE_SPLIT_API_CONNECTION_ERROR),
+  message: Schema.String,
+});

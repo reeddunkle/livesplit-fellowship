@@ -1,10 +1,8 @@
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint";
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
 
-import {
-  LiveSplitApiConnectionErrorSchema,
-  LiveSplitApiStatusSchema,
-} from "@/services/api/live-split/live-split-api-schema.ts";
+import { LiveSplitApiConnectionErrorSchema } from "@/errors/live-split-client-error.ts";
+import { LiveSplitApiStatusSchema } from "@/services/api/live-split/live-split-api-schema.ts";
 
 const LIVE_SPLIT_ROUTE = "/live-split" as const;
 const LIVE_SPLIT_CONNECTION_ROUTE = `${LIVE_SPLIT_ROUTE}/connect` as const;
