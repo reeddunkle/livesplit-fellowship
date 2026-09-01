@@ -1,7 +1,7 @@
 import * as E from "effect/Effect";
 import * as Stream from "effect/Stream";
 
-import { type TrackingApiMessage } from "@/api/websocket/tracking-api-message-schema.ts";
+import { type TrackingApiMessage } from "@/api/websocket/tracking/tracking-api-message-schema.ts";
 import { createTrackingApiStatus } from "@/application/tracking/create-tracking-api-status.ts";
 import {
   FellowshipTracker,

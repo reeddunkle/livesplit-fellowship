@@ -2,7 +2,7 @@ import {
   type DungeonRunMilestoneApi,
   type DungeonRunRequirementApi,
   type DungeonRunStateApi,
-} from "@/api/websocket/dungeon-run-api-message-schema.ts";
+} from "@/api/websocket/dungeon-run/dungeon-run-api-message-schema.ts";
 import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import {
   analyzeMilestoneProgress,

@@ -12,7 +12,7 @@ import * as Socket from "effect/unstable/socket/Socket";
 import { describe, expect, test } from "vitest";
 
 import { ROUTES } from "@/api/constants/routes.ts";
-import { type DungeonRunApiMessage } from "@/api/websocket/dungeon-run-api-message-schema.ts";
+import { type DungeonRunApiMessage } from "@/api/websocket/dungeon-run/dungeon-run-api-message-schema.ts";
 import { API_CONNECTION_STATE } from "@/electron/renderer/api/common.ts";
 import {
   type DungeonRunEventStreamEvent,

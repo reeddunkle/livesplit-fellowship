@@ -9,7 +9,7 @@ import * as Socket from "effect/unstable/socket/Socket";
 import {
   type DungeonRunApiMessage,
   DungeonRunApiMessageSchema,
-} from "@/api/websocket/dungeon-run-api-message-schema.ts";
+} from "@/api/websocket/dungeon-run/dungeon-run-api-message-schema.ts";
 import { getApiWebSocketUrl } from "@/electron/renderer/api/api-url.ts";
 import { DungeonRunEventMessageDecodeError } from "@/errors/dungeon-run-event-stream-error.ts";
 

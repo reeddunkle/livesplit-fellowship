@@ -3,7 +3,7 @@ import * as E from "effect/Effect";
 import * as Schema from "effect/Schema";
 import { describe, expect, test } from "vitest";
 
-import { DungeonRunApiMessageSchema } from "@/api/websocket/dungeon-run-api-message-schema.ts";
+import { DungeonRunApiMessageSchema } from "@/api/websocket/dungeon-run/dungeon-run-api-message-schema.ts";
 import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
 import { makeAppTestHarness } from "@/tests/common/harnesses/app-test-harness.ts";
 import { runTest } from "@/tests/common/run-test.ts";

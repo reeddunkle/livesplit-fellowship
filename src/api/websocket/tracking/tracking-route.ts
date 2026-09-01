@@ -5,7 +5,7 @@ import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { ROUTES } from "@/api/constants/routes.ts";
-import { type TrackingApiMessage } from "@/api/websocket/tracking-api-message-schema.ts";
+import { type TrackingApiMessage } from "@/api/websocket/tracking/tracking-api-message-schema.ts";
 import { createTrackingApiStatus } from "@/application/tracking/create-tracking-api-status.ts";
 import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
 

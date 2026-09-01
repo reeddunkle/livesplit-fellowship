@@ -11,7 +11,7 @@ import { TrackingApiLive } from "@/api/http/groups/tracking/tracking-api-live.ts
 import { UnitsApiLive } from "@/api/http/groups/units/units-api-live.ts";
 import { AppHttpApi } from "@/api/http/http-api.ts";
 import { DungeonRunEventsRoutes } from "@/api/websocket/dungeon-run/dungeon-run-events-route.ts";
-import { TrackingRoutes } from "@/api/websocket/tracking-route.ts";
+import { TrackingRoutes } from "@/api/websocket/tracking/tracking-route.ts";
 import { env } from "@/env.ts";
 
 const CorsLive = HttpRouter.cors({
