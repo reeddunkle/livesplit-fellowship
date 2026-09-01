@@ -1,6 +1,7 @@
 import { PlayIcon, SquareIcon } from "lucide-react";
 
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
+import { Spinner } from "@/electron/renderer/components/ui/spinner.tsx";
 import {
   useConfigurationById,
   useSelectedConfiguration,
@@ -50,8 +51,17 @@ export function HomeTrackingControls() {
             start(selectedConfigurationId);
           }}
         >
-          <PlayIcon className="fill-current" />
-          {"Start"}
+          {isTracking ? (
+            <>
+              <Spinner className="size-6" />
+              {"Tracking"}
+            </>
+          ) : (
+            <>
+              <PlayIcon className="fill-current" />
+              {"Start"}
+            </>
+          )}
         </Button>
 
         <Button
@@ -71,13 +81,13 @@ export function HomeTrackingControls() {
         <p
           className={
             isTracking
-              ? "text-sm text-muted-foreground/60"
+              ? "flex items-center gap-2 text-sm text-muted-foreground/60"
               : "text-sm text-muted-foreground"
           }
         >
           {isTracking
-            ? `Tracking a run using configuration "${configurationLabel}".`
-            : `Track a run using configuration "${configurationLabel}".`}
+            ? `Tracking "${configurationLabel}"`
+            : `Start tracking a dungeon run using "${configurationLabel}"`}
         </p>
       )}
 
