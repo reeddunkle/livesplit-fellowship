@@ -6,6 +6,7 @@ import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 import * as Socket from "effect/unstable/socket/Socket";
 
+import { ROUTES } from "@/api/constants/routes.ts";
 import {
   type DungeonRunApiMessage,
   DungeonRunApiMessageSchema,
@@ -135,5 +136,7 @@ export function makeDungeonRunEventStream(): Stream.Stream<
   DungeonRunEventStreamEvent,
   DungeonRunEventStreamError
 > {
-  return makeDungeonRunEventStreamForUrl(getApiWebSocketUrl());
+  return makeDungeonRunEventStreamForUrl(
+    getApiWebSocketUrl(ROUTES.dungeonRunEvents),
+  );
 }

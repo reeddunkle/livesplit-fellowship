@@ -6,14 +6,17 @@ import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 import * as Socket from "effect/unstable/socket/Socket";
 
+import { ROUTES } from "@/api/constants/routes.ts";
 import {
   type LiveSplitApiMessage,
   LiveSplitApiMessageSchema,
 } from "@/api/websocket/live-split/live-split-api-message-schema.ts";
 import { getApiWebSocketUrl } from "@/electron/renderer/api/api-url.ts";
+import {
+  API_CONNECTION_STATE,
+  type ApiConnectionState,
+} from "@/electron/renderer/api/common.ts";
 import { LiveSplitEventMessageDecodeError } from "@/errors/live-split-event-stream-error.ts";
-
-import { API_CONNECTION_STATE, type ApiConnectionState } from "../common.ts";
 
 export type LiveSplitEventStreamEvent =
   | {
@@ -134,5 +137,7 @@ export function makeLiveSplitEventStream(): Stream.Stream<
   LiveSplitEventStreamEvent,
   LiveSplitEventStreamError
 > {
-  return makeLiveSplitEventStreamForUrl(getApiWebSocketUrl());
+  return makeLiveSplitEventStreamForUrl(
+    getApiWebSocketUrl(ROUTES.liveSplitEvents),
+  );
 }

@@ -6,14 +6,17 @@ import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 import * as Socket from "effect/unstable/socket/Socket";
 
+import { ROUTES } from "@/api/constants/routes.ts";
 import {
   type TrackingApiMessage,
   TrackingApiMessageSchema,
 } from "@/api/websocket/tracking/tracking-api-message-schema.ts";
 import { getApiWebSocketUrl } from "@/electron/renderer/api/api-url.ts";
+import {
+  API_CONNECTION_STATE,
+  type ApiConnectionState,
+} from "@/electron/renderer/api/common.ts";
 import { TrackingEventMessageDecodeError } from "@/errors/tracking-event-stream-error.ts";
-
-import { API_CONNECTION_STATE, type ApiConnectionState } from "../common.ts";
 
 export type TrackingEventStreamEvent =
   | {
@@ -134,5 +137,7 @@ export function makeTrackingEventStream(): Stream.Stream<
   TrackingEventStreamEvent,
   TrackingEventStreamError
 > {
-  return makeTrackingEventStreamForUrl(getApiWebSocketUrl());
+  return makeTrackingEventStreamForUrl(
+    getApiWebSocketUrl(ROUTES.trackingEvents),
+  );
 }
