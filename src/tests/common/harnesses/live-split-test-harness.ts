@@ -1,5 +1,6 @@
 import * as E from "effect/Effect";
 import * as Fiber from "effect/Fiber";
+import * as Option from "effect/Option";
 import * as Queue from "effect/Queue";
 import * as Ref from "effect/Ref";
 import * as Stream from "effect/Stream";
@@ -42,6 +43,11 @@ export function makeLiveSplitTestHarness() {
       });
     };
 
+    const awaitUnavailability = client.unavailability.pipe(
+      Stream.runHead,
+      E.map(Option.getOrThrow),
+    );
+
     const takeCommand = () => {
       return Queue.take(writtenData);
     };
@@ -59,6 +65,7 @@ export function makeLiveSplitTestHarness() {
     };
 
     return {
+      awaitUnavailability,
       client,
       getCommands,
       sendChunk,

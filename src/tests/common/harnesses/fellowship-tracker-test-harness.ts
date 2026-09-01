@@ -128,6 +128,9 @@ export function makeFellowshipTrackerTestHarness(
       status: E.succeed({
         _tag: "Disconnected",
       }),
+      statusChanges: Stream.make({
+        _tag: "Disconnected",
+      }),
     } satisfies LiveSplitService;
 
     const ConfigurationDAOMock = Layer.succeed(
