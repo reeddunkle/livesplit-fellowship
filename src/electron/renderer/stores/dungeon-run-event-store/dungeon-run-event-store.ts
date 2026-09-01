@@ -11,19 +11,19 @@ import {
   type RunEventStreamEvent,
 } from "@/electron/renderer/api/run-event-stream.ts";
 
-export type RunEventStoreSnapshot = {
+export type DungeonRunEventStoreSnapshot = {
   readonly connectionState: ApiConnectionState;
   readonly runState: DungeonRunStateApi | null;
 };
 
 type Listener = () => void;
 
-const initialSnapshot: RunEventStoreSnapshot = {
+const initialSnapshot: DungeonRunEventStoreSnapshot = {
   connectionState: API_CONNECTION_STATE.DISCONNECTED,
   runState: null,
 };
 
-export function makeRunEventStore() {
+export function makeDungeonRunEventStore() {
   let snapshot = initialSnapshot;
   let fiber: Fiber.Fiber<void, unknown> | undefined;
 
@@ -36,7 +36,9 @@ export function makeRunEventStore() {
   }
 
   function updateSnapshot(
-    update: (snapshot: RunEventStoreSnapshot) => RunEventStoreSnapshot,
+    update: (
+      snapshot: DungeonRunEventStoreSnapshot,
+    ) => DungeonRunEventStoreSnapshot,
   ): E.Effect<void> {
     return E.sync(() => {
       snapshot = update(snapshot);
@@ -45,7 +47,7 @@ export function makeRunEventStore() {
     });
   }
 
-  const handleRunEvent = Match.type<RunEventStreamEvent>().pipe(
+  const handleDungeonRunEvent = Match.type<RunEventStreamEvent>().pipe(
     Match.when({ type: "CONNECTION_STATE_CHANGED" }, (event) => {
       return updateSnapshot((snapshot) => {
         return {
@@ -71,7 +73,7 @@ export function makeRunEventStore() {
     }
 
     const program = makeRunEventStream().pipe(
-      Stream.runForEach(handleRunEvent),
+      Stream.runForEach(handleDungeonRunEvent),
       E.catch((error) => {
         return E.gen(function* () {
           yield* E.logError("Run event stream failed.", {
@@ -122,7 +124,7 @@ export function makeRunEventStore() {
     };
   }
 
-  function getSnapshot(): RunEventStoreSnapshot {
+  function getSnapshot(): DungeonRunEventStoreSnapshot {
     return snapshot;
   }
 
@@ -132,4 +134,4 @@ export function makeRunEventStore() {
   };
 }
 
-export const runEventStore = makeRunEventStore();
+export const dungeonRunEventStore = makeDungeonRunEventStore();

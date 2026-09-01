@@ -1,37 +1,48 @@
 {
   "dungeonId": "15",
-  "dungeonLevel": 64,
+  "dungeonLevel": 65,
   "milestones": [
     {
-      "label": "First Hollowed Corsair Defeated",
+      "label": "1x Spectre",
       "requirements": [
         {
           "requiredCount": 1,
           "startOccurrence": 1,
           "type": "UNIT_DEATH",
-          "unitTypeId": "97"
+          "unitTypeId": "102"
         }
       ]
     },
     {
-      "label": "Second Hollowed Corsair Defeated",
+      "label": "2nd + 3rd Spectre",
       "requirements": [
         {
-          "requiredCount": 1,
+          "requiredCount": 2,
           "startOccurrence": 2,
           "type": "UNIT_DEATH",
-          "unitTypeId": "97"
+          "unitTypeId": "102"
         }
       ]
     },
     {
-      "label": "Third Hollowed Corsair Defeated",
+      "label": "Water Elemental",
       "requirements": [
         {
           "requiredCount": 1,
-          "startOccurrence": 3,
+          "startOccurrence": 1,
           "type": "UNIT_DEATH",
-          "unitTypeId": "97"
+          "unitTypeId": "94"
+        }
+      ]
+    },
+    {
+      "label": "4th Spectre",
+      "requirements": [
+        {
+          "requiredCount": 1,
+          "startOccurrence": 4,
+          "type": "UNIT_DEATH",
+          "unitTypeId": "102"
         }
       ]
     },
