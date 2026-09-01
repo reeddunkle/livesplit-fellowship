@@ -6,9 +6,13 @@ import {
   useActionState,
   useContext,
   useMemo,
+  useSyncExternalStore,
 } from "react";
 
+import { type TrackingApiStatus } from "@/application/tracking/tracking-api-schema.ts";
+import { type ApiConnectionState } from "@/electron/renderer/api/dungeon-run-event-stream.ts";
 import * as trackingClient from "@/electron/renderer/api/tracking-client.ts";
+import { trackingEventStore } from "@/electron/renderer/stores/tracking-store/tracking-event-store.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
 type StartTrackingActionInput = {
@@ -19,13 +23,15 @@ type TrackingActionState = {
   readonly error: unknown | undefined;
 };
 
-type TrackingActionContextValue = {
+type TrackingContextValue = {
+  readonly connectionState: ApiConnectionState;
   readonly isStarting: boolean;
   readonly isStopping: boolean;
   readonly start: (configurationId: ConfigurationId) => void;
   readonly startError: unknown | undefined;
   readonly stop: () => void;
   readonly stopError: unknown | undefined;
+  readonly trackingStatus: TrackingApiStatus | null;
 };
 
 type TrackingProviderProps = {
@@ -39,15 +45,25 @@ export type TrackingActionStatus = {
   readonly stopError: unknown | undefined;
 };
 
+export type TrackingStatus = {
+  readonly connectionState: ApiConnectionState;
+  readonly trackingStatus: TrackingApiStatus | null;
+};
+
 const INITIAL_TRACKING_ACTION_STATE: TrackingActionState = {
   error: undefined,
 };
 
-const TrackingActionContext = createContext<
-  TrackingActionContextValue | undefined
->(undefined);
+const TrackingContext = createContext<TrackingContextValue | undefined>(
+  undefined,
+);
 
 export function TrackingProvider({ children }: TrackingProviderProps) {
+  const trackingSnapshot = useSyncExternalStore(
+    trackingEventStore.subscribe,
+    trackingEventStore.getSnapshot,
+  );
+
   const [startState, dispatchStart, isStarting] = useActionState(
     (
       _previousState: TrackingActionState,
@@ -89,8 +105,9 @@ export function TrackingProvider({ children }: TrackingProviderProps) {
     INITIAL_TRACKING_ACTION_STATE,
   );
 
-  const actionContextValue = useMemo<TrackingActionContextValue>(() => {
+  const contextValue = useMemo<TrackingContextValue>(() => {
     return {
+      connectionState: trackingSnapshot.connectionState,
       isStarting,
       isStopping,
       start: (configurationId) => {
@@ -107,6 +124,7 @@ export function TrackingProvider({ children }: TrackingProviderProps) {
         });
       },
       stopError: stopState.error,
+      trackingStatus: trackingSnapshot.trackingStatus,
     };
   }, [
     dispatchStart,
@@ -115,35 +133,53 @@ export function TrackingProvider({ children }: TrackingProviderProps) {
     isStopping,
     startState.error,
     stopState.error,
+    trackingSnapshot.connectionState,
+    trackingSnapshot.trackingStatus,
   ]);
 
   return (
-    <TrackingActionContext.Provider value={actionContextValue}>
+    <TrackingContext.Provider value={contextValue}>
       {children}
-    </TrackingActionContext.Provider>
+    </TrackingContext.Provider>
   );
 }
 
-export function useTrackingActions(): TrackingActionContextValue {
-  const context = useContext(TrackingActionContext);
+function useTrackingContext(): TrackingContextValue {
+  const context = useContext(TrackingContext);
 
   if (context === undefined) {
-    throw new Error(
-      "useTrackingActions must be used within a TrackingProvider.",
-    );
+    throw new Error("Tracking hooks must be used within a TrackingProvider.");
   }
 
   return context;
 }
 
+export function useTrackingActions() {
+  const { start, stop } = useTrackingContext();
+
+  return {
+    start,
+    stop,
+  };
+}
+
 export function useTrackingActionStatus(): TrackingActionStatus {
   const { isStarting, isStopping, startError, stopError } =
-    useTrackingActions();
+    useTrackingContext();
 
   return {
     isStarting,
     isStopping,
     startError,
     stopError,
+  };
+}
+
+export function useTrackingStatus(): TrackingStatus {
+  const { connectionState, trackingStatus } = useTrackingContext();
+
+  return {
+    connectionState,
+    trackingStatus,
   };
 }
