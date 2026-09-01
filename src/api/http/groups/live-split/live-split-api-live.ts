@@ -1,21 +1,28 @@
 import * as E from "effect/Effect";
 import type * as Layer from "effect/Layer";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
-import * as HttpApiError from "effect/unstable/httpapi/HttpApiError";
 
 import { AppHttpApi } from "@/api/http/http-api.ts";
-import { type LiveSplitConnectionError } from "@/errors/live-split-client-error.ts";
+import {
+  LiveSplitApiConnectionError,
+  type LiveSplitConnectionError,
+} from "@/errors/live-split-client-error.ts";
 import { LiveSplitApiService } from "@/services/api/live-split/live-split-api-service.ts";
 
 function mapLiveSplitConnectionError(
   error: LiveSplitConnectionError,
-): E.Effect<never, HttpApiError.InternalServerError> {
+): E.Effect<never, LiveSplitApiConnectionError> {
   return E.gen(function* () {
     yield* E.logError("LiveSplit connection failed.", {
       error,
     });
 
-    return yield* E.fail(new HttpApiError.InternalServerError());
+    return yield* E.fail(
+      new LiveSplitApiConnectionError({
+        message:
+          "Could not connect to LiveSplit. Make sure LiveSplit is running and its server is enabled.",
+      }),
+    );
   });
 }
 

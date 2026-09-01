@@ -14,3 +14,8 @@ export const LiveSplitApiStatusSchema = Schema.Union([
 ]);
 
 export type LiveSplitApiStatus = typeof LiveSplitApiStatusSchema.Type;
+
+export const LiveSplitApiConnectionErrorSchema = Schema.Struct({
+  _tag: Schema.Literal("LiveSplitApiConnectionError"),
+  message: Schema.String,
+});

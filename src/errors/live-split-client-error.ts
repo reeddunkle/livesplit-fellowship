@@ -41,3 +41,11 @@ export class LiveSplitConnectionError extends Data.TaggedError(
     return "Failed to connect to LiveSplit.";
   }
 }
+
+const LIVE_SPLIT_API_CONNECTION_ERROR = "LiveSplitApiConnectionError" as const;
+
+export class LiveSplitApiConnectionError extends Data.TaggedError(
+  LIVE_SPLIT_API_CONNECTION_ERROR,
+)<{
+  readonly message: string;
+}> {}
