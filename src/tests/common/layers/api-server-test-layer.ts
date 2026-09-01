@@ -8,7 +8,10 @@ import { type ConfigurationApiService } from "@/services/api/configuration/confi
 import { type DungeonApiService } from "@/services/api/dungeon/dungeon-api-service.ts";
 import { type EncounterApiService } from "@/services/api/encounter/encounter-api-service.ts";
 import { type UnitApiService } from "@/services/api/unit/unit-api-service.ts";
-import { WebSocketBroadcasterLive } from "@/services/api/websocket-broadcaster-service.ts";
+import {
+  DungeonRunWebSocketBroadcasterLive,
+  TrackingWebSocketBroadcasterLive,
+} from "@/services/api/websocket-broadcaster-service.ts";
 import { AbilityApiServiceMock } from "@/tests/common/mocks/ability-api-service-mock.ts";
 import { ConfigurationApiServiceMock } from "@/tests/common/mocks/configuration-api-service-mock.ts";
 import { DungeonApiServiceMock } from "@/tests/common/mocks/dungeon-api-service-mock.ts";
@@ -37,7 +40,8 @@ export function makeApiServerTestLayer(
   apiServicesLayer: Layer.Layer<ApiServices>,
 ) {
   return ApiServer.pipe(
-    Layer.provideMerge(WebSocketBroadcasterLive),
+    Layer.provideMerge(DungeonRunWebSocketBroadcasterLive),
+    Layer.provideMerge(TrackingWebSocketBroadcasterLive),
     Layer.provideMerge(apiServicesLayer),
     Layer.provideMerge(NodeHttpServer.layerTest),
   );

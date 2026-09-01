@@ -7,7 +7,10 @@ import {
   type MakePersistenceLayerOptions,
   makePersistenceLayer,
 } from "@/layers/persistence-layer.ts";
-import { WebSocketBroadcasterLive } from "@/services/api/websocket-broadcaster-service.ts";
+import {
+  DungeonRunWebSocketBroadcasterLive,
+  TrackingWebSocketBroadcasterLive,
+} from "@/services/api/websocket-broadcaster-service.ts";
 import { FellowshipLive } from "@/services/fellowship/fellowship-service.ts";
 import { FileMonitorLive } from "@/services/filesystem/file-monitor-service.ts";
 import { LiveSplitConnectionManagerLive } from "@/services/live-split/core/live-split-connection-manager-service.ts";
@@ -47,29 +50,23 @@ export function makeAppLive(options: MakeAppLiveOptions) {
     Layer.provide(LiveSplitConnectionManagerLive),
   );
 
-  console.log("!!! TEST !!!", {
-    AppLoggerWithPlatform,
-    appServicesLive,
-    FellowshipTrackerLive,
-    LiveSplitConnectionManagerLive,
-    liveSplitWithDependencies,
-    WebSocketBroadcasterLive,
-  });
-
-  const trackerDependencies = Layer.mergeAll(
+  const fellowshipTrackerDependencies = Layer.mergeAll(
     appServicesLive,
     liveSplitWithDependencies,
-    WebSocketBroadcasterLive,
+    DungeonRunWebSocketBroadcasterLive,
   );
 
   const fellowshipTrackerWithDependencies = FellowshipTrackerLive.pipe(
-    Layer.provide(trackerDependencies),
+    Layer.provide(fellowshipTrackerDependencies),
   );
 
   return Layer.mergeAll(
     AppLoggerWithPlatform,
-    trackerDependencies,
+    appServicesLive,
+    DungeonRunWebSocketBroadcasterLive,
+    TrackingWebSocketBroadcasterLive,
     LiveSplitConnectionManagerLive,
+    liveSplitWithDependencies,
     fellowshipTrackerWithDependencies,
   );
 }

@@ -6,6 +6,7 @@ import { AbilityApiServiceLive } from "@/services/api/ability/ability-api-servic
 import { ConfigurationApiServiceLive } from "@/services/api/configuration/configuration-api-service.ts";
 import { DungeonApiServiceLive } from "@/services/api/dungeon/dungeon-api-service.ts";
 import { EncounterApiServiceLive } from "@/services/api/encounter/encounter-api-service.ts";
+import { LiveSplitApiServiceLive } from "@/services/api/live-split/live-split-api-service.ts";
 import { NodeApiHttpServerLive } from "@/services/api/node-api-http-server.ts";
 import { UnitApiServiceLive } from "@/services/api/unit/unit-api-service.ts";
 import { type DatabaseOptions } from "@/types/app-options.ts";
@@ -20,19 +21,19 @@ export function makeApiAppLive(options: MakeApiAppLiveOptions) {
     ConfigurationApiServiceLive,
     DungeonApiServiceLive,
     EncounterApiServiceLive,
+    LiveSplitApiServiceLive,
     UnitApiServiceLive,
   ).pipe(Layer.provide(AppLive));
 
-  const ApiServerWithDependencies = ApiServer.pipe(
-    Layer.provide(AppLive),
-    Layer.provide(ApiServicesLive),
-    Layer.provide(NodeApiHttpServerLive),
-  );
-
-  return Layer.mergeAll(
+  const ApiServerDependencies = Layer.mergeAll(
     AppLive,
     ApiServicesLive,
     NodeApiHttpServerLive,
-    ApiServerWithDependencies,
   );
+
+  const ApiServerWithDependencies = ApiServer.pipe(
+    Layer.provide(ApiServerDependencies),
+  );
+
+  return Layer.mergeAll(ApiServerDependencies, ApiServerWithDependencies);
 }

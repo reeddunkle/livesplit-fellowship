@@ -126,7 +126,7 @@ const make = E.gen(function* () {
   } satisfies WebSocketBroadcasterService;
 });
 
-export const RunWebSocketBroadcasterLive = Layer.effect(
+export const DungeonRunWebSocketBroadcasterLive = Layer.effect(
   DungeonRunWebSocketBroadcaster,
   make,
 );

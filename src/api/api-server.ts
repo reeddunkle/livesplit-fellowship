@@ -6,6 +6,7 @@ import { AbilitiesApiLive } from "@/api/http/groups/abilities/abilities-api-live
 import { ConfigurationsApiLive } from "@/api/http/groups/configurations/configurations-api-live.ts";
 import { DungeonsApiLive } from "@/api/http/groups/dungeons/dungeons-api-live.ts";
 import { EncountersApiLive } from "@/api/http/groups/encounters/encounters-api-live.ts";
+import { LiveSplitApiLive } from "@/api/http/groups/live-split/live-split-api-live.ts";
 import { TrackingApiLive } from "@/api/http/groups/tracking/tracking-api-live.ts";
 import { UnitsApiLive } from "@/api/http/groups/units/units-api-live.ts";
 import { AppHttpApi } from "@/api/http/http-api.ts";
@@ -24,6 +25,7 @@ const HttpApiRoutes = HttpApiBuilder.layer(AppHttpApi).pipe(
   Layer.provide(ConfigurationsApiLive),
   Layer.provide(DungeonsApiLive),
   Layer.provide(EncountersApiLive),
+  Layer.provide(LiveSplitApiLive),
   Layer.provide(TrackingApiLive),
   Layer.provide(UnitsApiLive),
 );
