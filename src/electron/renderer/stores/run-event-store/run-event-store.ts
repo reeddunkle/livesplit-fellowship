@@ -3,7 +3,7 @@ import * as Fiber from "effect/Fiber";
 import * as Match from "effect/Match";
 import * as Stream from "effect/Stream";
 
-import { type RunApiState } from "@/api/websocket/run-api-message-schema.ts";
+import { type DungeonRunStateApi } from "@/api/websocket/dungeon-run-api-message-schema.ts";
 import {
   API_CONNECTION_STATE,
   type ApiConnectionState,
@@ -13,7 +13,7 @@ import {
 
 export type RunEventStoreSnapshot = {
   readonly connectionState: ApiConnectionState;
-  readonly runState: RunApiState | null;
+  readonly runState: DungeonRunStateApi | null;
 };
 
 type Listener = () => void;
