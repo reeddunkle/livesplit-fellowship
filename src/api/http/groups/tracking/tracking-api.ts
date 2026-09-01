@@ -1,11 +1,15 @@
 import * as HttpApiEndpoint from "effect/unstable/httpapi/HttpApiEndpoint";
-import * as HttpApiError from "effect/unstable/httpapi/HttpApiError";
 import * as HttpApiGroup from "effect/unstable/httpapi/HttpApiGroup";
 
 import {
   StartTrackingApiRequestSchema,
   TrackingApiStatusSchema,
 } from "@/application/tracking/tracking-api-schema.ts";
+import {
+  TrackingApiAlreadyRunningErrorSchema,
+  TrackingApiConfigurationNotFoundErrorSchema,
+  TrackingApiStartErrorSchema,
+} from "@/errors/fellowship-tracker-error.ts";
 
 const TRACKING_ROUTE = "/tracking" as const;
 
@@ -18,9 +22,9 @@ const StartTrackingEndpoint = HttpApiEndpoint.post(
   TRACKING_ROUTE,
   {
     error: [
-      HttpApiError.NotFoundNoContent,
-      HttpApiError.ConflictNoContent,
-      HttpApiError.InternalServerErrorNoContent,
+      TrackingApiAlreadyRunningErrorSchema,
+      TrackingApiConfigurationNotFoundErrorSchema,
+      TrackingApiStartErrorSchema,
     ],
     payload: StartTrackingApiRequestSchema,
     success: TrackingApiStatusSchema,

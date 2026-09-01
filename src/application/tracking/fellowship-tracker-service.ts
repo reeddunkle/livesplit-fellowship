@@ -25,11 +25,6 @@ import { type FellowshipEvent } from "@/services/fellowship/validation/fellowshi
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
-export {
-  FellowshipTrackerAlreadyRunningError,
-  FellowshipTrackerConfigurationNotFoundError,
-} from "@/errors/fellowship-tracker-error.ts";
-
 type FellowshipTrackerConfigurationSource =
   | {
       readonly _tag: "Persisted";

@@ -1,31 +1,44 @@
 import * as E from "effect/Effect";
 import type * as Layer from "effect/Layer";
 import * as HttpApiBuilder from "effect/unstable/httpapi/HttpApiBuilder";
-import * as HttpApiError from "effect/unstable/httpapi/HttpApiError";
 
 import { AppHttpApi } from "@/api/http/http-api.ts";
 import { createTrackingApiStatus } from "@/application/tracking/create-tracking-api-status.ts";
 import {
   FellowshipTracker,
-  FellowshipTrackerAlreadyRunningError,
-  FellowshipTrackerConfigurationNotFoundError,
   type FellowshipTrackerStartError,
 } from "@/application/tracking/fellowship-tracker-service.ts";
+import {
+  FellowshipTrackerAlreadyRunningError,
+  FellowshipTrackerConfigurationNotFoundError,
+  TrackingApiAlreadyRunningError,
+  TrackingApiConfigurationNotFoundError,
+  TrackingApiStartError,
+} from "@/errors/fellowship-tracker-error.ts";
 
 function mapFellowshipTrackerStartError(
   error: FellowshipTrackerStartError,
 ): E.Effect<
   never,
-  | HttpApiError.Conflict
-  | HttpApiError.InternalServerError
-  | HttpApiError.NotFound
+  | TrackingApiAlreadyRunningError
+  | TrackingApiConfigurationNotFoundError
+  | TrackingApiStartError
 > {
   if (error instanceof FellowshipTrackerAlreadyRunningError) {
-    return E.fail(new HttpApiError.Conflict());
+    return E.fail(
+      new TrackingApiAlreadyRunningError({
+        message: "Tracking is already running.",
+      }),
+    );
   }
 
   if (error instanceof FellowshipTrackerConfigurationNotFoundError) {
-    return E.fail(new HttpApiError.NotFound());
+    return E.fail(
+      new TrackingApiConfigurationNotFoundError({
+        configurationId: error.configurationId,
+        message: "The selected configuration could not be found.",
+      }),
+    );
   }
 
   return E.gen(function* () {
@@ -33,7 +46,11 @@ function mapFellowshipTrackerStartError(
       error,
     });
 
-    return yield* E.fail(new HttpApiError.InternalServerError());
+    return yield* E.fail(
+      new TrackingApiStartError({
+        message: "Tracking could not be started.",
+      }),
+    );
   });
 }
 
