@@ -4,15 +4,23 @@ import {
   useLiveSplitActionState,
   useLiveSplitServerState,
 } from "@/electron/renderer/stores/live-split/live-split-store.tsx";
+import { LiveSplitApiConnectionError } from "@/errors/live-split-client-error";
 
 function getErrorMessage(error: unknown): string {
-  console.log(error);
-
-  if (error instanceof Error) {
+  if (error instanceof LiveSplitApiConnectionError) {
     return error.message;
   }
 
-  return String(error);
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return "An unexpected error occurred while connecting to LiveSplit.";
 }
 
 export function LiveSplitStatus() {
