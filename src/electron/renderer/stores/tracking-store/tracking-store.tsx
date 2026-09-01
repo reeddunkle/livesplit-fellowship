@@ -39,6 +39,7 @@ type TrackingProviderProps = {
 };
 
 export type TrackingActionState = {
+  readonly isPending: boolean;
   readonly isStarting: boolean;
   readonly isStopping: boolean;
   readonly startError: unknown | undefined;
@@ -168,6 +169,7 @@ export function useTrackingActionState(): TrackingActionState {
     useTrackingContext();
 
   return {
+    isPending: isStarting || isStopping,
     isStarting,
     isStopping,
     startError,

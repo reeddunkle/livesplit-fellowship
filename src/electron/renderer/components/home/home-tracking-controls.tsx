@@ -12,7 +12,7 @@ export function HomeTrackingControls() {
   const selectedConfigurationId = useSelectedConfigurationId();
 
   const { start, stop } = useTrackingActions();
-  const { isStarting, isStopping } = useTrackingActionState();
+  const { isPending } = useTrackingActionState();
   const { trackingStatus } = useTrackingServerState();
 
   const isTracking = trackingStatus?.status === "Tracking";
@@ -22,12 +22,7 @@ export function HomeTrackingControls() {
       <div className="flex gap-3">
         <Button
           className="min-w-32 bg-green-600 text-white hover:bg-green-700"
-          disabled={
-            selectedConfigurationId === null ||
-            isTracking ||
-            isStarting ||
-            isStopping
-          }
+          disabled={selectedConfigurationId === null || isTracking || isPending}
           size="xl"
           type="button"
           onClick={() => {
@@ -39,19 +34,19 @@ export function HomeTrackingControls() {
           }}
         >
           <PlayIcon />
-          {isStarting ? "Starting..." : "Start"}
+          {"Start"}
         </Button>
 
         <Button
           className="min-w-32"
-          disabled={!isTracking || isStarting || isStopping}
+          disabled={!isTracking || isPending}
           size="xl"
           type="button"
           variant="destructive"
           onClick={stop}
         >
           <SquareIcon />
-          {isStopping ? "Stopping..." : "Stop"}
+          {"Stop"}
         </Button>
       </div>
 
