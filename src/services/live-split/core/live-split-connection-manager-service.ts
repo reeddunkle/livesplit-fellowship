@@ -4,6 +4,8 @@ import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as ScopedRef from "effect/ScopedRef";
+import type * as Stream from "effect/Stream";
+import * as SubscriptionRef from "effect/SubscriptionRef";
 
 import { LiveSplitConnectionError } from "@/errors/live-split-client-error.ts";
 import {
@@ -28,6 +30,8 @@ export interface LiveSplitConnectionManagerService {
   readonly disconnect: () => E.Effect<void>;
 
   readonly status: E.Effect<LiveSplitConnectionStatus>;
+
+  readonly statusChanges: Stream.Stream<LiveSplitConnectionStatus>;
 }
 
 export class LiveSplitConnectionManager extends Context.Service<
@@ -35,30 +39,30 @@ export class LiveSplitConnectionManager extends Context.Service<
   LiveSplitConnectionManagerService
 >()("app/LiveSplitConnectionManager") {}
 
+const DISCONNECTED_STATUS = {
+  _tag: "Disconnected",
+} satisfies LiveSplitConnectionStatus;
+
+const CONNECTED_STATUS = {
+  _tag: "Connected",
+} satisfies LiveSplitConnectionStatus;
+
 const make = E.gen(function* () {
   const clientRef = yield* ScopedRef.make<
     Option.Option<LiveSplitClientService>
   >(() => Option.none());
 
+  const statusRef =
+    yield* SubscriptionRef.make<LiveSplitConnectionStatus>(DISCONNECTED_STATUS);
+
   const client: LiveSplitConnectionManagerService["client"] =
     ScopedRef.get(clientRef);
 
-  const status: LiveSplitConnectionManagerService["status"] = client.pipe(
-    E.map((client) => {
-      return Option.match(client, {
-        onNone: (): LiveSplitConnectionStatus => {
-          return {
-            _tag: "Disconnected",
-          };
-        },
-        onSome: (): LiveSplitConnectionStatus => {
-          return {
-            _tag: "Connected",
-          };
-        },
-      });
-    }),
-  );
+  const status: LiveSplitConnectionManagerService["status"] =
+    SubscriptionRef.get(statusRef);
+
+  const statusChanges: LiveSplitConnectionManagerService["statusChanges"] =
+    SubscriptionRef.changes(statusRef);
 
   const connect: LiveSplitConnectionManagerService["connect"] = () => {
     const acquireClient = E.gen(function* () {
@@ -83,11 +87,17 @@ const make = E.gen(function* () {
       }),
     );
 
-    return ScopedRef.set(clientRef, acquireClient);
+    return E.gen(function* () {
+      yield* ScopedRef.set(clientRef, acquireClient);
+      yield* SubscriptionRef.set(statusRef, CONNECTED_STATUS);
+    });
   };
 
   const disconnect: LiveSplitConnectionManagerService["disconnect"] = () => {
-    return ScopedRef.set(clientRef, E.succeed(Option.none()));
+    return E.gen(function* () {
+      yield* ScopedRef.set(clientRef, E.succeed(Option.none()));
+      yield* SubscriptionRef.set(statusRef, DISCONNECTED_STATUS);
+    });
   };
 
   return {
@@ -95,6 +105,7 @@ const make = E.gen(function* () {
     connect,
     disconnect,
     status,
+    statusChanges,
   } satisfies LiveSplitConnectionManagerService;
 });
 
