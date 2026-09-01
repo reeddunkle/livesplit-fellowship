@@ -6,7 +6,7 @@ import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import { ROUTES } from "@/api/constants/routes.ts";
 import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 
-const handleEventsRequest = E.gen(function* () {
+const handleDungeonRunEventsRequest = E.gen(function* () {
   const request = yield* HttpServerRequest.HttpServerRequest;
   const runWebSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
 
@@ -64,6 +64,10 @@ const handleEventsRequest = E.gen(function* () {
   return HttpServerResponse.empty();
 });
 
-export const EventsRoutes = HttpRouter.addAll([
-  HttpRouter.route("GET", ROUTES.dungeonRunEvents, handleEventsRequest),
+export const DungeonRunEventsRoutes = HttpRouter.addAll([
+  HttpRouter.route(
+    "GET",
+    ROUTES.dungeonRunEvents,
+    handleDungeonRunEventsRequest,
+  ),
 ]);

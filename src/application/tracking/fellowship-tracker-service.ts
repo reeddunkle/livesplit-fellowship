@@ -8,7 +8,7 @@ import * as Semaphore from "effect/Semaphore";
 import * as Stream from "effect/Stream";
 import * as SubscriptionRef from "effect/SubscriptionRef";
 
-import { publishDungeonRunState } from "@/api/websocket/publish-dungeon-run-state.ts";
+import { publishDungeonRunState } from "@/api/websocket/dungeon-run/publish-dungeon-run-state.ts";
 import { handleLogDungeonRunEvent } from "@/application/dungeon-run-processing/handle-log-dungeon-run-event.ts";
 import { ConfigurationDAO } from "@/db/daos/configuration/configuration-dao.ts";
 import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
