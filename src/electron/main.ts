@@ -3,7 +3,6 @@ import { fileURLToPath } from "node:url";
 import * as E from "effect/Effect";
 import { app, BrowserWindow } from "electron";
 
-import { startApiServer } from "@/application/api/run-api-server.ts";
 import { env } from "@/env.ts";
 import { makeApiRuntime } from "@/runtimes/api-runtime.ts";
 
@@ -28,18 +27,17 @@ const windowOptions = {
   rendererDevServerUrl,
 };
 
-void app.whenReady().then(async () => {
-  try {
-    await apiRuntime.runPromise(startApiServer);
-
-    console.log("API runtime successfully initialized.");
-  } catch (error) {
-    console.error("Failed to initialize API runtime.", error);
-    app.quit();
-    return;
-  }
-
-  apiRuntime.runFork(runElectronApplication(windowOptions));
+void app.whenReady().then(() => {
+  apiRuntime.runFork(
+    runElectronApplication(windowOptions).pipe(
+      E.catch((error) => {
+        return E.sync(() => {
+          console.error("Electron application failed.", error);
+          app.quit();
+        });
+      }),
+    ),
+  );
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {

@@ -18,6 +18,8 @@ export const runApiServer = E.scoped(
   E.gen(function* () {
     yield* startApiServer;
 
+    yield* E.logInfo("Starting API status publishers.");
+
     yield* publishLiveSplitStatusChanges.pipe(E.forkScoped);
     yield* publishTrackingStatusChanges.pipe(E.forkScoped);
 

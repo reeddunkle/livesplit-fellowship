@@ -32,10 +32,25 @@ export const publishLiveSplitStatusChanges = E.gen(function* () {
 
   yield* liveSplitApiService.statusChanges.pipe(
     Stream.runForEach((status) => {
-      return publishLiveSplitApiStatus({
-        status,
-        webSocketBroadcaster: liveSplitWebSocketBroadcaster,
+      return E.gen(function* () {
+        yield* E.logInfo("Publishing LiveSplit status change.", {
+          status,
+        });
+
+        yield* publishLiveSplitApiStatus({
+          status,
+          webSocketBroadcaster: liveSplitWebSocketBroadcaster,
+        });
       });
     }),
   );
+
+  // yield* liveSplitApiService.statusChanges.pipe(
+  //   Stream.runForEach((status) => {
+  //     return publishLiveSplitApiStatus({
+  //       status,
+  //       webSocketBroadcaster: liveSplitWebSocketBroadcaster,
+  //     });
+  //   }),
+  // );
 });
