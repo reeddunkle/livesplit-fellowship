@@ -13,7 +13,7 @@ import {
 import { getApiWebSocketUrl } from "@/electron/renderer/api/api-url.ts";
 import { TrackingEventMessageDecodeError } from "@/errors/tracking-event-stream-error.ts";
 
-import { API_CONNECTION_STATE, type ApiConnectionState } from "./common.ts";
+import { API_CONNECTION_STATE, type ApiConnectionState } from "../common.ts";
 
 export type TrackingEventStreamEvent =
   | {

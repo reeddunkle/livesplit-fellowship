@@ -11,7 +11,7 @@ import {
 
 import { type TrackingApiStatus } from "@/application/tracking/tracking-api-schema.ts";
 import { type ApiConnectionState } from "@/electron/renderer/api/common.ts";
-import * as trackingClient from "@/electron/renderer/api/tracking-client.ts";
+import * as trackingClient from "@/electron/renderer/api/tracking/tracking-client";
 import { trackingEventStore } from "@/electron/renderer/stores/tracking-store/tracking-event-store.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
 
