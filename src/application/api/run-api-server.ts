@@ -4,7 +4,7 @@ import * as HttpServer from "effect/unstable/http/HttpServer";
 import { publishLiveSplitStatusChanges } from "@/api/websocket/live-split/publish-live-split-status-changes.ts";
 import { publishTrackingStatusChanges } from "@/api/websocket/tracking/publish-tracking-status-changes.ts";
 
-export const startApiServer = E.gen(function* () {
+const startApiServer = E.gen(function* () {
   const httpServer = yield* HttpServer.HttpServer;
 
   yield* E.logInfo("Fellowship API server running.", {
