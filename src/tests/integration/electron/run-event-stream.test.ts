@@ -19,7 +19,7 @@ import {
   type RunEventStreamEvent,
 } from "@/electron/renderer/api/run-event-stream.ts";
 import { RUN_EVENT_MESSAGE_DECODE_ERROR } from "@/errors/run-event-stream-error.ts";
-import { WebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
+import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import { ApiServerTest } from "@/tests/common/layers/api-server-test-layer.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
@@ -126,16 +126,17 @@ const NormalCloseServerTest = HttpRouter.serve(NormalCloseRoutes).pipe(
   Layer.provideMerge(NodeHttpServer.layerTest),
 );
 
-describe("run event stream", () => {
+describe("Dungeon Run event stream", () => {
   test("connects and receives the latest API state", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const webSocketBroadcaster = yield* WebSocketBroadcaster;
+        const dungeonRunWebSocketBroadcaster =
+          yield* DungeonRunWebSocketBroadcaster;
         const httpServer = yield* HttpServer.HttpServer;
 
         const websocketUrl = getWebSocketUrl(httpServer.address);
 
-        yield* webSocketBroadcaster.publish(JSON.stringify(message));
+        yield* dungeonRunWebSocketBroadcaster.publish(JSON.stringify(message));
 
         const clientEvents = yield* collectClientEvents(
           makeRunEventStreamForUrl(websocketUrl),
@@ -165,7 +166,8 @@ describe("run event stream", () => {
   test("receives API state published after connecting", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const webSocketBroadcaster = yield* WebSocketBroadcaster;
+        const dungeonRunWebSocketBroadcaster =
+          yield* DungeonRunWebSocketBroadcaster;
         const httpServer = yield* HttpServer.HttpServer;
 
         const websocketUrl = getWebSocketUrl(httpServer.address);
@@ -193,7 +195,7 @@ describe("run event stream", () => {
 
         yield* Deferred.await(connected).pipe(E.timeout(TEST_TIMEOUT));
 
-        yield* webSocketBroadcaster.publish(JSON.stringify(message));
+        yield* dungeonRunWebSocketBroadcaster.publish(JSON.stringify(message));
 
         const clientEvents = yield* Fiber.join(clientFiber);
 
@@ -220,12 +222,13 @@ describe("run event stream", () => {
   test("fails when the API sends an invalid message", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const webSocketBroadcaster = yield* WebSocketBroadcaster;
+        const dungeonRunWebSocketBroadcaster =
+          yield* DungeonRunWebSocketBroadcaster;
         const httpServer = yield* HttpServer.HttpServer;
 
         const websocketUrl = getWebSocketUrl(httpServer.address);
 
-        yield* webSocketBroadcaster.publish(
+        yield* dungeonRunWebSocketBroadcaster.publish(
           JSON.stringify({
             invalid: true,
           }),

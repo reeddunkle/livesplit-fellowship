@@ -4,8 +4,8 @@ import * as Socket from "effect/unstable/socket/Socket";
 import { describe, expect, test } from "vitest";
 
 import {
-  WebSocketBroadcaster,
-  WebSocketBroadcasterLive,
+  DungeonRunWebSocketBroadcaster,
+  DungeonRunWebSocketBroadcasterLive,
   type WebSocketWriter,
 } from "@/services/api/websocket-broadcaster-service.ts";
 import { runTest } from "@/tests/common/run-test.ts";
@@ -22,7 +22,7 @@ describe("WebSocketBroadcaster", () => {
   test("publishes messages to registered clients", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const webSocketBroadcaster = yield* WebSocketBroadcaster;
+        const webSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
         const messages = yield* Ref.make<ReadonlyArray<string>>([]);
 
         const writer: WebSocketWriter = (message) => {
@@ -39,7 +39,7 @@ describe("WebSocketBroadcaster", () => {
         yield* webSocketBroadcaster.publish("second");
 
         expect(yield* Ref.get(messages)).toEqual(["first", "second"]);
-      }).pipe(E.provide(WebSocketBroadcasterLive)),
+      }).pipe(E.provide(DungeonRunWebSocketBroadcasterLive)),
     );
 
     await runTest(program);
@@ -48,7 +48,7 @@ describe("WebSocketBroadcaster", () => {
   test("removes a failing client and continues publishing to healthy clients", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const webSocketBroadcaster = yield* WebSocketBroadcaster;
+        const webSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
         const healthyMessages = yield* Ref.make<ReadonlyArray<string>>([]);
 
         const healthyWriter: WebSocketWriter = (message) => {
@@ -86,7 +86,7 @@ describe("WebSocketBroadcaster", () => {
 
         expect(yield* Ref.get(healthyMessages)).toEqual(["first", "second"]);
         expect(yield* webSocketBroadcaster.clientCount).toBe(1);
-      }).pipe(E.provide(WebSocketBroadcasterLive)),
+      }).pipe(E.provide(DungeonRunWebSocketBroadcasterLive)),
     );
 
     await runTest(program);
@@ -95,7 +95,7 @@ describe("WebSocketBroadcaster", () => {
   test("sends the latest published message to a client", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const webSocketBroadcaster = yield* WebSocketBroadcaster;
+        const webSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
         const messages = yield* Ref.make<ReadonlyArray<string>>([]);
 
         yield* webSocketBroadcaster.publish("first");
@@ -110,7 +110,7 @@ describe("WebSocketBroadcaster", () => {
         yield* webSocketBroadcaster.sendLatestToClient(writer);
 
         expect(yield* Ref.get(messages)).toEqual(["second"]);
-      }).pipe(E.provide(WebSocketBroadcasterLive)),
+      }).pipe(E.provide(DungeonRunWebSocketBroadcasterLive)),
     );
 
     await runTest(program);
@@ -119,7 +119,7 @@ describe("WebSocketBroadcaster", () => {
   test("does nothing when sending the latest message before anything has been published", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const webSocketBroadcaster = yield* WebSocketBroadcaster;
+        const webSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
         const messages = yield* Ref.make<ReadonlyArray<string>>([]);
 
         const writer: WebSocketWriter = (message) => {
@@ -131,7 +131,7 @@ describe("WebSocketBroadcaster", () => {
         yield* webSocketBroadcaster.sendLatestToClient(writer);
 
         expect(yield* Ref.get(messages)).toEqual([]);
-      }).pipe(E.provide(WebSocketBroadcasterLive)),
+      }).pipe(E.provide(DungeonRunWebSocketBroadcasterLive)),
     );
 
     await runTest(program);
@@ -140,7 +140,7 @@ describe("WebSocketBroadcaster", () => {
   test("does not fail when sending the latest message to a failing client", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const webSocketBroadcaster = yield* WebSocketBroadcaster;
+        const webSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
 
         yield* webSocketBroadcaster.publish("latest");
 
@@ -153,7 +153,7 @@ describe("WebSocketBroadcaster", () => {
          * so the writer failure must not escape.
          */
         yield* webSocketBroadcaster.sendLatestToClient(failingWriter);
-      }).pipe(E.provide(WebSocketBroadcasterLive)),
+      }).pipe(E.provide(DungeonRunWebSocketBroadcasterLive)),
     );
 
     await runTest(program);

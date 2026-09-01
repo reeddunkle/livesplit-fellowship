@@ -4,7 +4,7 @@ import { describe, expect, test } from "vitest";
 
 import { ROUTES } from "@/api/constants/routes.ts";
 import {
-  WebSocketBroadcaster,
+  DungeonRunWebSocketBroadcaster,
   type WebSocketBroadcasterService,
 } from "@/services/api/websocket-broadcaster-service.ts";
 import {
@@ -117,11 +117,11 @@ function waitForClientCount({
   });
 }
 
-describe("WebSocketBroadcaster integration", () => {
-  test("registers, publishes to, and unregisters a WebSocket client", async () => {
+describe("DungeonRunWebSocketBroadcaster integration", () => {
+  test("registers, publishes to, and unregisters a dungeon run WebSocket client", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const webSocketBroadcaster = yield* WebSocketBroadcaster;
+        const webSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
         const httpServer = yield* HttpServer.HttpServer;
 
         const address = HttpServer.formatAddress(httpServer.address);
