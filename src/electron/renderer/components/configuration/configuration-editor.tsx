@@ -1,7 +1,7 @@
 import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
 import {
-  FilePlus2Icon,
+  CopyPlusIcon,
   PlusIcon,
   RotateCcwIcon,
   SaveIcon,
@@ -22,6 +22,7 @@ import {
 } from "@/electron/renderer/components/ui/native-select.tsx";
 import {
   useConfigurationActions,
+  useSelectedConfiguration,
   useSelectedConfigurationId,
 } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
@@ -120,6 +121,7 @@ export function ConfigurationEditor({
   eventTypes,
   getSaveState,
 }: ConfigurationEditorProps) {
+  const selectedConfiguration = useSelectedConfiguration();
   const selectedConfigurationId = useSelectedConfigurationId();
 
   const { deleteConfiguration, isUpdating, newConfiguration, save, update } =
@@ -142,6 +144,8 @@ export function ConfigurationEditor({
 
     return getSaveState(decoded);
   };
+
+  const hasSelectedConfiguration = selectedConfiguration !== undefined;
 
   return (
     <ConfigurationEditorProvider form={form}>
@@ -179,42 +183,6 @@ export function ConfigurationEditor({
                 );
               }}
             </form.Subscribe>
-            <Button
-              disabled={selectedConfigurationId === null}
-              type="button"
-              variant="destructive"
-              onClick={() => {
-                if (selectedConfigurationId === null) {
-                  return;
-                }
-
-                deleteConfiguration(selectedConfigurationId);
-              }}
-            >
-              <Trash2Icon />
-              Delete
-            </Button>
-            <form.Subscribe selector={selectConfigurationEditorFormState}>
-              {(state) => {
-                const decoded = decodeConfigurationEditorValue(state.values);
-
-                const isSaveEnabled =
-                  selectedConfigurationId !== null &&
-                  hasUnsavedChanges(state) &&
-                  decoded !== undefined;
-
-                return (
-                  <Button
-                    disabled={!isSaveEnabled || isUpdating}
-                    form={CONFIGURATION_FORM_DOM_ID}
-                    type="submit"
-                  >
-                    <SaveIcon />
-                    Save
-                  </Button>
-                );
-              }}
-            </form.Subscribe>
             <form.Subscribe
               selector={(state) => {
                 return {
@@ -244,12 +212,50 @@ export function ConfigurationEditor({
                     type="button"
                     variant="secondary"
                   >
-                    <FilePlus2Icon />
+                    <CopyPlusIcon />
                     Save new
                   </Button>
                 );
               }}
             </form.Subscribe>
+
+            <form.Subscribe selector={selectConfigurationEditorFormState}>
+              {(state) => {
+                const decoded = decodeConfigurationEditorValue(state.values);
+
+                const isUpdateEnabled =
+                  hasSelectedConfiguration &&
+                  hasUnsavedChanges(state) &&
+                  decoded !== undefined;
+
+                return (
+                  <Button
+                    disabled={!isUpdateEnabled || isUpdating}
+                    form={CONFIGURATION_FORM_DOM_ID}
+                    type="submit"
+                  >
+                    <SaveIcon />
+                    Update
+                  </Button>
+                );
+              }}
+            </form.Subscribe>
+
+            <Button
+              disabled={!hasSelectedConfiguration}
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                if (selectedConfiguration === undefined) {
+                  return;
+                }
+
+                deleteConfiguration(selectedConfiguration.id);
+              }}
+            >
+              <Trash2Icon />
+              Delete
+            </Button>
           </div>
           <div className="min-h-6">
             <form.Subscribe selector={selectConfigurationEditorFormState}>
@@ -287,7 +293,7 @@ export function ConfigurationEditor({
             event.preventDefault();
             event.stopPropagation();
 
-            if (selectedConfigurationId === null) {
+            if (!hasSelectedConfiguration) {
               return;
             }
 

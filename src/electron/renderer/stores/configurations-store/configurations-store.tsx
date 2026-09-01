@@ -338,13 +338,13 @@ export function ConfigurationProvider({
         setSelectedConfigurationId(id);
       },
       update: (value) => {
-        if (selectedConfigurationId === null) {
+        if (selectedConfiguration === undefined) {
           return;
         }
 
         startTransition(() => {
           dispatchUpdate({
-            id: selectedConfigurationId,
+            id: selectedConfiguration.id,
             value,
           });
         });
@@ -365,6 +365,7 @@ export function ConfigurationProvider({
     saveState.configuration,
     saveState.error,
     saveState.revision,
+    selectedConfiguration,
     selectedConfigurationId,
     setSelectedConfigurationId,
     updateState.configuration,
