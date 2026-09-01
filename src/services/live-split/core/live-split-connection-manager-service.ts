@@ -4,7 +4,7 @@ import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as ScopedRef from "effect/ScopedRef";
-import type * as Stream from "effect/Stream";
+import * as Stream from "effect/Stream";
 import * as SubscriptionRef from "effect/SubscriptionRef";
 
 import { LiveSplitConnectionError } from "@/errors/live-split-client-error.ts";
@@ -77,6 +77,19 @@ const make = E.gen(function* () {
       const client = yield* makeLiveSplitClient({
         transport,
       });
+
+      yield* client.unavailability.pipe(
+        Stream.runForEach((cause) => {
+          return E.gen(function* () {
+            yield* E.logWarning("LiveSplit client became unavailable.", {
+              cause,
+            });
+
+            yield* SubscriptionRef.set(statusRef, DISCONNECTED_STATUS);
+          });
+        }),
+        E.forkScoped,
+      );
 
       return Option.some(client);
     }).pipe(
