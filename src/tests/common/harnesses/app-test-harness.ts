@@ -1,6 +1,7 @@
 import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import * as Stream from "effect/Stream";
 
 import { FellowshipTrackerLive } from "@/application/tracking/fellowship-tracker-service.ts";
 import { makeAppServicesLive } from "@/layers/app-layer.ts";
@@ -42,6 +43,9 @@ export function makeAppTestHarness({
           return E.void;
         },
         status: E.succeed({
+          _tag: "Connected",
+        }),
+        statusChanges: Stream.make({
           _tag: "Connected",
         }),
       } satisfies LiveSplitConnectionManagerService,
