@@ -55,6 +55,7 @@ function useSidebar() {
 function SidebarProvider({
   open: openProp,
   onOpenChange: setOpenProp,
+  sidebarWidth = SIDEBAR_WIDTH,
   className,
   style,
   children,
@@ -62,6 +63,7 @@ function SidebarProvider({
 }: React.ComponentProps<"div"> & {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  sidebarWidth?: string;
 }) {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
@@ -131,7 +133,7 @@ function SidebarProvider({
         data-slot="sidebar-wrapper"
         style={
           {
-            "--sidebar-width": SIDEBAR_WIDTH,
+            "--sidebar-width": sidebarWidth,
             "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
             ...style,
           } as React.CSSProperties

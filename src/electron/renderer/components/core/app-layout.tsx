@@ -22,7 +22,7 @@ export function AppLayout({ children, sidebar }: AppLayoutProps) {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider sidebarWidth="20rem">
       {sidebar}
       <SidebarInset className="min-w-0">
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
