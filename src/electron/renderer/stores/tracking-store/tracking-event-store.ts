@@ -11,7 +11,7 @@ import {
 import {
   makeTrackingEventStream,
   type TrackingEventStreamEvent,
-} from "@/electron/renderer/api/tracking/tracking-event-stream";
+} from "@/electron/renderer/api/tracking/tracking-event-stream.ts";
 
 export type TrackingEventStoreSnapshot = {
   readonly connectionState: ApiConnectionState;
