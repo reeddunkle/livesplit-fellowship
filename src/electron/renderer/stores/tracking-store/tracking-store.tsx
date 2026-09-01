@@ -10,7 +10,7 @@ import {
 } from "react";
 
 import { type TrackingApiStatus } from "@/application/tracking/tracking-api-schema.ts";
-import { type ApiConnectionState } from "@/electron/renderer/api/dungeon-run-event-stream.ts";
+import { type ApiConnectionState } from "@/electron/renderer/api/common.ts";
 import * as trackingClient from "@/electron/renderer/api/tracking-client.ts";
 import { trackingEventStore } from "@/electron/renderer/stores/tracking-store/tracking-event-store.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
@@ -19,7 +19,7 @@ type StartTrackingActionInput = {
   readonly configurationId: ConfigurationId;
 };
 
-type TrackingActionState = {
+type TrackingActionResult = {
   readonly error: unknown | undefined;
 };
 
@@ -38,19 +38,19 @@ type TrackingProviderProps = {
   readonly children: ReactNode;
 };
 
-export type TrackingActionStatus = {
+export type TrackingActionState = {
   readonly isStarting: boolean;
   readonly isStopping: boolean;
   readonly startError: unknown | undefined;
   readonly stopError: unknown | undefined;
 };
 
-export type TrackingStatus = {
+export type TrackingServerState = {
   readonly connectionState: ApiConnectionState;
   readonly trackingStatus: TrackingApiStatus | null;
 };
 
-const INITIAL_TRACKING_ACTION_STATE: TrackingActionState = {
+const INITIAL_TRACKING_ACTION_RESULT: TrackingActionResult = {
   error: undefined,
 };
 
@@ -66,9 +66,9 @@ export function TrackingProvider({ children }: TrackingProviderProps) {
 
   const [startState, dispatchStart, isStarting] = useActionState(
     (
-      _previousState: TrackingActionState,
+      _previousState: TrackingActionResult,
       input: StartTrackingActionInput,
-    ): Promise<TrackingActionState> => {
+    ): Promise<TrackingActionResult> => {
       return trackingClient
         .startTracking({
           configurationId: input.configurationId,
@@ -85,11 +85,11 @@ export function TrackingProvider({ children }: TrackingProviderProps) {
           E.runPromise,
         );
     },
-    INITIAL_TRACKING_ACTION_STATE,
+    INITIAL_TRACKING_ACTION_RESULT,
   );
 
   const [stopState, dispatchStop, isStopping] = useActionState(
-    (): Promise<TrackingActionState> => {
+    (): Promise<TrackingActionResult> => {
       return trackingClient.stopTracking().pipe(
         E.as({
           error: undefined,
@@ -102,7 +102,7 @@ export function TrackingProvider({ children }: TrackingProviderProps) {
         E.runPromise,
       );
     },
-    INITIAL_TRACKING_ACTION_STATE,
+    INITIAL_TRACKING_ACTION_RESULT,
   );
 
   const contextValue = useMemo<TrackingContextValue>(() => {
@@ -163,7 +163,7 @@ export function useTrackingActions() {
   };
 }
 
-export function useTrackingActionStatus(): TrackingActionStatus {
+export function useTrackingActionState(): TrackingActionState {
   const { isStarting, isStopping, startError, stopError } =
     useTrackingContext();
 
@@ -175,7 +175,7 @@ export function useTrackingActionStatus(): TrackingActionStatus {
   };
 }
 
-export function useTrackingStatus(): TrackingStatus {
+export function useTrackingServerState(): TrackingServerState {
   const { connectionState, trackingStatus } = useTrackingContext();
 
   return {
