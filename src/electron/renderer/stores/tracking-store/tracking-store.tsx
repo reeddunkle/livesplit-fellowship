@@ -136,7 +136,7 @@ export function useTrackingActions(): TrackingActionContextValue {
   return context;
 }
 
-export function useTrackingStatus(): TrackingActionStatus {
+export function useTrackingActionStatus(): TrackingActionStatus {
   const { isStarting, isStopping, startError, stopError } =
     useTrackingActions();
 

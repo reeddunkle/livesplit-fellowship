@@ -15,9 +15,9 @@ import { ROUTES } from "@/api/constants/routes.ts";
 import { type DungeonRunApiMessage } from "@/api/websocket/dungeon-run-api-message-schema.ts";
 import {
   API_CONNECTION_STATE,
-  makeRunEventStreamForUrl,
-  type RunEventStreamEvent,
-} from "@/electron/renderer/api/run-event-stream.ts";
+  type DungeonRunEventStreamEvent,
+  makeDungeonRunEventStreamForUrl,
+} from "@/electron/renderer/api/dungeon-run-event-stream.ts";
 import { DUNGEON_RUN_EVENT_MESSAGE_DECODE_ERROR } from "@/errors/run-event-stream-error.ts";
 import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import { ApiServerTest } from "@/tests/common/layers/api-server-test-layer.ts";
@@ -65,7 +65,7 @@ function getWebSocketUrl(address: HttpServer.Address): string {
 }
 
 function collectClientEvents(
-  stream: Stream.Stream<RunEventStreamEvent, unknown>,
+  stream: Stream.Stream<DungeonRunEventStreamEvent, unknown>,
   count: number,
 ) {
   return stream.pipe(
@@ -139,7 +139,7 @@ describe("Dungeon Run event stream", () => {
         yield* dungeonRunWebSocketBroadcaster.publish(JSON.stringify(message));
 
         const clientEvents = yield* collectClientEvents(
-          makeRunEventStreamForUrl(websocketUrl),
+          makeDungeonRunEventStreamForUrl(websocketUrl),
           3,
         );
 
@@ -173,7 +173,9 @@ describe("Dungeon Run event stream", () => {
         const websocketUrl = getWebSocketUrl(httpServer.address);
         const connected = yield* Deferred.make<void>();
 
-        const clientFiber = yield* makeRunEventStreamForUrl(websocketUrl).pipe(
+        const clientFiber = yield* makeDungeonRunEventStreamForUrl(
+          websocketUrl,
+        ).pipe(
           Stream.tap((event) => {
             if (
               event.type === "CONNECTION_STATE_CHANGED" &&
@@ -234,7 +236,7 @@ describe("Dungeon Run event stream", () => {
           }),
         );
 
-        const wasDecodeError = yield* makeRunEventStreamForUrl(
+        const wasDecodeError = yield* makeDungeonRunEventStreamForUrl(
           websocketUrl,
         ).pipe(
           Stream.runDrain,
@@ -264,7 +266,7 @@ describe("Dungeon Run event stream", () => {
         );
 
         const clientEvents = yield* collectClientEvents(
-          makeRunEventStreamForUrl(invalidWebsocketUrl, {
+          makeDungeonRunEventStreamForUrl(invalidWebsocketUrl, {
             reconnectDelay: TEST_RECONNECT_DELAY,
           }),
           4,
@@ -305,7 +307,7 @@ describe("Dungeon Run event stream", () => {
         );
 
         const clientEvents = yield* collectClientEvents(
-          makeRunEventStreamForUrl(websocketUrl, {
+          makeDungeonRunEventStreamForUrl(websocketUrl, {
             reconnectDelay: TEST_RECONNECT_DELAY,
           }),
           6,
