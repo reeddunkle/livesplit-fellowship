@@ -1,6 +1,9 @@
 import * as E from "effect/Effect";
 import * as HttpServer from "effect/unstable/http/HttpServer";
 
+import { publishLiveSplitStatusChanges } from "@/api/websocket/live-split/publish-live-split-status-changes.ts";
+import { publishTrackingStatusChanges } from "@/api/websocket/tracking/publish-tracking-status-changes.ts";
+
 export const startApiServer = E.gen(function* () {
   const httpServer = yield* HttpServer.HttpServer;
 
@@ -11,8 +14,13 @@ export const startApiServer = E.gen(function* () {
   return httpServer;
 });
 
-export const runApiServer = E.gen(function* () {
-  yield* startApiServer;
+export const runApiServer = E.scoped(
+  E.gen(function* () {
+    yield* startApiServer;
 
-  return yield* E.never;
-});
+    yield* publishLiveSplitStatusChanges.pipe(E.forkScoped);
+    yield* publishTrackingStatusChanges.pipe(E.forkScoped);
+
+    return yield* E.never;
+  }),
+);
