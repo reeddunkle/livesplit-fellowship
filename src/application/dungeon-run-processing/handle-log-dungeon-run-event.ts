@@ -15,6 +15,11 @@ export function handleLogDungeonRunEvent(
         runEvent: DUNGEON_RUN_PROCESSING_EVENT.RUN_STARTED,
       }),
     ),
+    Match.when({ type: DUNGEON_RUN_PROCESSING_EVENT.RUN_COMPLETED }, () =>
+      E.logInfo("Run completed.", {
+        runEvent: DUNGEON_RUN_PROCESSING_EVENT.RUN_COMPLETED,
+      }),
+    ),
     Match.when({ type: DUNGEON_RUN_PROCESSING_EVENT.RUN_EXITED }, () =>
       E.logInfo("Run exited.", {
         runEvent: DUNGEON_RUN_PROCESSING_EVENT.RUN_EXITED,

@@ -21,6 +21,9 @@ export function handleLiveSplitDungeonRunEvent({
         yield* liveSplitClient.startTimer();
       });
     }),
+    Match.when({ type: DUNGEON_RUN_PROCESSING_EVENT.RUN_COMPLETED }, () => {
+      return E.void;
+    }),
     Match.when({ type: DUNGEON_RUN_PROCESSING_EVENT.RUN_EXITED }, () => {
       return liveSplitClient.pause();
     }),
