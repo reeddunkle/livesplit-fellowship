@@ -18,7 +18,7 @@ import {
   makeRunEventStreamForUrl,
   type RunEventStreamEvent,
 } from "@/electron/renderer/api/run-event-stream.ts";
-import { RUN_EVENT_MESSAGE_DECODE_ERROR } from "@/errors/run-event-stream-error.ts";
+import { DUNGEON_RUN_EVENT_MESSAGE_DECODE_ERROR } from "@/errors/run-event-stream-error.ts";
 import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import { ApiServerTest } from "@/tests/common/layers/api-server-test-layer.ts";
 import { runTest } from "@/tests/common/run-test.ts";
@@ -239,7 +239,7 @@ describe("Dungeon Run event stream", () => {
         ).pipe(
           Stream.runDrain,
           E.as(false),
-          E.catchTag(RUN_EVENT_MESSAGE_DECODE_ERROR, () => {
+          E.catchTag(DUNGEON_RUN_EVENT_MESSAGE_DECODE_ERROR, () => {
             return E.succeed(true);
           }),
           E.timeout(TEST_TIMEOUT),

@@ -1,10 +1,10 @@
 import * as Data from "effect/Data";
 
-export const RUN_EVENT_MESSAGE_DECODE_ERROR =
-  "RunEventMessageDecodeError" as const;
+export const DUNGEON_RUN_EVENT_MESSAGE_DECODE_ERROR =
+  "DungeonRunEventMessageDecodeError" as const;
 
-export class RunEventMessageDecodeError extends Data.TaggedError(
-  RUN_EVENT_MESSAGE_DECODE_ERROR,
+export class DungeonRunEventMessageDecodeError extends Data.TaggedError(
+  DUNGEON_RUN_EVENT_MESSAGE_DECODE_ERROR,
 )<{
   readonly cause: unknown;
 }> {}

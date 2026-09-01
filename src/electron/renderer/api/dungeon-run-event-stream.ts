@@ -11,7 +11,7 @@ import {
   DungeonRunApiMessageSchema,
 } from "@/api/websocket/dungeon-run-api-message-schema.ts";
 import { getApiWebSocketUrl } from "@/electron/renderer/api/api-url.ts";
-import { RunEventMessageDecodeError } from "@/errors/run-event-stream-error.ts";
+import { DungeonRunEventMessageDecodeError } from "@/errors/run-event-stream-error.ts";
 
 export const API_CONNECTION_STATE = {
   CONNECTED: "CONNECTED",
@@ -22,7 +22,7 @@ export const API_CONNECTION_STATE = {
 export type ApiConnectionState =
   (typeof API_CONNECTION_STATE)[keyof typeof API_CONNECTION_STATE];
 
-export type RunEventStreamEvent =
+export type DungeonRunEventStreamEvent =
   | {
       readonly state: ApiConnectionState;
       readonly type: "CONNECTION_STATE_CHANGED";
@@ -32,18 +32,18 @@ export type RunEventStreamEvent =
       readonly type: "MESSAGE_RECEIVED";
     };
 
-export type RunEventStreamError =
-  | RunEventMessageDecodeError
+export type DungeonRunEventStreamError =
+  | DungeonRunEventMessageDecodeError
   | Socket.SocketError;
 
-export type MakeRunEventStreamOptions = {
+export type MakeDungeonRunEventStreamOptions = {
   readonly reconnectDelay?: Duration.Input;
 };
 
 const DEFAULT_RECONNECT_DELAY = "1 second";
 
 function offerConnectionState(
-  queue: Queue.Enqueue<RunEventStreamEvent>,
+  queue: Queue.Enqueue<DungeonRunEventStreamEvent>,
   state: ApiConnectionState,
 ) {
   return Queue.offer(queue, {
@@ -54,11 +54,11 @@ function offerConnectionState(
 
 function decodeMessage(
   message: string,
-): E.Effect<DungeonRunApiMessage, RunEventMessageDecodeError> {
+): E.Effect<DungeonRunApiMessage, DungeonRunEventMessageDecodeError> {
   return E.gen(function* () {
     const parsed = yield* E.try({
       catch: (cause) => {
-        return new RunEventMessageDecodeError({
+        return new DungeonRunEventMessageDecodeError({
           cause,
         });
       },
@@ -71,7 +71,7 @@ function decodeMessage(
       parsed,
     ).pipe(
       E.mapError((cause) => {
-        return new RunEventMessageDecodeError({
+        return new DungeonRunEventMessageDecodeError({
           cause,
         });
       }),
@@ -79,13 +79,16 @@ function decodeMessage(
   });
 }
 
-export function makeRunEventStreamForUrl(
+export function makeDungeonRunEventStreamForUrl(
   url: string,
-  options: MakeRunEventStreamOptions = {},
-): Stream.Stream<RunEventStreamEvent, RunEventStreamError> {
+  options: MakeDungeonRunEventStreamOptions = {},
+): Stream.Stream<DungeonRunEventStreamEvent, DungeonRunEventStreamError> {
   const reconnectDelay = options.reconnectDelay ?? DEFAULT_RECONNECT_DELAY;
 
-  return Stream.callback<RunEventStreamEvent, RunEventStreamError>((queue) => {
+  return Stream.callback<
+    DungeonRunEventStreamEvent,
+    DungeonRunEventStreamError
+  >((queue) => {
     const connect = E.gen(function* () {
       yield* offerConnectionState(queue, API_CONNECTION_STATE.CONNECTING);
 
@@ -121,7 +124,7 @@ export function makeRunEventStreamForUrl(
       E.retry({
         schedule: Schedule.spaced(reconnectDelay),
         while: (error) => {
-          return !(error instanceof RunEventMessageDecodeError);
+          return !(error instanceof DungeonRunEventMessageDecodeError);
         },
       }),
       E.repeat(Schedule.spaced(reconnectDelay)),
@@ -135,9 +138,9 @@ export function makeRunEventStreamForUrl(
   });
 }
 
-export function makeRunEventStream(): Stream.Stream<
-  RunEventStreamEvent,
-  RunEventStreamError
+export function makeDungeonRunEventStream(): Stream.Stream<
+  DungeonRunEventStreamEvent,
+  DungeonRunEventStreamError
 > {
-  return makeRunEventStreamForUrl(getApiWebSocketUrl());
+  return makeDungeonRunEventStreamForUrl(getApiWebSocketUrl());
 }

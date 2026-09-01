@@ -7,9 +7,9 @@ import { type DungeonRunStateApi } from "@/api/websocket/dungeon-run-api-message
 import {
   API_CONNECTION_STATE,
   type ApiConnectionState,
-  makeRunEventStream,
-  type RunEventStreamEvent,
-} from "@/electron/renderer/api/run-event-stream.ts";
+  type DungeonRunEventStreamEvent,
+  makeDungeonRunEventStream,
+} from "@/electron/renderer/api/dungeon-run-event-stream";
 
 export type DungeonRunEventStoreSnapshot = {
   readonly connectionState: ApiConnectionState;
@@ -47,7 +47,7 @@ export function makeDungeonRunEventStore() {
     });
   }
 
-  const handleDungeonRunEvent = Match.type<RunEventStreamEvent>().pipe(
+  const handleDungeonRunEvent = Match.type<DungeonRunEventStreamEvent>().pipe(
     Match.when({ type: "CONNECTION_STATE_CHANGED" }, (event) => {
       return updateSnapshot((snapshot) => {
         return {
@@ -72,7 +72,7 @@ export function makeDungeonRunEventStore() {
       return;
     }
 
-    const program = makeRunEventStream().pipe(
+    const program = makeDungeonRunEventStream().pipe(
       Stream.runForEach(handleDungeonRunEvent),
       E.catch((error) => {
         return E.gen(function* () {
