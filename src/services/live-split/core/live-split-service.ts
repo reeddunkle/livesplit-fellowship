@@ -2,6 +2,7 @@ import * as Context from "effect/Context";
 import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import type * as Stream from "effect/Stream";
 
 import { handleLiveSplitDungeonRunEvent } from "@/application/dungeon-run-processing/handle-live-split-dungeon-run-event.ts";
 import { type LiveSplitConnectionError } from "@/errors/live-split-client-error.ts";
@@ -22,6 +23,8 @@ export interface LiveSplitService {
   readonly handleRunEvent: (event: LiveSplitRunEvent) => E.Effect<void>;
 
   readonly status: E.Effect<LiveSplitConnectionStatus>;
+
+  readonly statusChanges: Stream.Stream<LiveSplitConnectionStatus>;
 }
 
 export class LiveSplit extends Context.Service<LiveSplit, LiveSplitService>()(
@@ -61,6 +64,7 @@ const make = E.gen(function* () {
     disconnect: connectionManager.disconnect,
     handleRunEvent,
     status: connectionManager.status,
+    statusChanges: connectionManager.statusChanges,
   } satisfies LiveSplitService;
 });
 
