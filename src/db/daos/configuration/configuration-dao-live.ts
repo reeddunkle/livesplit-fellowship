@@ -12,6 +12,7 @@ import {
 import {
   createConfigurationPersistenceRecords,
   createPersistedConfiguration,
+  getMilestoneRequirementsIdentityKey,
 } from "@/db/daos/configuration/configuration-persistence.ts";
 import { ConfigurationModel } from "@/db/models/configuration-model.ts";
 import {
@@ -246,11 +247,6 @@ const make = E.gen(function* () {
     >;
   }) => {
     return E.gen(function* () {
-      /*
-       * Milestone IDs were generated together with the requirement records,
-       * so keep those IDs. Only the parent configuration ID needs to be
-       * replaced when persisting against an existing configuration.
-       */
       for (const milestone of milestoneInserts) {
         yield* sql`
           INSERT INTO milestone (
@@ -270,10 +266,6 @@ const make = E.gen(function* () {
         `;
       }
 
-      /*
-       * Requirement records reference the newly generated milestone IDs above,
-       * so they can be inserted unchanged.
-       */
       for (const requirement of requirementInserts) {
         yield* sql`
           INSERT INTO requirement (
@@ -296,6 +288,80 @@ const make = E.gen(function* () {
             ${requirement.createdAt},
             ${requirement.updatedAt}
           )
+        `;
+      }
+    });
+  };
+
+  const updateExistingConfigurationMetadata = ({
+    configurationId,
+    configurationInsert,
+    milestoneInserts,
+    requirementInserts,
+  }: {
+    readonly configurationId: ConfigurationId;
+    readonly configurationInsert: typeof ConfigurationModel.insert.Encoded;
+    readonly milestoneInserts: ReadonlyArray<
+      typeof MilestoneModel.insert.Encoded
+    >;
+    readonly requirementInserts: ReadonlyArray<
+      typeof RequirementModel.insert.Encoded
+    >;
+  }) => {
+    return E.gen(function* () {
+      yield* sql`
+        UPDATE configuration
+        SET
+          label = ${configurationInsert.label},
+          updated_at = ${configurationInsert.updatedAt}
+        WHERE id = ${configurationId}
+      `;
+
+      const existingMilestones =
+        yield* getMilestonesByConfigurationId(configurationId);
+
+      const existingRequirements = yield* getRequirementsByMilestoneIds(
+        existingMilestones.map((milestone) => milestone.id),
+      );
+
+      for (const milestoneInsert of milestoneInserts) {
+        const submittedRequirements = requirementInserts.filter(
+          (requirement) => {
+            return requirement.milestoneId === milestoneInsert.id;
+          },
+        );
+
+        const submittedIdentityKey = getMilestoneRequirementsIdentityKey(
+          submittedRequirements,
+        );
+
+        const existingMilestone = existingMilestones.find((milestone) => {
+          const requirements = existingRequirements.filter((requirement) => {
+            return requirement.milestoneId === milestone.id;
+          });
+
+          return (
+            getMilestoneRequirementsIdentityKey(requirements) ===
+            submittedIdentityKey
+          );
+        });
+
+        if (existingMilestone === undefined) {
+          return yield* E.fail(
+            mapConfigurationDAOError(
+              new Error(
+                `Could not match persisted milestone for configuration "${configurationId}".`,
+              ),
+            ),
+          );
+        }
+
+        yield* sql`
+          UPDATE milestone
+          SET
+            label = ${milestoneInsert.label},
+            updated_at = ${milestoneInsert.updatedAt}
+          WHERE id = ${existingMilestone.id}
         `;
       }
     });
@@ -324,12 +390,14 @@ const make = E.gen(function* () {
   const persistConfiguration = ({
     configuration,
     label,
+    replaceConfigurationId,
     replaceDungeonAndLevel,
   }: {
     readonly configuration: Parameters<
       ConfigurationDAOShape["save"]
     >[0]["configuration"];
     readonly label: Parameters<ConfigurationDAOShape["save"]>[0]["label"];
+    readonly replaceConfigurationId?: ConfigurationId;
     readonly replaceDungeonAndLevel: boolean;
   }): E.Effect<PersistedConfiguration, ConfigurationDAOError> => {
     return E.gen(function* () {
@@ -346,9 +414,27 @@ const make = E.gen(function* () {
       const configurationId = yield* sql
         .withTransaction(
           E.gen(function* () {
+            if (replaceConfigurationId !== undefined) {
+              const rows = yield* sql`
+                SELECT id
+                FROM configuration
+                WHERE id = ${replaceConfigurationId}
+                LIMIT 1
+              `;
+
+              if (rows[0] === undefined) {
+                return yield* E.fail(
+                  mapConfigurationDAOError(
+                    new Error(
+                      `Configuration "${replaceConfigurationId}" was not found.`,
+                    ),
+                  ),
+                );
+              }
+            }
+
             const existingRows = yield* sql`
-              SELECT
-                id
+              SELECT id
               FROM configuration
               WHERE fingerprint = ${configurationInsert.fingerprint}
               LIMIT 1
@@ -366,30 +452,14 @@ const make = E.gen(function* () {
               );
 
               /*
-               * The fingerprint only represents semantic configuration data.
-               * Labels are editable metadata and therefore need to be updated
-               * even when the semantic fingerprint has not changed.
+               * Semantic configuration identity is immutable. A matching
+               * fingerprint represents the same persisted configuration, so
+               * preserve all existing configuration, milestone, and requirement
+               * IDs and update metadata only.
                */
-              yield* sql`
-                UPDATE configuration
-                SET
-                  label = ${configurationInsert.label},
-                  updated_at = ${configurationInsert.updatedAt}
-                WHERE id = ${configurationId}
-              `;
-
-              /*
-               * Milestone labels are also excluded from the semantic
-               * fingerprint. Recreate the child graph so persisted milestone
-               * metadata reflects the submitted configuration.
-               */
-              yield* sql`
-                DELETE FROM milestone
-                WHERE configuration_id = ${configurationId}
-              `;
-
-              yield* insertConfigurationChildren({
+              yield* updateExistingConfigurationMetadata({
                 configurationId,
+                configurationInsert,
                 milestoneInserts,
                 requirementInserts,
               });
@@ -424,6 +494,24 @@ const make = E.gen(function* () {
                 milestoneInserts,
                 requirementInserts,
               });
+            }
+
+            /*
+             * Updating a configuration is a replacement, never an in-place
+             * semantic mutation. If its semantics changed, the replacement has
+             * a different ID and the old configuration can now be removed.
+             *
+             * Historical dungeon runs retain their observations and have their
+             * configuration_id cleared through ON DELETE SET NULL.
+             */
+            if (
+              replaceConfigurationId !== undefined &&
+              replaceConfigurationId !== configurationId
+            ) {
+              yield* sql`
+                DELETE FROM configuration
+                WHERE id = ${replaceConfigurationId}
+              `;
             }
 
             if (replaceDungeonAndLevel) {
@@ -466,69 +554,11 @@ const make = E.gen(function* () {
     id,
     label,
   }) => {
-    return E.gen(function* () {
-      const { configurationInsert, milestoneInserts, requirementInserts } =
-        yield* prepareConfigurationPersistence({
-          configuration,
-          label,
-        });
-
-      yield* sql
-        .withTransaction(
-          E.gen(function* () {
-            const existingRows = yield* sql`
-              SELECT
-                id
-              FROM configuration
-              WHERE id = ${id}
-              LIMIT 1
-            `;
-
-            if (existingRows[0] === undefined) {
-              return yield* E.fail(
-                new Error(`Configuration "${id}" was not found.`),
-              );
-            }
-
-            /*
-             * Update the existing configuration in place. Its persisted
-             * identity and created_at timestamp are intentionally preserved.
-             *
-             * The fingerprint and canonical JSON are regenerated from the
-             * submitted configuration exactly as they are during a save.
-             */
-            yield* sql`
-              UPDATE configuration
-              SET
-                dungeon_id = ${configurationInsert.dungeonId},
-                dungeon_level = ${configurationInsert.dungeonLevel},
-                label = ${configurationInsert.label},
-                fingerprint = ${configurationInsert.fingerprint},
-                canonical_json = ${configurationInsert.canonicalJson},
-                updated_at = ${configurationInsert.updatedAt}
-              WHERE id = ${id}
-            `;
-
-            /*
-             * The submitted configuration owns the complete child graph.
-             * Removing milestones also removes their requirements through
-             * ON DELETE CASCADE.
-             */
-            yield* sql`
-              DELETE FROM milestone
-              WHERE configuration_id = ${id}
-            `;
-
-            yield* insertConfigurationChildren({
-              configurationId: id,
-              milestoneInserts,
-              requirementInserts,
-            });
-          }),
-        )
-        .pipe(E.mapError(mapConfigurationDAOError));
-
-      return yield* getPersistedConfiguration(id);
+    return persistConfiguration({
+      configuration,
+      label,
+      replaceConfigurationId: id,
+      replaceDungeonAndLevel: false,
     });
   };
 

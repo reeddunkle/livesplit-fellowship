@@ -13,6 +13,7 @@ import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-eve
 import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 import { isNonEmptyArray } from "@/util/is-non-empty-array.ts";
 import { type ConfigurationLabel } from "@/validation/configuration/configuration-label.ts";
 
@@ -21,6 +22,13 @@ import { type PersistedConfiguration } from "./configuration-dao.ts";
 type ConfigurationInsert = typeof ConfigurationModel.insert.Type;
 type MilestoneInsert = typeof MilestoneModel.insert.Type;
 type RequirementInsert = typeof RequirementModel.insert.Type;
+
+type RequirementIdentity = {
+  readonly requiredCount: number;
+  readonly startOccurrence: number;
+  readonly targetId: string;
+  readonly type: MilestoneRequirementEventType;
+};
 
 export type ConfigurationPersistenceRecords = {
   readonly configuration: ConfigurationInsert;
@@ -38,6 +46,21 @@ export type CreatePersistedConfigurationOptions = {
   readonly milestones: ReadonlyArray<MilestoneModel>;
   readonly requirements: ReadonlyArray<RequirementModel>;
 };
+
+function getRequirementIdentityKey(requirement: RequirementIdentity): string {
+  return JSON.stringify([
+    requirement.type,
+    requirement.targetId,
+    requirement.startOccurrence,
+    requirement.requiredCount,
+  ]);
+}
+
+export function getMilestoneRequirementsIdentityKey(
+  requirements: ReadonlyArray<RequirementIdentity>,
+): string {
+  return JSON.stringify(requirements.map(getRequirementIdentityKey).sort());
+}
 
 function createRequirementInsert({
   configuration,
