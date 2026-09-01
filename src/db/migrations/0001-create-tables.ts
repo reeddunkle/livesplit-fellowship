@@ -180,7 +180,10 @@ export const createTables = E.gen(function* () {
   yield* sql`
     CREATE TABLE dungeon_run (
       id TEXT PRIMARY KEY NOT NULL,
-      configuration_id TEXT NOT NULL,
+      configuration_id TEXT,
+      dungeon_id TEXT NOT NULL,
+      dungeon_level INTEGER NOT NULL
+        CHECK (dungeon_level >= 1),
       status TEXT NOT NULL
         CHECK (status IN ('ACTIVE', 'COMPLETED', 'EXITED')),
       started_at INTEGER NOT NULL,
@@ -190,7 +193,10 @@ export const createTables = E.gen(function* () {
 
       FOREIGN KEY (configuration_id)
         REFERENCES configuration(id)
-        ON DELETE CASCADE
+        ON DELETE SET NULL,
+
+      FOREIGN KEY (dungeon_id)
+        REFERENCES dungeon(id)
     ) STRICT
   `;
 
@@ -200,9 +206,15 @@ export const createTables = E.gen(function* () {
   `;
 
   yield* sql`
-    CREATE TABLE requirement_observation (
+    CREATE INDEX dungeon_run_dungeon_id_dungeon_level_started_at_index
+      ON dungeon_run(dungeon_id, dungeon_level, started_at)
+  `;
+
+  yield* sql`
+    CREATE TABLE dungeon_run_observation (
       dungeon_run_id TEXT NOT NULL,
-      requirement_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      target_id TEXT NOT NULL,
       occurrence INTEGER NOT NULL
         CHECK (occurrence >= 1),
       observed_at INTEGER NOT NULL,
@@ -210,22 +222,19 @@ export const createTables = E.gen(function* () {
 
       PRIMARY KEY (
         dungeon_run_id,
-        requirement_id,
+        type,
+        target_id,
         occurrence
       ),
 
       FOREIGN KEY (dungeon_run_id)
         REFERENCES dungeon_run(id)
-        ON DELETE CASCADE,
-
-      FOREIGN KEY (requirement_id)
-        REFERENCES requirement(id)
         ON DELETE CASCADE
     ) STRICT
   `;
 
   yield* sql`
-    CREATE INDEX requirement_observation_requirement_id_observed_at_index
-      ON requirement_observation(requirement_id, observed_at)
+    CREATE INDEX dungeon_run_observation_type_target_occurrence_observed_at_index
+      ON dungeon_run_observation(type, target_id, occurrence, observed_at)
   `;
 });
