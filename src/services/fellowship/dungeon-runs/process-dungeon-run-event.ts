@@ -4,7 +4,10 @@ import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-eve
 import { trackDungeonRunEvent } from "@/services/fellowship/dungeon-runs/track-dungeon-run.ts";
 import { initialMilestoneProcessorState } from "@/services/fellowship/milestones/milestone-processor-state.ts";
 import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
-import { processMilestoneEvent } from "@/services/fellowship/milestones/process-milestone-event.ts";
+import {
+  type DungeonRunObservation,
+  processMilestoneEvent,
+} from "@/services/fellowship/milestones/process-milestone-event.ts";
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 import { doesDungeonRunMatchConfiguration } from "@/services/fellowship/utilities/does-dungeon-run-match-configuration.ts";
 import { isDungeonExitEvent } from "@/services/fellowship/utilities/is-dungeon-exit-event.ts";
@@ -47,6 +50,7 @@ export type ProcessDungeonRunEventOptions = {
 export type ProcessDungeonRunEventResult = {
   readonly events: ReadonlyArray<DungeonRunProcessingEvent>;
   readonly isStateUpdated: boolean;
+  readonly observation: DungeonRunObservation | undefined;
   readonly state: DungeonRunProcessingState;
 };
 
@@ -147,6 +151,7 @@ export function processDungeonRunEvent({
     return {
       events: [],
       isStateUpdated: false,
+      observation: undefined,
       state: {
         milestoneProcessor,
         runTracker: trackerResult.state,
@@ -215,6 +220,7 @@ export function processDungeonRunEvent({
       ...dungeonExitEvents,
     ],
     isStateUpdated,
+    observation: milestoneResult.observation,
     state: {
       milestoneProcessor: milestoneResult.state,
       runTracker: trackerResult.state,

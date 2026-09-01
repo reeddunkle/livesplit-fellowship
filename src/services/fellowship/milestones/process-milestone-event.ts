@@ -22,7 +22,15 @@ import {
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
+import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
+
+export type DungeonRunObservation = {
+  readonly occurrence: number;
+  readonly targetId: MilestoneRequirementLookup["targetId"];
+  readonly timestamp: DateTime.Utc;
+  readonly type: MilestoneRequirementEventType;
+};
 
 export type ProcessMilestoneEventOptions = {
   readonly configuration: CompiledFellowshipMilestoneConfiguration;
@@ -34,6 +42,7 @@ export type ProcessMilestoneEventOptions = {
 export type ProcessMilestoneEventResult = {
   readonly isStateUpdated: boolean;
   readonly milestones: ReadonlyArray<FellowshipRunMilestone>;
+  readonly observation: DungeonRunObservation | undefined;
   readonly state: MilestoneProcessorState;
 };
 
@@ -194,6 +203,7 @@ export function processMilestoneEvent({
   const initialResult: ProcessMilestoneEventResult = {
     isStateUpdated: false,
     milestones: [],
+    observation: undefined,
     state,
   };
 
@@ -225,6 +235,15 @@ export function processMilestoneEvent({
     return initialResult;
   }
 
+  const timestamp = getEventTimestamp(event);
+
+  const observation = {
+    occurrence: currentOccurrenceCount + 1,
+    targetId: lookup.targetId,
+    timestamp,
+    type: lookup.type,
+  } satisfies DungeonRunObservation;
+
   const previousAnalysis = analyzeMilestoneProgress({
     configuration,
     state,
@@ -233,7 +252,7 @@ export function processMilestoneEvent({
   const nextState = addRequirementObservation({
     lookup,
     state,
-    timestamp: getEventTimestamp(event),
+    timestamp,
   });
 
   const nextAnalysis = analyzeMilestoneProgress({
@@ -250,6 +269,7 @@ export function processMilestoneEvent({
   return {
     isStateUpdated: true,
     milestones,
+    observation,
     state: nextState,
   };
 }
