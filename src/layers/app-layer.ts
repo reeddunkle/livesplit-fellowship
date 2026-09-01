@@ -9,6 +9,7 @@ import {
 } from "@/layers/persistence-layer.ts";
 import {
   DungeonRunWebSocketBroadcasterLive,
+  LiveSplitWebSocketBroadcasterLive,
   TrackingWebSocketBroadcasterLive,
 } from "@/services/api/websocket-broadcaster-service.ts";
 import { FellowshipLive } from "@/services/fellowship/fellowship-service.ts";
@@ -64,9 +65,10 @@ export function makeAppLive(options: MakeAppLiveOptions) {
     AppLoggerWithPlatform,
     appServicesLive,
     DungeonRunWebSocketBroadcasterLive,
-    TrackingWebSocketBroadcasterLive,
-    LiveSplitConnectionManagerLive,
-    liveSplitWithDependencies,
     fellowshipTrackerWithDependencies,
+    LiveSplitConnectionManagerLive,
+    LiveSplitWebSocketBroadcasterLive,
+    liveSplitWithDependencies,
+    TrackingWebSocketBroadcasterLive,
   );
 }

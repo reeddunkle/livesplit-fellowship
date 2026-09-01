@@ -1,6 +1,6 @@
 import * as Data from "effect/Data";
 
-export const LIVE_SPLIT_EVENT_MESSAGE_DECODE_ERROR =
+const LIVE_SPLIT_EVENT_MESSAGE_DECODE_ERROR =
   "LiveSplitEventMessageDecodeError" as const;
 
 export class LiveSplitEventMessageDecodeError extends Data.TaggedError(

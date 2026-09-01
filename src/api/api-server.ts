@@ -11,6 +11,7 @@ import { TrackingApiLive } from "@/api/http/groups/tracking/tracking-api-live.ts
 import { UnitsApiLive } from "@/api/http/groups/units/units-api-live.ts";
 import { AppHttpApi } from "@/api/http/http-api.ts";
 import { DungeonRunEventsRoutes } from "@/api/websocket/dungeon-run/dungeon-run-events-route.ts";
+import { LiveSplitRoutes } from "@/api/websocket/live-split/live-split-route.ts";
 import { TrackingRoutes } from "@/api/websocket/tracking/tracking-route.ts";
 import { env } from "@/env.ts";
 
@@ -30,7 +31,11 @@ const HttpApiRoutes = HttpApiBuilder.layer(AppHttpApi).pipe(
   Layer.provide(UnitsApiLive),
 );
 
-const WebsocketRoutes = Layer.mergeAll(DungeonRunEventsRoutes, TrackingRoutes);
+const WebsocketRoutes = Layer.mergeAll(
+  DungeonRunEventsRoutes,
+  LiveSplitRoutes,
+  TrackingRoutes,
+);
 
 const ApiRoutes = Layer.mergeAll(HttpApiRoutes, WebsocketRoutes).pipe(
   Layer.provide(CorsLive),

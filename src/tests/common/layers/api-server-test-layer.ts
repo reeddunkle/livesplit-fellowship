@@ -11,6 +11,7 @@ import { type LiveSplitApiService } from "@/services/api/live-split/live-split-a
 import { type UnitApiService } from "@/services/api/unit/unit-api-service.ts";
 import {
   DungeonRunWebSocketBroadcasterLive,
+  LiveSplitWebSocketBroadcasterLive,
   TrackingWebSocketBroadcasterLive,
 } from "@/services/api/websocket-broadcaster-service.ts";
 import { AbilityApiServiceMock } from "@/tests/common/mocks/ability-api-service-mock.ts";
@@ -46,6 +47,7 @@ export function makeApiServerTestLayer(
   return ApiServer.pipe(
     Layer.provideMerge(DungeonRunWebSocketBroadcasterLive),
     Layer.provideMerge(TrackingWebSocketBroadcasterLive),
+    Layer.provideMerge(LiveSplitWebSocketBroadcasterLive),
     Layer.provideMerge(apiServicesLayer),
     Layer.provideMerge(NodeHttpServer.layerTest),
   );
