@@ -18,6 +18,8 @@ export function makeLiveSplitTestHarness() {
     const transport: LiveSplitTransport = {
       chunks: Stream.fromQueue(incomingChunks),
 
+      connected: E.void,
+
       write: (data) => {
         return E.gen(function* () {
           yield* Ref.update(commandHistory, (commands) => {
