@@ -1,4 +1,4 @@
-import { type DungeonRunStateApi } from "@/api/websocket/dungeon-run-api-message-schema.ts";
+import { type DungeonRunStateApi } from "@/api/websocket/dungeon-run/dungeon-run-api-message-schema.ts";
 
 type RunStateProps = {
   readonly state: DungeonRunStateApi | null;

@@ -9,7 +9,7 @@ import * as Socket from "effect/unstable/socket/Socket";
 import {
   type TrackingApiMessage,
   TrackingApiMessageSchema,
-} from "@/api/websocket/tracking-api-message-schema.ts";
+} from "@/api/websocket/tracking/tracking-api-message-schema.ts";
 import { getApiWebSocketUrl } from "@/electron/renderer/api/api-url.ts";
 import { TrackingEventMessageDecodeError } from "@/errors/tracking-event-stream-error.ts";
 
