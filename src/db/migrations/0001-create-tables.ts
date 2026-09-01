@@ -176,4 +176,56 @@ export const createTables = E.gen(function* () {
     CREATE INDEX requirement_milestone_id_index
       ON requirement(milestone_id)
   `;
+
+  yield* sql`
+    CREATE TABLE dungeon_run (
+      id TEXT PRIMARY KEY NOT NULL,
+      configuration_id TEXT NOT NULL,
+      status TEXT NOT NULL
+        CHECK (status IN ('ACTIVE', 'COMPLETED', 'EXITED')),
+      started_at INTEGER NOT NULL,
+      ended_at INTEGER,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+
+      FOREIGN KEY (configuration_id)
+        REFERENCES configuration(id)
+        ON DELETE CASCADE
+    ) STRICT
+  `;
+
+  yield* sql`
+    CREATE INDEX dungeon_run_configuration_id_started_at_index
+      ON dungeon_run(configuration_id, started_at)
+  `;
+
+  yield* sql`
+    CREATE TABLE requirement_observation (
+      dungeon_run_id TEXT NOT NULL,
+      requirement_id TEXT NOT NULL,
+      occurrence INTEGER NOT NULL
+        CHECK (occurrence >= 1),
+      observed_at INTEGER NOT NULL,
+      created_at INTEGER NOT NULL,
+
+      PRIMARY KEY (
+        dungeon_run_id,
+        requirement_id,
+        occurrence
+      ),
+
+      FOREIGN KEY (dungeon_run_id)
+        REFERENCES dungeon_run(id)
+        ON DELETE CASCADE,
+
+      FOREIGN KEY (requirement_id)
+        REFERENCES requirement(id)
+        ON DELETE CASCADE
+    ) STRICT
+  `;
+
+  yield* sql`
+    CREATE INDEX requirement_observation_requirement_id_observed_at_index
+      ON requirement_observation(requirement_id, observed_at)
+  `;
 });

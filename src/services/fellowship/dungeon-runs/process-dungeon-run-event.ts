@@ -15,22 +15,27 @@ import { type DungeonRunProcessingState } from "./dungeon-run-processing-state.t
 
 export const DUNGEON_RUN_PROCESSING_EVENT = {
   MILESTONE_COMPLETED: "MILESTONE_COMPLETED",
+  RUN_COMPLETED: "RUN_COMPLETED",
   RUN_EXITED: "RUN_EXITED",
   RUN_STARTED: "RUN_STARTED",
 } as const;
 
 export type DungeonRunProcessingEvent =
   | {
+      readonly milestone: FellowshipRunMilestone;
+      readonly type: typeof DUNGEON_RUN_PROCESSING_EVENT.MILESTONE_COMPLETED;
+    }
+  | {
       readonly timestamp: DateTime.Utc;
-      readonly type: typeof DUNGEON_RUN_PROCESSING_EVENT.RUN_STARTED;
+      readonly type: typeof DUNGEON_RUN_PROCESSING_EVENT.RUN_COMPLETED;
     }
   | {
       readonly timestamp: DateTime.Utc;
       readonly type: typeof DUNGEON_RUN_PROCESSING_EVENT.RUN_EXITED;
     }
   | {
-      readonly milestone: FellowshipRunMilestone;
-      readonly type: typeof DUNGEON_RUN_PROCESSING_EVENT.MILESTONE_COMPLETED;
+      readonly timestamp: DateTime.Utc;
+      readonly type: typeof DUNGEON_RUN_PROCESSING_EVENT.RUN_STARTED;
     };
 
 export type ProcessDungeonRunEventOptions = {
@@ -119,6 +124,9 @@ export function processDungeonRunEvent({
     state: state.runTracker,
   });
 
+  const hasCompletedConfiguredRun =
+    wasConfiguredRunActive && trackerResult.completedRun !== undefined;
+
   const milestoneProcessor = isConfiguredDungeonStart
     ? initialMilestoneProcessorState
     : state.milestoneProcessor;
@@ -173,6 +181,16 @@ export function processDungeonRunEvent({
       };
     });
 
+  const dungeonCompletionEvents: ReadonlyArray<DungeonRunProcessingEvent> =
+    hasCompletedConfiguredRun
+      ? [
+          {
+            timestamp,
+            type: DUNGEON_RUN_PROCESSING_EVENT.RUN_COMPLETED,
+          },
+        ]
+      : [];
+
   const dungeonExitEvents: ReadonlyArray<DungeonRunProcessingEvent> =
     hasExitedConfiguredRun
       ? [
@@ -186,10 +204,16 @@ export function processDungeonRunEvent({
   const isStateUpdated =
     isConfiguredDungeonStart ||
     milestoneResult.isStateUpdated ||
+    hasCompletedConfiguredRun ||
     hasExitedConfiguredRun;
 
   return {
-    events: [...dungeonStartEvents, ...milestoneEvents, ...dungeonExitEvents],
+    events: [
+      ...dungeonStartEvents,
+      ...milestoneEvents,
+      ...dungeonCompletionEvents,
+      ...dungeonExitEvents,
+    ],
     isStateUpdated,
     state: {
       milestoneProcessor: milestoneResult.state,
