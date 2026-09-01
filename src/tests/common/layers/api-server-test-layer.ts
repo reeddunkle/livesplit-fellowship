@@ -7,6 +7,7 @@ import { type AbilityApiService } from "@/services/api/ability/ability-api-servi
 import { type ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
 import { type DungeonApiService } from "@/services/api/dungeon/dungeon-api-service.ts";
 import { type EncounterApiService } from "@/services/api/encounter/encounter-api-service.ts";
+import { type LiveSplitApiService } from "@/services/api/live-split/live-split-api-service.ts";
 import { type UnitApiService } from "@/services/api/unit/unit-api-service.ts";
 import {
   DungeonRunWebSocketBroadcasterLive,
@@ -17,6 +18,7 @@ import { ConfigurationApiServiceMock } from "@/tests/common/mocks/configuration-
 import { DungeonApiServiceMock } from "@/tests/common/mocks/dungeon-api-service-mock.ts";
 import { EncounterApiServiceMock } from "@/tests/common/mocks/encounter-api-service-mock.ts";
 import { FellowshipTrackerMock } from "@/tests/common/mocks/fellowship-tracker-service-mock.ts";
+import { LiveSplitApiServiceMock } from "@/tests/common/mocks/live-split-api-service-mock.ts";
 import { UnitApiServiceMock } from "@/tests/common/mocks/unit-api-service-mock.ts";
 
 export type ApiServices =
@@ -25,6 +27,7 @@ export type ApiServices =
   | DungeonApiService
   | EncounterApiService
   | FellowshipTracker
+  | LiveSplitApiService
   | UnitApiService;
 
 export const ApiServicesTest: Layer.Layer<ApiServices> = Layer.mergeAll(
@@ -33,6 +36,7 @@ export const ApiServicesTest: Layer.Layer<ApiServices> = Layer.mergeAll(
   DungeonApiServiceMock,
   EncounterApiServiceMock,
   FellowshipTrackerMock,
+  LiveSplitApiServiceMock,
   UnitApiServiceMock,
 );
 
