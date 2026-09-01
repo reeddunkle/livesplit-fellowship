@@ -10,11 +10,11 @@ import { runTest } from "@/tests/common/run-test.ts";
 
 import { configuration } from "./configuration.ts";
 
-describe("FellowshipTracker WebSocket messages", () => {
-  test("broadcasts run state updates while processing a run", async () => {
+describe("FellowshipTracker dungeon run WebSocket messages", () => {
+  test("broadcasts dungeon run state updates while processing a run", async () => {
     const program = E.scoped(
       E.gen(function* () {
-        const { layer, webSocketBroadcasterHarness } =
+        const { dungeonRunWebSocketBroadcasterHarness, layer } =
           yield* makeAppTestHarness();
 
         const logFilePath = path.join(import.meta.dirname, "log.txt");
@@ -28,7 +28,8 @@ describe("FellowshipTracker WebSocket messages", () => {
           });
         }).pipe(E.provide(layer));
 
-        const messages = yield* webSocketBroadcasterHarness.getParsedMessages();
+        const messages =
+          yield* dungeonRunWebSocketBroadcasterHarness.getParsedMessages();
 
         expect(messages.length).toBeGreaterThan(0);
 
@@ -46,7 +47,7 @@ describe("FellowshipTracker WebSocket messages", () => {
 
         expect(decodedFirstMessage).toMatchObject({
           state: {
-            run: {
+            dungeonRun: {
               startedAtMilliseconds: expect.any(Number),
             },
           },

@@ -11,7 +11,7 @@ import {
   type ConfigurationDAOShape,
   type PersistedConfiguration,
 } from "@/db/daos/configuration/configuration-dao.ts";
-import { WebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
+import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import {
   Fellowship,
   type FellowshipService,
@@ -84,7 +84,7 @@ export function makeFellowshipTrackerTestHarness(
       liveEvents: options.liveEvents ?? defaultLiveEvents,
     });
 
-    const webSocketBroadcasterHarness =
+    const dungeonRunWebSocketBroadcasterHarness =
       yield* makeWebSocketBroadcasterTestHarness();
 
     const configurationDAO = {
@@ -142,26 +142,26 @@ export function makeFellowshipTrackerTestHarness(
 
     const LiveSplitMock = Layer.succeed(LiveSplit, liveSplit);
 
-    const WebSocketBroadcasterMock = Layer.succeed(
-      WebSocketBroadcaster,
-      webSocketBroadcasterHarness.webSocketBroadcaster,
+    const DungeonRunWebSocketBroadcasterMock = Layer.succeed(
+      DungeonRunWebSocketBroadcaster,
+      dungeonRunWebSocketBroadcasterHarness.webSocketBroadcaster,
     );
 
     const FellowshipTrackerTest = FellowshipTrackerLive.pipe(
       Layer.provide(ConfigurationDAOMock),
       Layer.provide(FellowshipMock),
       Layer.provide(LiveSplitMock),
-      Layer.provide(WebSocketBroadcasterMock),
+      Layer.provide(DungeonRunWebSocketBroadcasterMock),
     );
 
     return {
       configuration,
       configurationId,
       configurationLabel,
+      dungeonRunWebSocketBroadcasterHarness,
       layer: FellowshipTrackerTest,
       trackingInterrupted,
       trackingStarted,
-      webSocketBroadcasterHarness,
     };
   });
 }

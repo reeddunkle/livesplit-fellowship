@@ -4,7 +4,7 @@ import * as Option from "effect/Option";
 
 import { FellowshipTrackerLive } from "@/application/tracking/fellowship-tracker-service.ts";
 import { makeAppServicesLive } from "@/layers/app-layer.ts";
-import { WebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
+import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import {
   LiveSplitConnectionManager,
   type LiveSplitConnectionManagerService,
@@ -24,7 +24,7 @@ export function makeAppTestHarness({
   return E.gen(function* () {
     const liveSplitHarness = yield* makeLiveSplitTestHarness();
 
-    const webSocketBroadcasterHarness =
+    const dungeonRunWebSocketBroadcasterHarness =
       yield* makeWebSocketBroadcasterTestHarness();
 
     const appServicesTest = makeAppServicesLive({
@@ -51,15 +51,15 @@ export function makeAppTestHarness({
       Layer.provide(liveSplitConnectionManagerTest),
     );
 
-    const webSocketBroadcasterTest = Layer.succeed(
-      WebSocketBroadcaster,
-      webSocketBroadcasterHarness.webSocketBroadcaster,
+    const dungeonRunWebSocketBroadcasterTest = Layer.succeed(
+      DungeonRunWebSocketBroadcaster,
+      dungeonRunWebSocketBroadcasterHarness.webSocketBroadcaster,
     );
 
     const fellowshipTrackerDependencies = Layer.mergeAll(
       appServicesTest,
       liveSplitTest,
-      webSocketBroadcasterTest,
+      dungeonRunWebSocketBroadcasterTest,
     );
 
     const fellowshipTrackerTest = FellowshipTrackerLive.pipe(
@@ -70,14 +70,14 @@ export function makeAppTestHarness({
       appServicesTest,
       liveSplitConnectionManagerTest,
       liveSplitTest,
-      webSocketBroadcasterTest,
+      dungeonRunWebSocketBroadcasterTest,
       fellowshipTrackerTest,
     );
 
     return {
+      dungeonRunWebSocketBroadcasterHarness,
       layer,
       liveSplitHarness,
-      webSocketBroadcasterHarness,
     };
   });
 }

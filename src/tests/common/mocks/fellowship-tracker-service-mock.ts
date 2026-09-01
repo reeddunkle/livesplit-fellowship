@@ -1,5 +1,6 @@
 import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as Stream from "effect/Stream";
 
 import {
   FellowshipTracker,
@@ -22,6 +23,9 @@ function makeFellowshipTrackerMock({
   status = E.succeed({
     _tag: "Idle",
   }),
+  statusChanges = Stream.make({
+    _tag: "Idle",
+  }),
   stop = () => {
     return E.void;
   },
@@ -31,6 +35,7 @@ function makeFellowshipTrackerMock({
     start,
     startConfiguration,
     status,
+    statusChanges,
     stop,
   } satisfies FellowshipTrackerServiceShape);
 }

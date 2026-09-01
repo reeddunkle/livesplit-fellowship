@@ -77,7 +77,7 @@ function createRunProcessingState({
   };
 }
 
-describe("publishRunApiState", () => {
+describe("publishDungeonRunState", () => {
   test("publishes an active run state", async () => {
     const program = E.gen(function* () {
       const webSocketBroadcasterHarness =
@@ -101,6 +101,9 @@ describe("publishRunApiState", () => {
       expect(messages).toEqual([
         {
           state: {
+            dungeonRun: {
+              startedAtMilliseconds: 1_000,
+            },
             milestones: [
               {
                 completedAtMilliseconds: null,
@@ -118,9 +121,6 @@ describe("publishRunApiState", () => {
                 ],
               },
             ],
-            run: {
-              startedAtMilliseconds: 1_000,
-            },
           },
           version: 1,
         },
@@ -179,6 +179,9 @@ describe("publishRunApiState", () => {
       expect(messages).toEqual([
         {
           state: {
+            dungeonRun: {
+              startedAtMilliseconds: 1_000,
+            },
             milestones: [
               {
                 completedAtMilliseconds: 13_345,
@@ -200,9 +203,6 @@ describe("publishRunApiState", () => {
                 ],
               },
             ],
-            run: {
-              startedAtMilliseconds: 1_000,
-            },
           },
           version: 1,
         },
@@ -228,6 +228,7 @@ describe("publishRunApiState", () => {
       expect(messages).toEqual([
         {
           state: {
+            dungeonRun: null,
             milestones: [
               {
                 completedAtMilliseconds: null,
@@ -245,7 +246,6 @@ describe("publishRunApiState", () => {
                 ],
               },
             ],
-            run: null,
           },
           version: 1,
         },
