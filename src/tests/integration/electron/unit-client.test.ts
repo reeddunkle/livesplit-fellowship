@@ -17,6 +17,7 @@ import { ConfigurationApiServiceMock } from "@/tests/common/mocks/configuration-
 import { DungeonApiServiceMock } from "@/tests/common/mocks/dungeon-api-service-mock.ts";
 import { EncounterApiServiceMock } from "@/tests/common/mocks/encounter-api-service-mock.ts";
 import { FellowshipTrackerMock } from "@/tests/common/mocks/fellowship-tracker-service-mock.ts";
+import { LiveSplitApiServiceMock } from "@/tests/common/mocks/live-split-api-service-mock.ts";
 import { makeUnitApiServiceMock } from "@/tests/common/mocks/unit-api-service-mock.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
@@ -46,6 +47,7 @@ function makeUnitApiServerTestLayer(
     DungeonApiServiceMock,
     EncounterApiServiceMock,
     FellowshipTrackerMock,
+    LiveSplitApiServiceMock,
     unitApiServiceLayer,
   );
 
