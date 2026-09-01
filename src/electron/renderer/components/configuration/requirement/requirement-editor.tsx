@@ -210,7 +210,7 @@ export function RequirementEditor({
                         return (
                           <Field data-invalid={showError}>
                             <FieldLabel htmlFor={requiredCountField.name}>
-                              Required count
+                              Count
                             </FieldLabel>
                             <Input
                               aria-invalid={isInvalid}
