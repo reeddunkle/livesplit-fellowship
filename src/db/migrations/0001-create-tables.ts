@@ -105,12 +105,11 @@ export const createTables = E.gen(function* () {
   `;
 
   yield* sql`
-    CREATE TABLE configuration (
+    CREATE TABLE configuration_definition (
       id TEXT PRIMARY KEY NOT NULL,
       dungeon_id TEXT NOT NULL,
       dungeon_level INTEGER NOT NULL
         CHECK (dungeon_level >= 1),
-      label TEXT NOT NULL,
       fingerprint TEXT NOT NULL UNIQUE,
       canonical_json TEXT NOT NULL,
       created_at INTEGER NOT NULL,
@@ -122,8 +121,60 @@ export const createTables = E.gen(function* () {
   `;
 
   yield* sql`
-    CREATE INDEX configuration_dungeon_id_index
-      ON configuration(dungeon_id)
+    CREATE INDEX configuration_definition_dungeon_id_dungeon_level_index
+      ON configuration_definition(dungeon_id, dungeon_level)
+  `;
+
+  yield* sql`
+    CREATE TABLE configuration (
+      id TEXT PRIMARY KEY NOT NULL,
+      configuration_definition_id TEXT NOT NULL,
+      label TEXT NOT NULL,
+      fingerprint TEXT NOT NULL UNIQUE,
+      canonical_json TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+
+      FOREIGN KEY (configuration_definition_id)
+        REFERENCES configuration_definition(id)
+    ) STRICT
+  `;
+
+  yield* sql`
+    CREATE INDEX configuration_configuration_definition_id_index
+      ON configuration(configuration_definition_id)
+  `;
+
+  yield* sql`
+    CREATE TABLE requirement (
+      id TEXT PRIMARY KEY NOT NULL,
+      configuration_definition_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      target_id TEXT NOT NULL,
+      start_occurrence INTEGER NOT NULL
+        CHECK (start_occurrence >= 1),
+      required_count INTEGER NOT NULL
+        CHECK (required_count >= 1),
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+
+      FOREIGN KEY (configuration_definition_id)
+        REFERENCES configuration_definition(id)
+        ON DELETE CASCADE,
+
+      UNIQUE (
+        configuration_definition_id,
+        type,
+        target_id,
+        start_occurrence,
+        required_count
+      )
+    ) STRICT
+  `;
+
+  yield* sql`
+    CREATE INDEX requirement_configuration_definition_id_index
+      ON requirement(configuration_definition_id)
   `;
 
   yield* sql`
@@ -146,41 +197,35 @@ export const createTables = E.gen(function* () {
   `;
 
   yield* sql`
-    CREATE TABLE requirement (
-      id TEXT PRIMARY KEY NOT NULL,
+    CREATE TABLE milestone_requirement (
       milestone_id TEXT NOT NULL,
-      type TEXT NOT NULL,
-      target_id TEXT NOT NULL,
-      start_occurrence INTEGER NOT NULL
-        CHECK (start_occurrence >= 1),
-      required_count INTEGER NOT NULL
-        CHECK (required_count >= 1),
+      requirement_id TEXT NOT NULL,
       created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL,
+
+      PRIMARY KEY (
+        milestone_id,
+        requirement_id
+      ),
 
       FOREIGN KEY (milestone_id)
         REFERENCES milestone(id)
         ON DELETE CASCADE,
 
-      UNIQUE (
-        milestone_id,
-        type,
-        target_id,
-        start_occurrence,
-        required_count
-      )
+      FOREIGN KEY (requirement_id)
+        REFERENCES requirement(id)
+        ON DELETE CASCADE
     ) STRICT
   `;
 
   yield* sql`
-    CREATE INDEX requirement_milestone_id_index
-      ON requirement(milestone_id)
+    CREATE INDEX milestone_requirement_requirement_id_index
+      ON milestone_requirement(requirement_id)
   `;
 
   yield* sql`
     CREATE TABLE dungeon_run (
       id TEXT PRIMARY KEY NOT NULL,
-      configuration_id TEXT,
+      configuration_definition_id TEXT NOT NULL,
       dungeon_id TEXT NOT NULL,
       dungeon_level INTEGER NOT NULL
         CHECK (dungeon_level >= 1),
@@ -191,9 +236,13 @@ export const createTables = E.gen(function* () {
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL,
 
-      FOREIGN KEY (configuration_id)
-        REFERENCES configuration(id)
-        ON DELETE SET NULL,
+      CHECK (
+        (status = 'ACTIVE' AND ended_at IS NULL) OR
+        (status IN ('COMPLETED', 'EXITED') AND ended_at IS NOT NULL)
+      ),
+
+      FOREIGN KEY (configuration_definition_id)
+        REFERENCES configuration_definition(id),
 
       FOREIGN KEY (dungeon_id)
         REFERENCES dungeon(id)
@@ -201,8 +250,8 @@ export const createTables = E.gen(function* () {
   `;
 
   yield* sql`
-    CREATE INDEX dungeon_run_configuration_id_started_at_index
-      ON dungeon_run(configuration_id, started_at)
+    CREATE INDEX dungeon_run_configuration_definition_id_started_at_index
+      ON dungeon_run(configuration_definition_id, started_at)
   `;
 
   yield* sql`
