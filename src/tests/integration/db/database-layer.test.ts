@@ -1,6 +1,6 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import path from "node:path";
 import * as E from "effect/Effect";
 import * as SqlClient from "effect/unstable/sql/SqlClient";
 import { describe, expect, test } from "vitest";
@@ -21,10 +21,14 @@ describe("DatabaseLayer", () => {
             'ability',
             'ability_unit',
             'configuration',
+            'configuration_definition',
             'dungeon',
+            'dungeon_run',
+            'dungeon_run_observation',
             'dungeon_unit',
             'encounter',
             'milestone',
+            'milestone_requirement',
             'requirement',
             'unit'
           )
@@ -42,7 +46,16 @@ describe("DatabaseLayer", () => {
           name: "configuration",
         },
         {
+          name: "configuration_definition",
+        },
+        {
           name: "dungeon",
+        },
+        {
+          name: "dungeon_run",
+        },
+        {
+          name: "dungeon_run_observation",
         },
         {
           name: "dungeon_unit",
@@ -52,6 +65,9 @@ describe("DatabaseLayer", () => {
         },
         {
           name: "milestone",
+        },
+        {
+          name: "milestone_requirement",
         },
         {
           name: "requirement",
@@ -252,15 +268,35 @@ describe("DatabaseLayer", () => {
     await runTest(program);
   });
 
-  test("cascades configuration deletion to milestones and requirements", async () => {
+  test("cascades configuration deletion to milestones and milestone requirements", async () => {
     const program = E.gen(function* () {
       const sql = yield* SqlClient.SqlClient;
 
       yield* sql`
-        INSERT INTO configuration (
+        INSERT INTO configuration_definition (
           id,
           dungeon_id,
           dungeon_level,
+          fingerprint,
+          canonical_json,
+          created_at,
+          updated_at
+        )
+        VALUES (
+          'configuration-definition-1',
+          '11',
+          63,
+          'definition-fingerprint-1',
+          '{}',
+          1000,
+          1000
+        )
+      `;
+
+      yield* sql`
+        INSERT INTO configuration (
+          id,
+          configuration_definition_id,
           label,
           fingerprint,
           canonical_json,
@@ -269,11 +305,33 @@ describe("DatabaseLayer", () => {
         )
         VALUES (
           'configuration-1',
-          '11',
-          63,
+          'configuration-definition-1',
           'Test Configuration',
-          'fingerprint-1',
+          'configuration-fingerprint-1',
           '{}',
+          1000,
+          1000
+        )
+      `;
+
+      yield* sql`
+        INSERT INTO requirement (
+          id,
+          configuration_definition_id,
+          type,
+          target_id,
+          start_occurrence,
+          required_count,
+          created_at,
+          updated_at
+        )
+        VALUES (
+          'requirement-1',
+          'configuration-definition-1',
+          'UNIT_DEATH',
+          '42',
+          1,
+          1,
           1000,
           1000
         )
@@ -297,24 +355,14 @@ describe("DatabaseLayer", () => {
       `;
 
       yield* sql`
-        INSERT INTO requirement (
-          id,
+        INSERT INTO milestone_requirement (
           milestone_id,
-          type,
-          target_id,
-          start_occurrence,
-          required_count,
-          created_at,
-          updated_at
+          requirement_id,
+          created_at
         )
         VALUES (
-          'requirement-1',
           'milestone-1',
-          'UNIT_DEATH',
-          '42',
-          1,
-          1,
-          1000,
+          'requirement-1',
           1000
         )
       `;
@@ -329,9 +377,19 @@ describe("DatabaseLayer", () => {
         FROM configuration
       `;
 
+      const configurationDefinitions = yield* sql`
+        SELECT id
+        FROM configuration_definition
+      `;
+
       const milestones = yield* sql`
         SELECT id
         FROM milestone
+      `;
+
+      const milestoneRequirements = yield* sql`
+        SELECT milestone_id, requirement_id
+        FROM milestone_requirement
       `;
 
       const requirements = yield* sql`
@@ -341,16 +399,30 @@ describe("DatabaseLayer", () => {
 
       expect(configurations).toEqual([]);
       expect(milestones).toEqual([]);
-      expect(requirements).toEqual([]);
+      expect(milestoneRequirements).toEqual([]);
+
+      expect(configurationDefinitions).toEqual([
+        {
+          id: "configuration-definition-1",
+        },
+      ]);
+
+      expect(requirements).toEqual([
+        {
+          id: "requirement-1",
+        },
+      ]);
     }).pipe(E.provide(makeDatabaseLayer(":memory:")));
 
     await runTest(program);
   });
 
   test("creates the database parent directory on first startup", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "livesplit-fellowship-"));
+    const directory = await mkdtemp(
+      path.join(tmpdir(), "livesplit-fellowship-"),
+    );
 
-    const databaseFilename = join(
+    const databaseFilename = path.join(
       directory,
       "nested",
       "data",
