@@ -31,42 +31,45 @@ function decodeUnitRows(
 function createUnitModels(
   rows: ReadonlyArray<UnitRow>,
 ): ReadonlyArray<UnitModel> {
-  const unitsById = new Map<
-    string,
-    {
-      createdAt: UnitRow["createdAt"];
-      dungeonIds: Array<string>;
-      groupKey: string | null;
-      id: string;
-      name: string;
-      status: UnitRow["status"];
-      updatedAt: UnitRow["updatedAt"];
-      variant: string | null;
-    }
-  >();
+  const unitsById = rows.reduce(
+    (accumulator, row) => {
+      const existingUnit = accumulator.get(row.id);
 
-  for (const row of rows) {
-    const existingUnit = unitsById.get(row.id);
+      if (existingUnit !== undefined) {
+        if (row.dungeonId !== null) {
+          existingUnit.dungeonIds.push(row.dungeonId);
+        }
 
-    if (existingUnit !== undefined) {
-      if (row.dungeonId !== null) {
-        existingUnit.dungeonIds.push(row.dungeonId);
+        return accumulator;
       }
 
-      continue;
-    }
+      accumulator.set(row.id, {
+        createdAt: row.createdAt,
+        dungeonIds: row.dungeonId === null ? [] : [row.dungeonId],
+        groupKey: row.groupKey,
+        id: row.id,
+        name: row.name,
+        status: row.status,
+        updatedAt: row.updatedAt,
+        variant: row.variant,
+      });
 
-    unitsById.set(row.id, {
-      createdAt: row.createdAt,
-      dungeonIds: row.dungeonId === null ? [] : [row.dungeonId],
-      groupKey: row.groupKey,
-      id: row.id,
-      name: row.name,
-      status: row.status,
-      updatedAt: row.updatedAt,
-      variant: row.variant,
-    });
-  }
+      return accumulator;
+    },
+    new Map<
+      string,
+      {
+        createdAt: UnitRow["createdAt"];
+        dungeonIds: Array<string>;
+        groupKey: string | null;
+        id: string;
+        name: string;
+        status: UnitRow["status"];
+        updatedAt: UnitRow["updatedAt"];
+        variant: string | null;
+      }
+    >(),
+  );
 
   return Array.from(unitsById.values()).map((unit) => {
     return new UnitModel(unit);

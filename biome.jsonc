@@ -46,7 +46,7 @@
   "files": {
     "ignoreUnknown": false,
     "includes": [
-      "**/*.{js,cjs,mjs,ts,tsx,json,md}",
+      "**/*.{js,cjs,mjs,ts,tsx,json,jsonc,md}",
       "!src/electron/renderer/router/routeTree.gen.ts"
     ]
   },
@@ -74,7 +74,8 @@
       "enabled": true
     },
     "parser": {
-      "allowComments": true
+      "allowComments": true,
+      "allowTrailingCommas": false
     }
   },
   "linter": {
@@ -90,7 +91,8 @@
         }
       },
       "performance": {
-        "noAccumulatingSpread": "error"
+        "noAccumulatingSpread": "error",
+        "noBarrelFile": "on"
       },
       "preset": "recommended",
       "nursery": {
@@ -112,6 +114,7 @@
         // "useModernMathApis": "on",
       },
       "style": {
+        "noContinue": "on",
         "useImportType": {
           "level": "warn",
           "options": {
