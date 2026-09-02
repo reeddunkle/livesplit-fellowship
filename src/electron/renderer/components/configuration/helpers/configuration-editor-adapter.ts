@@ -51,39 +51,42 @@ function createMilestoneRequirement(
   };
 
   return Match.value(requirement).pipe(
-    Match.when({ type: FELLOWSHIP_EVENT.ABILITY_ACTIVATED }, (requirement) => {
-      return {
-        abilityId: requirement.targetId,
-        ...occurrence,
-        type: requirement.type,
-      };
-    }),
+    Match.when(
+      { type: FELLOWSHIP_EVENT.ABILITY_ACTIVATED },
+      (matchedRequirement) => {
+        return {
+          abilityId: matchedRequirement.targetId,
+          ...occurrence,
+          type: matchedRequirement.type,
+        };
+      },
+    ),
     Match.whenOr(
       { type: FELLOWSHIP_EVENT.DUNGEON_START },
       { type: FELLOWSHIP_EVENT.DUNGEON_END },
-      (requirement) => {
+      (matchedRequirement) => {
         return {
           ...occurrence,
-          type: requirement.type,
+          type: matchedRequirement.type,
         };
       },
     ),
     Match.whenOr(
       { type: FELLOWSHIP_EVENT.ENCOUNTER_START },
       { type: FELLOWSHIP_EVENT.ENCOUNTER_END },
-      (requirement) => {
+      (matchedRequirement) => {
         return {
-          encounterId: requirement.targetId,
+          encounterId: matchedRequirement.targetId,
           ...occurrence,
-          type: requirement.type,
+          type: matchedRequirement.type,
         };
       },
     ),
-    Match.when({ type: FELLOWSHIP_EVENT.UNIT_DEATH }, (requirement) => {
+    Match.when({ type: FELLOWSHIP_EVENT.UNIT_DEATH }, (matchedRequirement) => {
       return {
         ...occurrence,
-        type: requirement.type,
-        unitTypeId: requirement.targetId,
+        type: matchedRequirement.type,
+        unitTypeId: matchedRequirement.targetId,
       };
     }),
     Match.exhaustive,

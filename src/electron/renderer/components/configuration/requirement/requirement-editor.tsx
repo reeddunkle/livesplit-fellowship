@@ -95,18 +95,19 @@ export function RequirementEditor({
       <div className="grid gap-4 sm:grid-cols-2">
         <form.Field name={`${requirementPath}.type` as const}>
           {(field) => {
-            const isInvalid = !field.state.meta.isValid;
-            const showError = isInvalid && field.state.meta.isBlurred;
+            const isTypeInvalid = !field.state.meta.isValid;
+            const shouldShowTypeError =
+              isTypeInvalid && field.state.meta.isBlurred;
 
             const showOccurrenceFields =
               field.state.value === FELLOWSHIP_EVENT.UNIT_DEATH;
 
             return (
               <>
-                <Field data-invalid={showError}>
+                <Field data-invalid={shouldShowTypeError}>
                   <FieldLabel htmlFor={field.name}>Event type</FieldLabel>
                   <NativeSelect
-                    aria-invalid={isInvalid}
+                    aria-invalid={isTypeInvalid}
                     autoFocus={autoFocus}
                     id={field.name}
                     name={field.name}
@@ -148,7 +149,9 @@ export function RequirementEditor({
                       );
                     })}
                   </NativeSelect>
-                  {showError && <FieldError errors={field.state.meta.errors} />}
+                  {shouldShowTypeError && (
+                    <FieldError errors={field.state.meta.errors} />
+                  )}
                 </Field>
                 <RequirementTargetField
                   eventType={field.state.value}
@@ -163,19 +166,19 @@ export function RequirementEditor({
                       name={`${requirementPath}.startOccurrence` as const}
                     >
                       {(startOccurrenceField) => {
-                        const isInvalid =
+                        const isStartOccurrenceInvalid =
                           !startOccurrenceField.state.meta.isValid;
-                        const showError =
-                          isInvalid &&
+                        const shouldShowStartOccurrenceError =
+                          isStartOccurrenceInvalid &&
                           startOccurrenceField.state.meta.isBlurred;
 
                         return (
-                          <Field data-invalid={showError}>
+                          <Field data-invalid={shouldShowStartOccurrenceError}>
                             <FieldLabel htmlFor={startOccurrenceField.name}>
                               Start occurrence
                             </FieldLabel>
                             <Input
-                              aria-invalid={isInvalid}
+                              aria-invalid={isStartOccurrenceInvalid}
                               id={startOccurrenceField.name}
                               inputMode="numeric"
                               min={1}
@@ -189,7 +192,7 @@ export function RequirementEditor({
                               type="number"
                               value={startOccurrenceField.state.value}
                             />
-                            {showError && (
+                            {shouldShowStartOccurrenceError && (
                               <FieldError
                                 errors={startOccurrenceField.state.meta.errors}
                               />

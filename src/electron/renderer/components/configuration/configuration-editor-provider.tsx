@@ -226,9 +226,9 @@ function ConfigurationEditorProviderInner({
         Match.whenOr(
           FELLOWSHIP_EVENT.ENCOUNTER_START,
           FELLOWSHIP_EVENT.ENCOUNTER_END,
-          (eventType) => {
+          (matchedEventType) => {
             const suggestions = getEncounterSuggestions({
-              eventType,
+              eventType: matchedEventType,
               location,
             });
 
