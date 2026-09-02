@@ -61,10 +61,10 @@ const DEFAULT_CONFIGURATION = {
   milestones: [],
 } satisfies FellowshipMilestoneConfiguration;
 
-const TEST_CREATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
-const TEST_UPDATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+const MOCK_CREATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+const MOCK_UPDATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
 
-const TEST_DUNGEON_RUN_ID = Schema.decodeUnknownSync(DungeonRunIdSchema)(
+const MOCK_DUNGEON_RUN_ID = Schema.decodeUnknownSync(DungeonRunIdSchema)(
   "0198d56c-9999-7abc-8def-1234567890ab",
 );
 
@@ -85,11 +85,11 @@ export function makeFellowshipTrackerTestHarness(
     const persistedConfiguration = {
       configuration,
       configurationDefinitionId,
-      createdAt: TEST_CREATED_AT,
+      createdAt: MOCK_CREATED_AT,
       fingerprint: MOCK_CONFIGURATION_FINGERPRINT,
       id: configurationId,
       label: configurationLabel,
-      updatedAt: TEST_UPDATED_AT,
+      updatedAt: MOCK_UPDATED_AT,
     } satisfies PersistedConfiguration;
 
     const trackingStarted = yield* Deferred.make<void>();
@@ -153,14 +153,14 @@ export function makeFellowshipTrackerTestHarness(
       start: ({ dungeonId, dungeonLevel, startedAt }) => {
         return E.succeed({
           configurationDefinitionId,
-          createdAt: TEST_CREATED_AT,
+          createdAt: MOCK_CREATED_AT,
           dungeonId,
           dungeonLevel,
           endedAt: null,
-          id: TEST_DUNGEON_RUN_ID,
+          id: MOCK_DUNGEON_RUN_ID,
           startedAt,
           status: "ACTIVE",
-          updatedAt: TEST_UPDATED_AT,
+          updatedAt: MOCK_UPDATED_AT,
         } satisfies DungeonRunModel);
       },
     } satisfies DungeonRunDAOShape;

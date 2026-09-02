@@ -13,7 +13,7 @@ import {
 } from "@/tests/common/layers/api-server-test-layer.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
-const TEST_TIMEOUT = "1 second";
+const MOCK_TIMEOUT = "1 second";
 
 const ApiServerTest = makeApiServerTestLayer(ApiServicesTest);
 
@@ -137,12 +137,12 @@ describe("DungeonRunWebSocketBroadcaster integration", () => {
           closeWebSocket,
         );
 
-        yield* waitForWebSocketOpen(websocket).pipe(E.timeout(TEST_TIMEOUT));
+        yield* waitForWebSocketOpen(websocket).pipe(E.timeout(MOCK_TIMEOUT));
 
         yield* waitForClientCount({
           clientCount: 1,
           webSocketBroadcaster,
-        }).pipe(E.timeout(TEST_TIMEOUT));
+        }).pipe(E.timeout(MOCK_TIMEOUT));
 
         expect(yield* webSocketBroadcaster.clientCount).toBe(1);
 
@@ -156,20 +156,20 @@ describe("DungeonRunWebSocketBroadcaster integration", () => {
 
         yield* webSocketBroadcaster
           .publish("hello")
-          .pipe(E.timeout(TEST_TIMEOUT));
+          .pipe(E.timeout(MOCK_TIMEOUT));
 
         const message = yield* waitForWebSocketMessage(messagePromise).pipe(
-          E.timeout(TEST_TIMEOUT),
+          E.timeout(MOCK_TIMEOUT),
         );
 
         expect(message).toBe("hello");
 
-        yield* closeWebSocket(websocket).pipe(E.timeout(TEST_TIMEOUT));
+        yield* closeWebSocket(websocket).pipe(E.timeout(MOCK_TIMEOUT));
 
         yield* waitForClientCount({
           clientCount: 0,
           webSocketBroadcaster,
-        }).pipe(E.timeout(TEST_TIMEOUT));
+        }).pipe(E.timeout(MOCK_TIMEOUT));
 
         expect(yield* webSocketBroadcaster.clientCount).toBe(0);
       }).pipe(E.provide(ApiServerTest)),

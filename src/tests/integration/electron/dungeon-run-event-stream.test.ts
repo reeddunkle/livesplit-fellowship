@@ -23,8 +23,8 @@ import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadca
 import { ApiServerTest } from "@/tests/common/layers/api-server-test-layer.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
-const TEST_TIMEOUT = "1 second";
-const TEST_RECONNECT_DELAY = "10 millis";
+const MOCK_TIMEOUT = "1 second";
+const MOCK_RECONNECT_DELAY = "10 millis";
 const NORMAL_CLOSE_ROUTE = "/normal-close";
 
 const message = {
@@ -74,7 +74,7 @@ function collectClientEvents(
     E.map((events) => {
       return Array.from(events);
     }),
-    E.timeout(TEST_TIMEOUT),
+    E.timeout(MOCK_TIMEOUT),
   );
 }
 
@@ -191,11 +191,11 @@ describe("Dungeon Run event stream", () => {
           E.map((events) => {
             return Array.from(events);
           }),
-          E.timeout(TEST_TIMEOUT),
+          E.timeout(MOCK_TIMEOUT),
           E.forkScoped,
         );
 
-        yield* Deferred.await(connected).pipe(E.timeout(TEST_TIMEOUT));
+        yield* Deferred.await(connected).pipe(E.timeout(MOCK_TIMEOUT));
 
         yield* dungeonRunWebSocketBroadcaster.publish(JSON.stringify(message));
 
@@ -244,7 +244,7 @@ describe("Dungeon Run event stream", () => {
           E.catchTag(DUNGEON_RUN_EVENT_MESSAGE_DECODE_ERROR, () => {
             return E.succeed(true);
           }),
-          E.timeout(TEST_TIMEOUT),
+          E.timeout(MOCK_TIMEOUT),
         );
 
         expect(wasDecodeError).toBe(true);
@@ -267,7 +267,7 @@ describe("Dungeon Run event stream", () => {
 
         const clientEvents = yield* collectClientEvents(
           makeDungeonRunEventStreamForUrl(invalidWebsocketUrl, {
-            reconnectDelay: TEST_RECONNECT_DELAY,
+            reconnectDelay: MOCK_RECONNECT_DELAY,
           }),
           4,
         );
@@ -308,7 +308,7 @@ describe("Dungeon Run event stream", () => {
 
         const clientEvents = yield* collectClientEvents(
           makeDungeonRunEventStreamForUrl(websocketUrl, {
-            reconnectDelay: TEST_RECONNECT_DELAY,
+            reconnectDelay: MOCK_RECONNECT_DELAY,
           }),
           6,
         );

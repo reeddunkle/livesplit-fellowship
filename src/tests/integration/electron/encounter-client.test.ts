@@ -25,15 +25,15 @@ const DUNGEON_ID = "24";
 const ENCOUNTER_ID = "33";
 const UNKNOWN_ENCOUNTER_ID = "999999";
 
-const TEST_CREATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
-const TEST_UPDATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+const MOCK_CREATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+const MOCK_UPDATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
 
 const encounter = {
-  createdAt: TEST_CREATED_AT,
+  createdAt: MOCK_CREATED_AT,
   dungeonId: DUNGEON_ID,
   id: ENCOUNTER_ID,
   name: "Vexira",
-  updatedAt: TEST_UPDATED_AT,
+  updatedAt: MOCK_UPDATED_AT,
 } satisfies EncounterApiEncounter;
 
 function makeEncounterApiServerTestLayer(

@@ -25,15 +25,15 @@ const ABILITY_ID = "634";
 const UNIT_ID = "133";
 const UNKNOWN_ABILITY_ID = "999999";
 
-const TEST_CREATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
-const TEST_UPDATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+const MOCK_CREATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+const MOCK_UPDATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
 
 const ability = {
-  createdAt: TEST_CREATED_AT,
+  createdAt: MOCK_CREATED_AT,
   id: ABILITY_ID,
   name: "Stormy Retreat",
   unitId: UNIT_ID,
-  updatedAt: TEST_UPDATED_AT,
+  updatedAt: MOCK_UPDATED_AT,
 } satisfies AbilityApiAbility;
 
 function makeAbilityApiServerTestLayer(

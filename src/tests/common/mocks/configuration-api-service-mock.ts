@@ -17,8 +17,8 @@ import {
 export type MakeConfigurationApiServiceMockOptions =
   Partial<ConfigurationApiServiceShape>;
 
-const TEST_CREATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
-const TEST_UPDATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+const MOCK_CREATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+const MOCK_UPDATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
 
 export function makeConfigurationApiServiceMock({
   delete: deleteConfiguration = () => {
@@ -38,11 +38,11 @@ export function makeConfigurationApiServiceMock({
       createConfigurationApiResponse({
         configuration,
         configurationDefinitionId: MOCK_CONFIGURATION_DEFINITION_ID,
-        createdAt: TEST_CREATED_AT,
+        createdAt: MOCK_CREATED_AT,
         fingerprint: MOCK_CONFIGURATION_FINGERPRINT,
         id: MOCK_CONFIGURATION_ID,
         label,
-        updatedAt: TEST_UPDATED_AT,
+        updatedAt: MOCK_UPDATED_AT,
       }),
     );
   },
@@ -51,11 +51,11 @@ export function makeConfigurationApiServiceMock({
       createConfigurationApiResponse({
         configuration,
         configurationDefinitionId: MOCK_CONFIGURATION_DEFINITION_ID,
-        createdAt: TEST_CREATED_AT,
+        createdAt: MOCK_CREATED_AT,
         fingerprint: MOCK_CONFIGURATION_FINGERPRINT,
         id: MOCK_CONFIGURATION_ID,
         label,
-        updatedAt: TEST_UPDATED_AT,
+        updatedAt: MOCK_UPDATED_AT,
       }),
     );
   },
@@ -64,11 +64,11 @@ export function makeConfigurationApiServiceMock({
       createConfigurationApiResponse({
         configuration,
         configurationDefinitionId: MOCK_CONFIGURATION_DEFINITION_ID,
-        createdAt: TEST_CREATED_AT,
+        createdAt: MOCK_CREATED_AT,
         fingerprint: MOCK_CONFIGURATION_FINGERPRINT,
         id,
         label,
-        updatedAt: TEST_UPDATED_AT,
+        updatedAt: MOCK_UPDATED_AT,
       }),
     );
   },
