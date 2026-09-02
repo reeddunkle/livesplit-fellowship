@@ -176,11 +176,3 @@ export function serializeNormalizedCanonicalConfiguration(
 ): string {
   return JSON.stringify(canonicalizeNormalizedConfiguration(configuration));
 }
-
-export function serializeNormalizedCanonicalConfigurationDefinition(
-  definition: CanonicalConfigurationDefinitionInput,
-): string {
-  return JSON.stringify(
-    canonicalizeNormalizedConfigurationDefinition(definition),
-  );
-}
