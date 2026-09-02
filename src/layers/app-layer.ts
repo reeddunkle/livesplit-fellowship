@@ -2,6 +2,8 @@ import { NodeFileSystem, NodePath } from "@effect/platform-node";
 import * as Layer from "effect/Layer";
 
 import { FellowshipTrackerLive } from "@/application/tracking/fellowship-tracker-service.ts";
+import { DungeonRunDAOLive } from "@/db/daos/dungeon-run/dungeon-run-dao-live.ts";
+import { DungeonRunObservationDAOLive } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao-live.ts";
 import { AppLoggerLive } from "@/layers/app-logger-live.ts";
 import {
   type MakePersistenceLayerOptions,
@@ -51,8 +53,17 @@ export function makeAppLive(options: MakeAppLiveOptions) {
     Layer.provide(LiveSplitConnectionManagerLive),
   );
 
+  const dungeonRunDAOWithDependencies = DungeonRunDAOLive.pipe(
+    Layer.provide(appServicesLive),
+  );
+
+  const dungeonRunObservationDAOWithDependencies =
+    DungeonRunObservationDAOLive.pipe(Layer.provide(appServicesLive));
+
   const fellowshipTrackerDependencies = Layer.mergeAll(
     appServicesLive,
+    dungeonRunDAOWithDependencies,
+    dungeonRunObservationDAOWithDependencies,
     liveSplitWithDependencies,
     DungeonRunWebSocketBroadcasterLive,
   );
@@ -64,6 +75,8 @@ export function makeAppLive(options: MakeAppLiveOptions) {
   return Layer.mergeAll(
     AppLoggerWithPlatform,
     appServicesLive,
+    dungeonRunDAOWithDependencies,
+    dungeonRunObservationDAOWithDependencies,
     DungeonRunWebSocketBroadcasterLive,
     fellowshipTrackerWithDependencies,
     LiveSplitConnectionManagerLive,
