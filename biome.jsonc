@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.9/schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "assist": {
     "actions": {
       "source": {
@@ -14,68 +14,68 @@
               ":BLANK_LINE:",
               ":ALIAS:",
               ":BLANK_LINE:",
-              ":PATH:"
-            ]
-          }
+              ":PATH:",
+            ],
+          },
         },
         "useSortedAttributes": {
           "level": "on",
           "options": {
-            "sortOrder": "natural"
-          }
+            "sortOrder": "natural",
+          },
         },
         "useSortedInterfaceMembers": "on",
         "useSortedKeys": {
           "level": "on",
           "options": {
-            "sortOrder": "natural"
-          }
-        }
-      }
+            "sortOrder": "natural",
+          },
+        },
+      },
     },
-    "enabled": true
+    "enabled": true,
   },
   "css": {
     "formatter": {
-      "enabled": true
+      "enabled": true,
     },
     "parser": {
-      "tailwindDirectives": true
-    }
+      "tailwindDirectives": true,
+    },
   },
   "files": {
     "ignoreUnknown": false,
     "includes": [
       "**/*.{js,cjs,mjs,ts,tsx,json,md}",
-      "!src/electron/renderer/router/routeTree.gen.ts"
-    ]
+      "!src/electron/renderer/router/routeTree.gen.ts",
+    ],
   },
   "formatter": {
     "enabled": true,
     "formatWithErrors": true,
     "indentStyle": "space",
-    "indentWidth": 2
+    "indentWidth": 2,
   },
   "javascript": {
     "formatter": {
       // "expand": "never",
       "quoteStyle": "double",
-      "trailingCommas": "all"
-    }
+      "trailingCommas": "all",
+    },
   },
   "json": {
     "assist": {
-      "enabled": false
+      "enabled": false,
     },
     "formatter": {
-      "enabled": true
+      "enabled": true,
     },
     "linter": {
-      "enabled": true
+      "enabled": true,
     },
     "parser": {
-      "allowComments": true
-    }
+      "allowComments": true,
+    },
   },
   "linter": {
     "enabled": true,
@@ -85,31 +85,49 @@
           "level": "on",
           "options": {
             "inputComponents": ["Input"],
-            "labelComponents": ["Label"]
-          }
-        }
+            "labelComponents": ["Label"],
+          },
+        },
+      },
+      "performance": {
+        "noAccumulatingSpread": "error",
       },
       "preset": "recommended",
       "nursery": {
-        "useReactCompiler": "error"
+        "noIdenticalTestTitle": "on",
+        "useArraySome": "on",
+        "useConsistentTestIt": {
+          "level": "on",
+          "options": {
+            "function": "test",
+            "withinDescribe": "test"
+          },
+        },
+        "useImportsFirst": "on",
+        "useMathMinMax": "on",
+        "useNullishCoalescing": "on",
+        "useReactCompiler": "error",
+        "useReduceTypeParameter": "on",
+        // "useFlatMathMinMax": "on",
+        // "useModernMathApis": "on",
       },
       "style": {
         "useImportType": {
           "level": "warn",
           "options": {
-            "style": "inlineType"
-          }
-        }
+            "style": "inlineType",
+          },
+        },
       },
       "suspicious": {
         "noDoubleEquals": "error",
-        "useIsArray": "error"
-      }
-    }
+        "useIsArray": "error",
+      },
+    },
   },
   "vcs": {
     "clientKind": "git",
     "enabled": true,
-    "useIgnoreFile": true
-  }
+    "useIgnoreFile": true,
+  },
 }

@@ -2,11 +2,12 @@ minimumReleaseAge: 10080 # Minutes -- (7 days)
 minimumReleaseAgeExclude:
   - "@effect/language-service"
   - "@types/node"
+  - "@biomejs/*"
   - "tsx"
 
 catalogs:
   biome:
-    "@biomejs/biome": "^2.5.9"
+    "@biomejs/biome": "^2.5.11"
   effect:
     "@effect/language-service": "0.87.1"
     "@effect/platform-node": "4.0.0-beta.102"
