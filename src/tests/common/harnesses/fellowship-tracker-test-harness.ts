@@ -20,10 +20,7 @@ import {
   DungeonRunObservationDAO,
   type DungeonRunObservationDAOShape,
 } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao.ts";
-import {
-  DungeonRunIdSchema,
-  type DungeonRunModel,
-} from "@/db/models/dungeon-run-model.ts";
+import { type DungeonRunModel } from "@/db/models/dungeon-run-model.ts";
 import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import {
   Fellowship,
@@ -43,6 +40,7 @@ import {
 import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 import { type ConfigurationLabel } from "@/validation/configuration/configuration-label-schema.ts";
+import { DungeonRunIdSchema } from "@/validation/dungeon-run/dungeon-run-id-schema.ts";
 
 import { makeFellowshipTestHarness } from "./fellowship-test-harness.ts";
 import { makeWebSocketBroadcasterTestHarness } from "./websocket-broadcaster-test-harness.ts";

@@ -1,9 +1,9 @@
 import * as Context from "effect/Context";
 import type * as E from "effect/Effect";
 
-import { type DungeonRunId } from "@/db/models/dungeon-run-model.ts";
 import { type DungeonRunObservationModel } from "@/db/models/dungeon-run-observation-model.ts";
 import { type DungeonRunObservationDAOError } from "@/errors/dungeon-run-observation-dao-error.ts";
+import { type DungeonRunId } from "@/validation/dungeon-run/dungeon-run-id-schema.ts";
 
 type ObserveDungeonRunOptions = {
   readonly dungeonRunId: DungeonRunId;

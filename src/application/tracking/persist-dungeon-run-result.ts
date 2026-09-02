@@ -7,10 +7,10 @@ import type * as Stream from "effect/Stream";
 
 import { DungeonRunDAO } from "@/db/daos/dungeon-run/dungeon-run-dao.ts";
 import { DungeonRunObservationDAO } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao.ts";
-import { type DungeonRunId } from "@/db/models/dungeon-run-model.ts";
 import { type processDungeonRunEventStream } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event-stream.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
+import { type DungeonRunId } from "@/validation/dungeon-run/dungeon-run-id-schema.ts";
 
 type DungeonRunProcessingResult =
   ReturnType<typeof processDungeonRunEventStream> extends Stream.Stream<

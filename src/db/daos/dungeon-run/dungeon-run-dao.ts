@@ -2,12 +2,10 @@ import * as Context from "effect/Context";
 import type * as E from "effect/Effect";
 import type * as Option from "effect/Option";
 
-import {
-  type DungeonRunId,
-  type DungeonRunModel,
-} from "@/db/models/dungeon-run-model.ts";
+import { type DungeonRunModel } from "@/db/models/dungeon-run-model.ts";
 import { type DungeonRunDAOError } from "@/errors/dungeon-run-dao-error.ts";
 import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
+import { type DungeonRunId } from "@/validation/dungeon-run/dungeon-run-id-schema.ts";
 
 type GetDungeonRunByIdOptions = {
   readonly id: DungeonRunId;

@@ -1,6 +1,6 @@
 import * as Data from "effect/Data";
 
-import { type DungeonRunId } from "@/db/models/dungeon-run-model.ts";
+import { type DungeonRunId } from "@/validation/dungeon-run/dungeon-run-id-schema.ts";
 
 export type DungeonRunDAOErrorDetails =
   | {

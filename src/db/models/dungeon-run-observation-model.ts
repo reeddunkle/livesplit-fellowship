@@ -1,12 +1,12 @@
 import * as Schema from "effect/Schema";
 import * as Model from "effect/unstable/schema/Model";
 
-import { DungeonRunIdSchema } from "@/db/models/dungeon-run-model.ts";
 import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
 } from "@/validation/common-schemas.ts";
+import { DungeonRunIdSchema } from "@/validation/dungeon-run/dungeon-run-id-schema.ts";
 
 export class DungeonRunObservationModel extends Model.Class<DungeonRunObservationModel>(
   "DungeonRunObservationModel",

@@ -13,7 +13,6 @@ import { handleLogDungeonRunEvent } from "@/application/dungeon-run-processing/h
 import { ConfigurationDAO } from "@/db/daos/configuration/configuration-dao.ts";
 import { DungeonRunDAO } from "@/db/daos/dungeon-run/dungeon-run-dao.ts";
 import { DungeonRunObservationDAO } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao.ts";
-import { type DungeonRunId } from "@/db/models/dungeon-run-model.ts";
 import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
 import { type DungeonRunDAOError } from "@/errors/dungeon-run-dao-error.ts";
 import {
@@ -29,6 +28,7 @@ import { type FellowshipEvent } from "@/services/fellowship/validation/fellowshi
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
 import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
+import { type DungeonRunId } from "@/validation/dungeon-run/dungeon-run-id-schema.ts";
 
 import {
   interruptDungeonRun,
