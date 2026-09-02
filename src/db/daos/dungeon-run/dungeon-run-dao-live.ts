@@ -10,7 +10,6 @@ import {
   type DungeonRunDAOShape,
 } from "@/db/daos/dungeon-run/dungeon-run-dao.ts";
 import { DungeonRunModel } from "@/db/models/dungeon-run-model.ts";
-import { DungeonRunObservationModel } from "@/db/models/dungeon-run-observation-model.ts";
 import { DungeonRunDAOError } from "@/errors/dungeon-run-dao-error.ts";
 
 function mapDungeonRunDAOError(cause: unknown): DungeonRunDAOError {
@@ -42,7 +41,7 @@ const make = E.gen(function* () {
       const rows = yield* sql`
         SELECT
           id,
-          configuration_id,
+          configuration_definition_id,
           dungeon_id,
           dungeon_level,
           status,
@@ -65,14 +64,14 @@ const make = E.gen(function* () {
   };
 
   const start: DungeonRunDAOShape["start"] = ({
-    configurationId,
+    configurationDefinitionId,
     dungeonId,
     dungeonLevel,
     startedAt,
   }) => {
     return E.gen(function* () {
       const dungeonRun = DungeonRunModel.insert.make({
-        configurationId,
+        configurationDefinitionId,
         dungeonId,
         dungeonLevel,
         endedAt: null,
@@ -87,7 +86,7 @@ const make = E.gen(function* () {
       const rows = yield* sql`
         INSERT INTO dungeon_run (
           id,
-          configuration_id,
+          configuration_definition_id,
           dungeon_id,
           dungeon_level,
           status,
@@ -98,7 +97,7 @@ const make = E.gen(function* () {
         )
         VALUES (
           ${insert.id},
-          ${insert.configurationId},
+          ${insert.configurationDefinitionId},
           ${insert.dungeonId},
           ${insert.dungeonLevel},
           ${insert.status},
@@ -109,7 +108,7 @@ const make = E.gen(function* () {
         )
         RETURNING
           id,
-          configuration_id,
+          configuration_definition_id,
           dungeon_id,
           dungeon_level,
           status,
@@ -134,61 +133,6 @@ const make = E.gen(function* () {
       }
 
       return persistedDungeonRun;
-    }).pipe(E.mapError(mapDungeonRunDAOError));
-  };
-
-  const observe: DungeonRunDAOShape["observe"] = ({
-    dungeonRunId,
-    observedAt,
-    occurrence,
-    targetId,
-    type,
-  }) => {
-    return E.gen(function* () {
-      const observation = DungeonRunObservationModel.insert.make({
-        dungeonRunId,
-        observedAt,
-        occurrence,
-        targetId,
-        type,
-      });
-
-      const insert = yield* Schema.encodeEffect(
-        DungeonRunObservationModel.insert,
-      )(observation).pipe(E.mapError(mapDungeonRunDAOError));
-
-      const rows = yield* sql`
-        INSERT INTO dungeon_run_observation (
-          dungeon_run_id,
-          type,
-          target_id,
-          occurrence,
-          observed_at,
-          created_at
-        )
-        SELECT
-          ${insert.dungeonRunId},
-          ${insert.type},
-          ${insert.targetId},
-          ${insert.occurrence},
-          ${insert.observedAt},
-          ${insert.createdAt}
-        FROM dungeon_run
-        WHERE id = ${insert.dungeonRunId}
-          AND status = 'ACTIVE'
-        RETURNING dungeon_run_id
-      `;
-
-      if (rows[0] === undefined) {
-        return yield* E.fail(
-          new DungeonRunDAOError({
-            details: {
-              _tag: "RunNotFoundOrInactive",
-              dungeonRunId,
-            },
-          }),
-        );
-      }
     }).pipe(E.mapError(mapDungeonRunDAOError));
   };
 
@@ -261,7 +205,6 @@ const make = E.gen(function* () {
     complete,
     exit,
     getById,
-    observe,
     start,
   } satisfies DungeonRunDAOShape;
 });

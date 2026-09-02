@@ -3,7 +3,7 @@ import * as Model from "effect/unstable/schema/Model";
 
 import { DungeonIdSchema } from "@/services/fellowship/validation/fellowship-common.ts";
 import { PositiveIntegerSchema } from "@/validation/common-schemas.ts";
-import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id-schema.ts";
+import { ConfigurationDefinitionIdSchema } from "@/validation/configuration/configuration-definition-id-schema.ts";
 
 export const DungeonRunIdSchema = Schema.String.pipe(
   Schema.brand("DungeonRunId"),
@@ -22,7 +22,7 @@ export type DungeonRunStatus = typeof DungeonRunStatusSchema.Type;
 export class DungeonRunModel extends Model.Class<DungeonRunModel>(
   "DungeonRunModel",
 )({
-  configurationId: Schema.NullOr(ConfigurationIdSchema),
+  configurationDefinitionId: ConfigurationDefinitionIdSchema,
   createdAt: Model.DateTimeInsertFromNumber,
   dungeonId: DungeonIdSchema,
   dungeonLevel: PositiveIntegerSchema,

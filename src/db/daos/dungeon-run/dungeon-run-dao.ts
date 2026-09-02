@@ -6,27 +6,18 @@ import {
   type DungeonRunId,
   type DungeonRunModel,
 } from "@/db/models/dungeon-run-model.ts";
-import { type DungeonRunObservationModel } from "@/db/models/dungeon-run-observation-model.ts";
 import { type DungeonRunDAOError } from "@/errors/dungeon-run-dao-error.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
+import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 
 type GetDungeonRunByIdOptions = {
   readonly id: DungeonRunId;
 };
 
 type StartDungeonRunOptions = {
-  readonly configurationId: ConfigurationId | null;
+  readonly configurationDefinitionId: ConfigurationDefinitionId;
   readonly dungeonId: DungeonRunModel["dungeonId"];
   readonly dungeonLevel: DungeonRunModel["dungeonLevel"];
   readonly startedAt: DungeonRunModel["startedAt"];
-};
-
-type ObserveDungeonRunOptions = {
-  readonly dungeonRunId: DungeonRunId;
-  readonly observedAt: DungeonRunObservationModel["observedAt"];
-  readonly occurrence: DungeonRunObservationModel["occurrence"];
-  readonly targetId: DungeonRunObservationModel["targetId"];
-  readonly type: DungeonRunObservationModel["type"];
 };
 
 type CompleteDungeonRunOptions = {
@@ -51,10 +42,6 @@ export type DungeonRunDAOShape = {
   readonly getById: (
     options: GetDungeonRunByIdOptions,
   ) => E.Effect<Option.Option<DungeonRunModel>, DungeonRunDAOError>;
-
-  readonly observe: (
-    options: ObserveDungeonRunOptions,
-  ) => E.Effect<void, DungeonRunDAOError>;
 
   readonly start: (
     options: StartDungeonRunOptions,
