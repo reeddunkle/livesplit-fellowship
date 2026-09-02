@@ -6,5 +6,3 @@ export const DungeonRunStatusSchema = Schema.Literals([
   "EXITED",
   "INTERRUPTED",
 ]);
-
-export type DungeonRunStatus = typeof DungeonRunStatusSchema.Type;

@@ -1,4 +1,3 @@
-import * as Schema from "effect/Schema";
 import * as Model from "effect/unstable/schema/Model";
 
 import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
@@ -7,12 +6,7 @@ import {
   PositiveIntegerSchema,
 } from "@/validation/common-schemas.ts";
 import { ConfigurationDefinitionIdSchema } from "@/validation/configuration/configuration-definition-id-schema.ts";
-
-export const RequirementIdSchema = Schema.String.pipe(
-  Schema.brand("RequirementId"),
-);
-
-export type RequirementId = typeof RequirementIdSchema.Type;
+import { RequirementIdSchema } from "@/validation/requirement/requirement-id-schema.ts";
 
 export class RequirementModel extends Model.Class<RequirementModel>(
   "RequirementModel",

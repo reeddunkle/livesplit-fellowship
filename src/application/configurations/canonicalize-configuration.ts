@@ -27,7 +27,7 @@ export type CanonicalConfigurationInput = {
   }>;
 };
 
-export type CanonicalConfigurationDefinitionInput = {
+type CanonicalConfigurationDefinitionInput = {
   readonly dungeonId: DungeonId;
   readonly dungeonLevel: number;
   readonly requirements: ReadonlyArray<ConfigurationDefinitionRequirement>;
