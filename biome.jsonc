@@ -117,6 +117,7 @@
         "noContinue": "on",
         "noEnum": "on",
         "noExportedImports": "on",
+        "noMultiAssign": "on",
         "useImportType": {
           "level": "warn",
           "options": {
