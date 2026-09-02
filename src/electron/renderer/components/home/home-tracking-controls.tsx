@@ -54,12 +54,12 @@ export function HomeTrackingControls() {
           {isTracking ? (
             <>
               <Spinner className="size-6" />
-              {"Tracking"}
+              Tracking
             </>
           ) : (
             <>
               <PlayIcon className="fill-current" />
-              {"Start"}
+              Start
             </>
           )}
         </Button>
@@ -73,7 +73,7 @@ export function HomeTrackingControls() {
           variant="destructive"
         >
           <SquareIcon className="fill-current" />
-          {"Stop"}
+          Stop
         </Button>
       </div>
 

@@ -25,7 +25,7 @@ export function LiveSplitControls() {
         variant="outline"
       >
         <LinkIcon />
-        {"Connect"}
+        Connect
       </Button>
 
       <Button
@@ -35,7 +35,7 @@ export function LiveSplitControls() {
         variant="outline"
       >
         <UnlinkIcon />
-        {"Disconnect"}
+        Disconnect
       </Button>
     </div>
   );
