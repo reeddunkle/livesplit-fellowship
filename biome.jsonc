@@ -24,6 +24,7 @@
             "sortOrder": "natural"
           }
         },
+        "useSortedInterfaceMembers": "on",
         "useSortedKeys": {
           "level": "on",
           "options": {
@@ -33,6 +34,14 @@
       }
     },
     "enabled": true
+  },
+  "css": {
+    "formatter": {
+      "enabled": true
+    },
+    "parser": {
+      "tailwindDirectives": true
+    }
   },
   "files": {
     "ignoreUnknown": false,
@@ -81,9 +90,9 @@
         }
       },
       "preset": "recommended",
-      // "nursery": {
-      //   "useReactCompiler": "error"
-      // },
+      "nursery": {
+        "useReactCompiler": "error"
+      },
       "style": {
         "useImportType": {
           "level": "warn",
@@ -102,13 +111,5 @@
     "clientKind": "git",
     "enabled": true,
     "useIgnoreFile": true
-  },
-  "css": {
-    "parser": {
-      "tailwindDirectives": true
-    },
-    "formatter": {
-      "enabled": true
-    }
   }
 }
