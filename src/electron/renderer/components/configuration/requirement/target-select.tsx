@@ -34,11 +34,11 @@ export function TargetSelect({
       aria-invalid={isInvalid}
       id={id}
       name={name}
-      value={value}
       onBlur={onBlur}
       onChange={(event) => {
         onChange(event.target.value);
       }}
+      value={value}
     >
       <NativeSelectOption value={CUSTOM_TARGET}>Custom</NativeSelectOption>
       {options.map((option) => {

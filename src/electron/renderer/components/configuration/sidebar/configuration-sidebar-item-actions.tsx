@@ -50,11 +50,11 @@ export function ConfigurationSidebarItemActions({
         <Separator />
         <Button
           className="w-full justify-start"
-          type="button"
-          variant="destructive"
           onClick={() => {
             onDelete(configuration.id);
           }}
+          type="button"
+          variant="destructive"
         >
           <Trash2Icon />
           Delete

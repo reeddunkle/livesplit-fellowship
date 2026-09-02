@@ -154,8 +154,6 @@ export function RequirementTargetField({
               id={`${field.name}-select`}
               isInvalid={!isCustom && isInvalid}
               name={`${field.name}-select`}
-              options={options}
-              value={selectedValue}
               onBlur={field.handleBlur}
               onChange={(value) => {
                 if (value === CUSTOM_TARGET) {
@@ -174,6 +172,8 @@ export function RequirementTargetField({
                   handleTargetChange(option.value);
                 }
               }}
+              options={options}
+              value={selectedValue}
             />
             <Input
               aria-invalid={isCustom && isInvalid}
@@ -181,8 +181,6 @@ export function RequirementTargetField({
               id={field.name}
               inputMode="numeric"
               name={field.name}
-              placeholder="Target ID"
-              value={field.state.value}
               onBlur={() => {
                 if (isCustom) {
                   setIsCustomInputBlurred(true);
@@ -196,6 +194,8 @@ export function RequirementTargetField({
                 setCustomTargetValue(value);
                 handleTargetChange(value);
               }}
+              placeholder="Target ID"
+              value={field.state.value}
             />
             {showError && <FieldError errors={field.state.meta.errors} />}
           </Field>

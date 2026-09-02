@@ -160,7 +160,7 @@ export function ConfigurationEditor({
         </header>
         <section className="grid gap-2">
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={newConfiguration}>
+            <Button onClick={newConfiguration} type="button" variant="outline">
               <PlusIcon />
               New
             </Button>
@@ -171,11 +171,11 @@ export function ConfigurationEditor({
                 return (
                   <Button
                     disabled={!isResetEnabled}
-                    type="button"
-                    variant="outline"
                     onClick={() => {
                       form.reset();
                     }}
+                    type="button"
+                    variant="outline"
                   >
                     <RotateCcwIcon />
                     Reset
@@ -243,8 +243,6 @@ export function ConfigurationEditor({
 
             <Button
               disabled={!hasSelectedConfiguration}
-              type="button"
-              variant="destructive"
               onClick={() => {
                 if (selectedConfiguration === undefined) {
                   return;
@@ -252,6 +250,8 @@ export function ConfigurationEditor({
 
                 deleteConfiguration(selectedConfiguration.id);
               }}
+              type="button"
+              variant="destructive"
             >
               <Trash2Icon />
               Delete
@@ -338,12 +338,12 @@ export function ConfigurationEditor({
                                 aria-invalid={isInvalid}
                                 id={field.name}
                                 name={field.name}
-                                placeholder="My configuration"
-                                value={field.state.value}
                                 onBlur={field.handleBlur}
                                 onChange={(event) => {
                                   field.handleChange(event.target.value);
                                 }}
+                                placeholder="My configuration"
+                                value={field.state.value}
                               />
                               {isInvalid && (
                                 <FieldError errors={field.state.meta.errors} />
@@ -369,13 +369,13 @@ export function ConfigurationEditor({
                                 aria-invalid={isInvalid}
                                 id={field.name}
                                 name={field.name}
-                                value={field.state.value}
                                 onBlur={field.handleBlur}
                                 onChange={(event) => {
                                   field.handleChange(event.target.value);
                                 }}
+                                value={field.state.value}
                               >
-                                <NativeSelectOption value="" disabled>
+                                <NativeSelectOption disabled value="">
                                   Select a dungeon
                                 </NativeSelectOption>
                                 {dungeonOptions.map((dungeon) => {
@@ -412,12 +412,12 @@ export function ConfigurationEditor({
                                 id={field.name}
                                 min={1}
                                 name={field.name}
-                                type="number"
-                                value={field.state.value}
                                 onBlur={field.handleBlur}
                                 onChange={(event) => {
                                   field.handleChange(event.target.value);
                                 }}
+                                type="number"
+                                value={field.state.value}
                               />
                               {isInvalid && (
                                 <FieldError errors={field.state.meta.errors} />
@@ -428,7 +428,7 @@ export function ConfigurationEditor({
                       </form.Field>
                     </div>
                   </div>
-                  <form.Field name="milestones" mode="array">
+                  <form.Field mode="array" name="milestones">
                     {(milestonesField) => {
                       return (
                         <section className="grid grid-cols-[repeat(auto-fit,minmax(22rem,28rem))] justify-start gap-4">
@@ -451,13 +451,13 @@ export function ConfigurationEditor({
                             <CardContent className="flex h-full min-h-64 items-center justify-center">
                               <Button
                                 className="h-full min-h-48 w-full border-dashed"
-                                type="button"
-                                variant="ghost"
                                 onClick={() => {
                                   milestonesField.pushValue(
                                     createMilestoneEditorValue(),
                                   );
                                 }}
+                                type="button"
+                                variant="ghost"
                               >
                                 <PlusIcon />
                                 Add milestone

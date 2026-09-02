@@ -31,10 +31,10 @@ export function ConfigurationSidebarItem({
       >
         <SidebarMenuSubButton
           className="h-auto min-w-0 flex-1 flex-col items-stretch gap-0.5 rounded-r-none p-2 text-left hover:bg-transparent active:bg-transparent"
-          render={<button type="button" />}
           onClick={() => {
             onSelect(configuration.id);
           }}
+          render={<button type="button" />}
         >
           <span className="flex min-w-0 items-center gap-2">
             <FileTextIcon className="size-4" />
@@ -48,8 +48,8 @@ export function ConfigurationSidebarItem({
         </SidebarMenuSubButton>
         <ConfigurationSidebarItemActions
           configuration={configuration}
-          onDelete={onDelete}
           isActive={isActive}
+          onDelete={onDelete}
         />
       </div>
     </SidebarMenuSubItem>

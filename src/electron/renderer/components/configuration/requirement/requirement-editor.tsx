@@ -110,7 +110,6 @@ export function RequirementEditor({
                     autoFocus={autoFocus}
                     id={field.name}
                     name={field.name}
-                    value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(event) => {
                       const eventType = event.target
@@ -139,6 +138,7 @@ export function RequirementEditor({
                         requirementValues.requiredCount,
                       );
                     }}
+                    value={field.state.value}
                   >
                     {selectableEventTypes.map((eventType) => {
                       return (
@@ -180,14 +180,14 @@ export function RequirementEditor({
                               inputMode="numeric"
                               min={1}
                               name={startOccurrenceField.name}
-                              type="number"
-                              value={startOccurrenceField.state.value}
                               onBlur={startOccurrenceField.handleBlur}
                               onChange={(event) => {
                                 startOccurrenceField.handleChange(
                                   event.target.value,
                                 );
                               }}
+                              type="number"
+                              value={startOccurrenceField.state.value}
                             />
                             {showError && (
                               <FieldError
@@ -218,14 +218,14 @@ export function RequirementEditor({
                               inputMode="numeric"
                               min={1}
                               name={requiredCountField.name}
-                              type="number"
-                              value={requiredCountField.state.value}
                               onBlur={requiredCountField.handleBlur}
                               onChange={(event) => {
                                 requiredCountField.handleChange(
                                   event.target.value,
                                 );
                               }}
+                              type="number"
+                              value={requiredCountField.state.value}
                             />
                             {showError && (
                               <FieldError
@@ -246,10 +246,10 @@ export function RequirementEditor({
       <div className="flex justify-end">
         <Button
           aria-label="Remove requirement"
+          onClick={onRemove}
           size="icon-sm"
           type="button"
           variant="ghost"
-          onClick={onRemove}
         >
           <XIcon />
         </Button>

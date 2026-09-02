@@ -93,7 +93,6 @@ export function ConfigurationSidebar() {
               Sort
             </label>
             <Select
-              value={sort}
               onValueChange={(value) => {
                 Match.value(value).pipe(
                   Match.when("UPDATED_DESCENDING", setSort),
@@ -101,6 +100,7 @@ export function ConfigurationSidebar() {
                   Match.orElse(() => undefined),
                 );
               }}
+              value={sort}
             >
               <SelectTrigger className="w-full" id="configuration-sort">
                 <SelectValue>

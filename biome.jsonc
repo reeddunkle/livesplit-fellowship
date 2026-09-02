@@ -18,6 +18,12 @@
             ]
           }
         },
+        "useSortedAttributes": {
+          "level": "on",
+          "options": {
+            "sortOrder": "natural"
+          }
+        },
         "useSortedKeys": {
           "level": "on",
           "options": {
@@ -75,6 +81,9 @@
         }
       },
       "preset": "recommended",
+      // "nursery": {
+      //   "useReactCompiler": "error"
+      // },
       "style": {
         "useImportType": {
           "level": "warn",
@@ -93,5 +102,13 @@
     "clientKind": "git",
     "enabled": true,
     "useIgnoreFile": true
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    },
+    "formatter": {
+      "enabled": true
+    }
   }
 }

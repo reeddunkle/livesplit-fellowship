@@ -41,8 +41,6 @@ export function HomeTrackingControls() {
         <Button
           className="min-w-32 bg-green-600 text-white hover:bg-green-700"
           disabled={selectedConfigurationId === null || isTracking || isPending}
-          size="xl"
-          type="button"
           onClick={() => {
             if (selectedConfigurationId === null) {
               return;
@@ -50,6 +48,8 @@ export function HomeTrackingControls() {
 
             start(selectedConfigurationId);
           }}
+          size="xl"
+          type="button"
         >
           {isTracking ? (
             <>
@@ -67,10 +67,10 @@ export function HomeTrackingControls() {
         <Button
           className="min-w-32"
           disabled={!isTracking || isPending}
+          onClick={stop}
           size="xl"
           type="button"
           variant="destructive"
-          onClick={stop}
         >
           <SquareIcon className="fill-current" />
           {"Stop"}

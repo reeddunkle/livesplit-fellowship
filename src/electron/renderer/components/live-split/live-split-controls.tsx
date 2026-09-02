@@ -20,9 +20,9 @@ export function LiveSplitControls() {
     <div className="flex gap-2">
       <Button
         disabled={isConnected || isPending}
+        onClick={connect}
         type="button"
         variant="outline"
-        onClick={connect}
       >
         <LinkIcon />
         {"Connect"}
@@ -30,9 +30,9 @@ export function LiveSplitControls() {
 
       <Button
         disabled={!isConnected || isPending}
+        onClick={disconnect}
         type="button"
         variant="outline"
-        onClick={disconnect}
       >
         <UnlinkIcon />
         {"Disconnect"}

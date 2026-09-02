@@ -53,10 +53,10 @@ export function MilestoneEditor({
         <CardAction>
           <Button
             aria-label="Remove milestone"
+            onClick={onRemove}
             size="icon-sm"
             type="button"
             variant="destructive"
-            onClick={onRemove}
           >
             <Trash2Icon />
           </Button>
@@ -75,12 +75,12 @@ export function MilestoneEditor({
                   aria-invalid={isInvalid}
                   id={field.name}
                   name={field.name}
-                  placeholder="Milestone label"
-                  value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(event) => {
                     field.handleChange(event.target.value);
                   }}
+                  placeholder="Milestone label"
+                  value={field.state.value}
                 />
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
               </Field>
@@ -88,8 +88,8 @@ export function MilestoneEditor({
           }}
         </form.Field>
         <form.Field
-          name={`${milestonePath}.requirements` as const}
           mode="array"
+          name={`${milestonePath}.requirements` as const}
         >
           {(requirementsField) => {
             return (
@@ -103,18 +103,16 @@ export function MilestoneEditor({
                         form={form}
                         key={requirement.id}
                         milestoneIndex={milestoneIndex}
-                        requirementIndex={requirementIndex}
                         onRemove={() => {
                           requirementsField.removeValue(requirementIndex);
                         }}
+                        requirementIndex={requirementIndex}
                       />
                     );
                   },
                 )}
                 <Button
                   className="h-auto min-h-24 border-dashed"
-                  type="button"
-                  variant="outline"
                   onClick={() => {
                     const requirementIndex =
                       requirementsField.state.value.length;
@@ -134,6 +132,8 @@ export function MilestoneEditor({
                     setAutoFocusRequirementId(requirement.id);
                     requirementsField.pushValue(requirement);
                   }}
+                  type="button"
+                  variant="outline"
                 >
                   <PlusIcon />
                   Add requirement
