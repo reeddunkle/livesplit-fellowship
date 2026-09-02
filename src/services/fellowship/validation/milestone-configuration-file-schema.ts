@@ -8,7 +8,7 @@ import {
 import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
-} from "@/validation/common.ts";
+} from "@/validation/common-schemas.ts";
 
 const RequirementOccurrenceFields = {
   requiredCount: PositiveIntegerSchema,

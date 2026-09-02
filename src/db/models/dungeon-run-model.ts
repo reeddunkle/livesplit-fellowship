@@ -2,7 +2,7 @@ import * as Schema from "effect/Schema";
 import * as Model from "effect/unstable/schema/Model";
 
 import { DungeonIdSchema } from "@/services/fellowship/validation/fellowship-common.ts";
-import { PositiveIntegerSchema } from "@/validation/common.ts";
+import { PositiveIntegerSchema } from "@/validation/common-schemas.ts";
 import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id-schema.ts";
 
 export const DungeonRunIdSchema = Schema.String.pipe(

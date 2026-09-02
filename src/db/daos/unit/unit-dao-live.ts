@@ -5,7 +5,7 @@ import * as Schema from "effect/Schema";
 import * as SqlClient from "effect/unstable/sql/SqlClient";
 
 import { UnitModel, UnitStatusSchema } from "@/db/models/unit-model.ts";
-import { NonEmptyStringSchema } from "@/validation/common.ts";
+import { NonEmptyStringSchema } from "@/validation/common-schemas.ts";
 
 import { UnitDAO, type UnitDAOShape } from "./unit-dao.ts";
 

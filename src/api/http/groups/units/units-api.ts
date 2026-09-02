@@ -7,7 +7,7 @@ import {
   UnitApiUnitListSchema,
   UnitApiUnitSchema,
 } from "@/services/api/unit/unit-api-schema.ts";
-import { NonEmptyStringSchema } from "@/validation/common.ts";
+import { NonEmptyStringSchema } from "@/validation/common-schemas.ts";
 
 const UNITS_ROUTE = "/units" as const;
 

@@ -9,7 +9,7 @@ import { loadMilestoneConfiguration } from "@/services/fellowship/milestones/loa
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
 import { generateLSSFile } from "@/services/live-split/files/lss/generate-lss-file.ts";
 import { getLSSFileName } from "@/services/live-split/files/lss/get-lss-file-name.ts";
-import { NonEmptyStringSchema } from "@/validation/common.ts";
+import { NonEmptyStringSchema } from "@/validation/common-schemas.ts";
 
 export const AutosplitCommandInputSchema = Schema.Struct({
   configurationFilePath: NonEmptyStringSchema,

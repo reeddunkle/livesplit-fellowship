@@ -4,7 +4,7 @@ import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/valid
 import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
-} from "@/validation/common.ts";
+} from "@/validation/common-schemas.ts";
 
 const TimestampMillisecondsSchema = PositiveIntegerSchema;
 

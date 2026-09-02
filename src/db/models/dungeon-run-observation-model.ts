@@ -6,7 +6,7 @@ import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/valid
 import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
-} from "@/validation/common.ts";
+} from "@/validation/common-schemas.ts";
 
 export class DungeonRunObservationModel extends Model.Class<DungeonRunObservationModel>(
   "DungeonRunObservationModel",

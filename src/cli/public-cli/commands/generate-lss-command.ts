@@ -5,7 +5,7 @@ import * as Schema from "effect/Schema";
 import { DungeonDAO } from "@/db/daos/dungeon/dungeon-dao.ts";
 import { loadMilestoneConfiguration } from "@/services/fellowship/milestones/load-milestone-configuration.ts";
 import { generateLSSFile } from "@/services/live-split/files/lss/generate-lss-file.ts";
-import { NonEmptyStringSchema } from "@/validation/common.ts";
+import { NonEmptyStringSchema } from "@/validation/common-schemas.ts";
 
 export const GenerateLSSCommandInputSchema = Schema.Struct({
   configurationFilePath: NonEmptyStringSchema,

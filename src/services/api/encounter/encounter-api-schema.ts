@@ -1,7 +1,7 @@
 import * as Schema from "effect/Schema";
 
 import { DungeonIdSchema } from "@/services/fellowship/validation/fellowship-common.ts";
-import { NonEmptyStringSchema } from "@/validation/common.ts";
+import { NonEmptyStringSchema } from "@/validation/common-schemas.ts";
 
 export const EncounterApiEncounterSchema = Schema.Struct({
   createdAt: Schema.DateTimeUtcFromString,

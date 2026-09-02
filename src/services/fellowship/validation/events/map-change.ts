@@ -3,7 +3,7 @@ import * as Schema from "effect/Schema";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { TimestampSchema } from "@/services/fellowship/validation/fellowship-common.ts";
-import { JsonStringSchema } from "@/validation/common.ts";
+import { JsonStringSchema } from "@/validation/common-schemas.ts";
 
 const MapChangeLogLineSchema = Schema.Tuple([
   Schema.DateTimeUtcFromString, // timestamp

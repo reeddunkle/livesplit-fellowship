@@ -2,7 +2,7 @@ import * as E from "effect/Effect";
 import * as Schema from "effect/Schema";
 
 import { splitFellowshipLogFile } from "@/services/fellowship/utilities/split-fellowship-log-file.ts";
-import { NonEmptyStringSchema } from "@/validation/common.ts";
+import { NonEmptyStringSchema } from "@/validation/common-schemas.ts";
 
 export const SplitLogCommandInputSchema = Schema.Struct({
   inputFilePath: NonEmptyStringSchema,

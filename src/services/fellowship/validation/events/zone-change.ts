@@ -11,7 +11,10 @@ import {
   getDungeonLevelFromAbsoluteDungeonLevel,
   TimestampSchema,
 } from "@/services/fellowship/validation/fellowship-common.ts";
-import { EmptyStringSchema, JsonStringSchema } from "@/validation/common.ts";
+import {
+  EmptyStringSchema,
+  JsonStringSchema,
+} from "@/validation/common-schemas.ts";
 
 const ZoneChangeLogLineSchema = Schema.Tuple([
   Schema.DateTimeUtcFromString, // timestamp

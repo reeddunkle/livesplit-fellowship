@@ -9,7 +9,7 @@ import {
   NonNegativeNumberSchema,
   PositiveIntegerFromStringSchema,
   PositiveIntegerSchema,
-} from "@/validation/common.ts";
+} from "@/validation/common-schemas.ts";
 
 export const ReplayLogFileArgumentsSchema = Schema.Struct({
   initialDelayMilliseconds: Schema.optionalKey(

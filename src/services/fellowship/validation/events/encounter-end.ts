@@ -9,7 +9,7 @@ import {
 import {
   BooleanFlagSchema,
   JsonStringArraySchema,
-} from "@/validation/common.ts";
+} from "@/validation/common-schemas.ts";
 
 const EncounterEndLogLineSchema = Schema.Tuple([
   Schema.DateTimeUtcFromString, // timestamp

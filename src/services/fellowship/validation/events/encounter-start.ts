@@ -6,7 +6,7 @@ import {
   EncounterIdSchema,
   TimestampSchema,
 } from "@/services/fellowship/validation/fellowship-common.ts";
-import { JsonStringArraySchema } from "@/validation/common.ts";
+import { JsonStringArraySchema } from "@/validation/common-schemas.ts";
 
 const EncounterStartLogLineSchema = Schema.Tuple([
   Schema.DateTimeUtcFromString, // timestamp

@@ -5,7 +5,7 @@ import * as Schema from "effect/Schema";
 import {
   NonEmptyStringSchema,
   PositiveIntegerFromStringSchema,
-} from "./validation/common.ts";
+} from "./validation/common-schemas.ts";
 
 const RawEnvSchema = Schema.Struct({
   DATABASE_FILENAME: NonEmptyStringSchema,

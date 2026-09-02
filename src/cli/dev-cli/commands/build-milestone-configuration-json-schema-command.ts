@@ -4,7 +4,7 @@ import * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 
 import { FellowshipMilestoneConfigurationFileSchema } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
-import { NonEmptyStringSchema } from "@/validation/common.ts";
+import { NonEmptyStringSchema } from "@/validation/common-schemas.ts";
 
 const GENERATED_SCHEMA_DIRECTORY = "./generated/schemas";
 const SCHEMA_FILE_NAME = "milestone-configuration.json";
