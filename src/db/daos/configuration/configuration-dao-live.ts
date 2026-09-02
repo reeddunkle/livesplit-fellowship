@@ -352,16 +352,25 @@ const make = E.gen(function* () {
         },
       ).pipe(E.mapError(mapConfigurationDAOError));
 
+      const milestoneRequirementInserts = yield* E.forEach(
+        records.milestoneRequirements,
+        (milestoneRequirement) => {
+          return Schema.encodeEffect(MilestoneRequirementModel.insert)(
+            milestoneRequirement,
+          );
+        },
+      ).pipe(E.mapError(mapConfigurationDAOError));
+
       const configurationId = yield* sql
         .withTransaction(
           E.gen(function* () {
             if (replaceConfigurationId !== undefined) {
               const rows = yield* sql`
-                SELECT id
-                FROM configuration
-                WHERE id = ${replaceConfigurationId}
-                LIMIT 1
-              `;
+              SELECT id
+              FROM configuration
+              WHERE id = ${replaceConfigurationId}
+              LIMIT 1
+            `;
 
               if (rows[0] === undefined) {
                 return yield* E.fail(
@@ -375,11 +384,11 @@ const make = E.gen(function* () {
             }
 
             const definitionRows = yield* sql`
-              SELECT id
-              FROM configuration_definition
-              WHERE fingerprint = ${definitionInsert.fingerprint}
-              LIMIT 1
-            `;
+            SELECT id
+            FROM configuration_definition
+            WHERE fingerprint = ${definitionInsert.fingerprint}
+            LIMIT 1
+          `;
 
             const existingDefinition = definitionRows[0];
 
@@ -389,49 +398,49 @@ const make = E.gen(function* () {
               configurationDefinitionId = records.configurationDefinition.id;
 
               yield* sql`
-                INSERT INTO configuration_definition (
+              INSERT INTO configuration_definition (
+                id,
+                dungeon_id,
+                dungeon_level,
+                fingerprint,
+                canonical_json,
+                created_at,
+                updated_at
+              )
+              VALUES (
+                ${definitionInsert.id},
+                ${definitionInsert.dungeonId},
+                ${definitionInsert.dungeonLevel},
+                ${definitionInsert.fingerprint},
+                ${definitionInsert.canonicalJson},
+                ${definitionInsert.createdAt},
+                ${definitionInsert.updatedAt}
+              )
+            `;
+
+              for (const requirement of requirementInserts) {
+                yield* sql`
+                INSERT INTO requirement (
                   id,
-                  dungeon_id,
-                  dungeon_level,
-                  fingerprint,
-                  canonical_json,
+                  configuration_definition_id,
+                  type,
+                  target_id,
+                  start_occurrence,
+                  required_count,
                   created_at,
                   updated_at
                 )
                 VALUES (
-                  ${definitionInsert.id},
-                  ${definitionInsert.dungeonId},
-                  ${definitionInsert.dungeonLevel},
-                  ${definitionInsert.fingerprint},
-                  ${definitionInsert.canonicalJson},
-                  ${definitionInsert.createdAt},
-                  ${definitionInsert.updatedAt}
+                  ${requirement.id},
+                  ${configurationDefinitionId},
+                  ${requirement.type},
+                  ${requirement.targetId},
+                  ${requirement.startOccurrence},
+                  ${requirement.requiredCount},
+                  ${requirement.createdAt},
+                  ${requirement.updatedAt}
                 )
               `;
-
-              for (const requirement of requirementInserts) {
-                yield* sql`
-                  INSERT INTO requirement (
-                    id,
-                    configuration_definition_id,
-                    type,
-                    target_id,
-                    start_occurrence,
-                    required_count,
-                    created_at,
-                    updated_at
-                  )
-                  VALUES (
-                    ${requirement.id},
-                    ${configurationDefinitionId},
-                    ${requirement.type},
-                    ${requirement.targetId},
-                    ${requirement.startOccurrence},
-                    ${requirement.requiredCount},
-                    ${requirement.createdAt},
-                    ${requirement.updatedAt}
-                  )
-                `;
               }
             } else {
               configurationDefinitionId = yield* Schema.decodeUnknownEffect(
@@ -442,11 +451,11 @@ const make = E.gen(function* () {
             }
 
             const duplicateRows = yield* sql`
-              SELECT id
-              FROM configuration
-              WHERE fingerprint = ${configurationInsert.fingerprint}
-              LIMIT 1
-            `;
+            SELECT id
+            FROM configuration
+            WHERE fingerprint = ${configurationInsert.fingerprint}
+            LIMIT 1
+          `;
 
             const duplicateConfiguration = duplicateRows[0];
 
@@ -458,12 +467,12 @@ const make = E.gen(function* () {
 
               if (duplicateConfigurationId === replaceConfigurationId) {
                 yield* sql`
-                  UPDATE configuration
-                  SET
-                    label = ${configurationInsert.label},
-                    updated_at = ${configurationInsert.updatedAt}
-                  WHERE id = ${duplicateConfigurationId}
-                `;
+                UPDATE configuration
+                SET
+                  label = ${configurationInsert.label},
+                  updated_at = ${configurationInsert.updatedAt}
+                WHERE id = ${duplicateConfigurationId}
+              `;
 
                 const existingMilestones =
                   yield* getMilestonesByConfigurationId(
@@ -483,7 +492,7 @@ const make = E.gen(function* () {
                   );
 
                 for (const milestoneInsert of milestoneInserts) {
-                  const submittedRequirementIds = records.milestoneRequirements
+                  const submittedRequirementIds = milestoneRequirementInserts
                     .filter((milestoneRequirement) => {
                       return (
                         milestoneRequirement.milestoneId === milestoneInsert.id
@@ -493,7 +502,7 @@ const make = E.gen(function* () {
                       return milestoneRequirement.requirementId;
                     });
 
-                  const submittedRequirements = records.requirements.filter(
+                  const submittedRequirements = requirementInserts.filter(
                     (requirement) => {
                       return submittedRequirementIds.includes(requirement.id);
                     },
@@ -538,12 +547,12 @@ const make = E.gen(function* () {
                   }
 
                   yield* sql`
-                    UPDATE milestone
-                    SET
-                      label = ${milestoneInsert.label},
-                      updated_at = ${milestoneInsert.updatedAt}
-                    WHERE id = ${existingMilestone.id}
-                  `;
+                  UPDATE milestone
+                  SET
+                    label = ${milestoneInsert.label},
+                    updated_at = ${milestoneInsert.updatedAt}
+                  WHERE id = ${existingMilestone.id}
+                `;
                 }
 
                 return duplicateConfigurationId;
@@ -561,25 +570,25 @@ const make = E.gen(function* () {
             const newConfigurationId = records.configuration.id;
 
             yield* sql`
-              INSERT INTO configuration (
-                id,
-                configuration_definition_id,
-                label,
-                fingerprint,
-                canonical_json,
-                created_at,
-                updated_at
-              )
-              VALUES (
-                ${newConfigurationId},
-                ${configurationDefinitionId},
-                ${configurationInsert.label},
-                ${configurationInsert.fingerprint},
-                ${configurationInsert.canonicalJson},
-                ${configurationInsert.createdAt},
-                ${configurationInsert.updatedAt}
-              )
-            `;
+            INSERT INTO configuration (
+              id,
+              configuration_definition_id,
+              label,
+              fingerprint,
+              canonical_json,
+              created_at,
+              updated_at
+            )
+            VALUES (
+              ${newConfigurationId},
+              ${configurationDefinitionId},
+              ${configurationInsert.label},
+              ${configurationInsert.fingerprint},
+              ${configurationInsert.canonicalJson},
+              ${configurationInsert.createdAt},
+              ${configurationInsert.updatedAt}
+            )
+          `;
 
             const persistedRequirements =
               yield* getRequirementsByConfigurationDefinitionId(
@@ -588,29 +597,29 @@ const make = E.gen(function* () {
 
             for (const milestone of milestoneInserts) {
               yield* sql`
-                INSERT INTO milestone (
-                  id,
-                  configuration_id,
-                  label,
-                  created_at,
-                  updated_at
-                )
-                VALUES (
-                  ${milestone.id},
-                  ${newConfigurationId},
-                  ${milestone.label},
-                  ${milestone.createdAt},
-                  ${milestone.updatedAt}
-                )
-              `;
+              INSERT INTO milestone (
+                id,
+                configuration_id,
+                label,
+                created_at,
+                updated_at
+              )
+              VALUES (
+                ${milestone.id},
+                ${newConfigurationId},
+                ${milestone.label},
+                ${milestone.createdAt},
+                ${milestone.updatedAt}
+              )
+            `;
 
               const submittedMilestoneRequirements =
-                records.milestoneRequirements.filter((milestoneRequirement) => {
+                milestoneRequirementInserts.filter((milestoneRequirement) => {
                   return milestoneRequirement.milestoneId === milestone.id;
                 });
 
               for (const milestoneRequirement of submittedMilestoneRequirements) {
-                const submittedRequirement = records.requirements.find(
+                const submittedRequirement = requirementInserts.find(
                   (requirement) => {
                     return (
                       requirement.id === milestoneRequirement.requirementId
@@ -652,17 +661,17 @@ const make = E.gen(function* () {
                 }
 
                 yield* sql`
-                  INSERT INTO milestone_requirement (
-                    milestone_id,
-                    requirement_id,
-                    created_at
-                  )
-                  VALUES (
-                    ${milestone.id},
-                    ${persistedRequirement.id},
-                    ${milestoneRequirement.createdAt}
-                  )
-                `;
+                INSERT INTO milestone_requirement (
+                  milestone_id,
+                  requirement_id,
+                  created_at
+                )
+                VALUES (
+                  ${milestone.id},
+                  ${persistedRequirement.id},
+                  ${milestoneRequirement.createdAt}
+                )
+              `;
               }
             }
 
@@ -671,27 +680,27 @@ const make = E.gen(function* () {
               replaceConfigurationId !== newConfigurationId
             ) {
               yield* sql`
-                DELETE FROM configuration
-                WHERE id = ${replaceConfigurationId}
-              `;
+              DELETE FROM configuration
+              WHERE id = ${replaceConfigurationId}
+            `;
             }
 
             if (replaceDungeonAndLevel) {
               yield* sql`
-                DELETE FROM configuration
-                WHERE id IN (
-                  SELECT configuration.id
-                  FROM configuration
-                  INNER JOIN configuration_definition
-                    ON configuration_definition.id =
-                      configuration.configuration_definition_id
-                  WHERE configuration_definition.dungeon_id =
-                      ${definitionInsert.dungeonId}
-                    AND configuration_definition.dungeon_level =
-                      ${definitionInsert.dungeonLevel}
-                    AND configuration.id <> ${newConfigurationId}
-                )
-              `;
+              DELETE FROM configuration
+              WHERE id IN (
+                SELECT configuration.id
+                FROM configuration
+                INNER JOIN configuration_definition
+                  ON configuration_definition.id =
+                    configuration.configuration_definition_id
+                WHERE configuration_definition.dungeon_id =
+                    ${definitionInsert.dungeonId}
+                  AND configuration_definition.dungeon_level =
+                    ${definitionInsert.dungeonLevel}
+                  AND configuration.id <> ${newConfigurationId}
+              )
+            `;
             }
 
             return newConfigurationId;
