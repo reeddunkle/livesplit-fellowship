@@ -3,6 +3,7 @@ import * as Deferred from "effect/Deferred";
 import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import * as Schema from "effect/Schema";
 import * as Stream from "effect/Stream";
 
 import { FellowshipTrackerLive } from "@/application/tracking/fellowship-tracker-service.ts";
@@ -11,6 +12,18 @@ import {
   type ConfigurationDAOShape,
   type PersistedConfiguration,
 } from "@/db/daos/configuration/configuration-dao.ts";
+import {
+  DungeonRunDAO,
+  type DungeonRunDAOShape,
+} from "@/db/daos/dungeon-run/dungeon-run-dao.ts";
+import {
+  DungeonRunObservationDAO,
+  type DungeonRunObservationDAOShape,
+} from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao.ts";
+import {
+  DungeonRunIdSchema,
+  type DungeonRunModel,
+} from "@/db/models/dungeon-run-model.ts";
 import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import {
   Fellowship,
@@ -52,6 +65,10 @@ const DEFAULT_CONFIGURATION = {
 
 const TEST_CREATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
 const TEST_UPDATED_AT = DateTime.makeUnsafe("2026-01-01T00:00:00.000Z");
+
+const TEST_DUNGEON_RUN_ID = Schema.decodeUnknownSync(DungeonRunIdSchema)(
+  "0198d56c-9999-7abc-8def-1234567890ab",
+);
 
 export function makeFellowshipTrackerTestHarness(
   options: MakeFellowshipTrackerTestHarnessOptions = {},
@@ -122,6 +139,43 @@ export function makeFellowshipTrackerTestHarness(
       },
     } satisfies ConfigurationDAOShape;
 
+    const dungeonRunDAO = {
+      complete: () => {
+        return E.void;
+      },
+      exit: () => {
+        return E.void;
+      },
+      getById: () => {
+        return E.succeed(Option.none());
+      },
+      interrupt: () => {
+        return E.void;
+      },
+      start: ({ dungeonId, dungeonLevel, startedAt }) => {
+        return E.succeed({
+          configurationDefinitionId,
+          createdAt: TEST_CREATED_AT,
+          dungeonId,
+          dungeonLevel,
+          endedAt: null,
+          id: TEST_DUNGEON_RUN_ID,
+          startedAt,
+          status: "ACTIVE",
+          updatedAt: TEST_UPDATED_AT,
+        } satisfies DungeonRunModel);
+      },
+    } satisfies DungeonRunDAOShape;
+
+    const dungeonRunObservationDAO = {
+      getByDungeonRunId: () => {
+        return E.succeed([]);
+      },
+      observe: () => {
+        return E.void;
+      },
+    } satisfies DungeonRunObservationDAOShape;
+
     const liveSplit = {
       connect: () => {
         return E.void;
@@ -145,6 +199,13 @@ export function makeFellowshipTrackerTestHarness(
       configurationDAO,
     );
 
+    const DungeonRunDAOMock = Layer.succeed(DungeonRunDAO, dungeonRunDAO);
+
+    const DungeonRunObservationDAOMock = Layer.succeed(
+      DungeonRunObservationDAO,
+      dungeonRunObservationDAO,
+    );
+
     const FellowshipMock = Layer.succeed(
       Fellowship,
       fellowshipHarness.fellowship,
@@ -159,6 +220,8 @@ export function makeFellowshipTrackerTestHarness(
 
     const FellowshipTrackerTest = FellowshipTrackerLive.pipe(
       Layer.provide(ConfigurationDAOMock),
+      Layer.provide(DungeonRunDAOMock),
+      Layer.provide(DungeonRunObservationDAOMock),
       Layer.provide(FellowshipMock),
       Layer.provide(LiveSplitMock),
       Layer.provide(DungeonRunWebSocketBroadcasterMock),

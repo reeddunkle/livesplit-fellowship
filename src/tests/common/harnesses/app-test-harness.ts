@@ -4,6 +4,8 @@ import * as Option from "effect/Option";
 import * as Stream from "effect/Stream";
 
 import { FellowshipTrackerLive } from "@/application/tracking/fellowship-tracker-service.ts";
+import { DungeonRunDAOLive } from "@/db/daos/dungeon-run/dungeon-run-dao-live.ts";
+import { DungeonRunObservationDAOLive } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao-live.ts";
 import { makeAppServicesLive } from "@/layers/app-layer.ts";
 import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import {
@@ -31,6 +33,14 @@ export function makeAppTestHarness({
     const appServicesTest = makeAppServicesLive({
       databaseFilename,
     });
+
+    const dungeonRunDAOTest = DungeonRunDAOLive.pipe(
+      Layer.provide(appServicesTest),
+    );
+
+    const dungeonRunObservationDAOTest = DungeonRunObservationDAOLive.pipe(
+      Layer.provide(appServicesTest),
+    );
 
     const liveSplitConnectionManagerTest = Layer.succeed(
       LiveSplitConnectionManager,
@@ -62,6 +72,8 @@ export function makeAppTestHarness({
 
     const fellowshipTrackerDependencies = Layer.mergeAll(
       appServicesTest,
+      dungeonRunDAOTest,
+      dungeonRunObservationDAOTest,
       liveSplitTest,
       dungeonRunWebSocketBroadcasterTest,
     );
@@ -72,6 +84,8 @@ export function makeAppTestHarness({
 
     const layer = Layer.mergeAll(
       appServicesTest,
+      dungeonRunDAOTest,
+      dungeonRunObservationDAOTest,
       liveSplitConnectionManagerTest,
       liveSplitTest,
       dungeonRunWebSocketBroadcasterTest,

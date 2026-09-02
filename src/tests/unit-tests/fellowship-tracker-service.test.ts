@@ -48,6 +48,7 @@ describe("FellowshipTracker", () => {
           }).pipe(E.provide(harness.layer));
 
           return {
+            configurationDefinitionId: harness.configurationDefinitionId,
             configurationId: harness.configurationId,
             dungeonId: harness.configuration.dungeonId,
             status,
@@ -61,12 +62,13 @@ describe("FellowshipTracker", () => {
       dungeonId: result.dungeonId,
       source: {
         _tag: "Persisted",
+        configurationDefinitionId: result.configurationDefinitionId,
         configurationId: result.configurationId,
       },
     });
   });
 
-  test("changes status to tracking for an external configuration", async () => {
+  test("changes status to tracking after starting", async () => {
     const result = await E.runPromise(
       E.scoped(
         E.gen(function* () {
@@ -75,8 +77,8 @@ describe("FellowshipTracker", () => {
           const status = yield* E.gen(function* () {
             const tracker = yield* FellowshipTracker;
 
-            yield* tracker.startConfiguration({
-              configuration: harness.configuration,
+            yield* tracker.start({
+              configurationId: harness.configurationId,
             });
 
             yield* Deferred.await(harness.trackingStarted);
@@ -85,6 +87,8 @@ describe("FellowshipTracker", () => {
           }).pipe(E.provide(harness.layer));
 
           return {
+            configurationDefinitionId: harness.configurationDefinitionId,
+            configurationId: harness.configurationId,
             dungeonId: harness.configuration.dungeonId,
             status,
           };
@@ -96,7 +100,9 @@ describe("FellowshipTracker", () => {
       _tag: "Tracking",
       dungeonId: result.dungeonId,
       source: {
-        _tag: "External",
+        _tag: "Persisted",
+        configurationDefinitionId: result.configurationDefinitionId,
+        configurationId: result.configurationId,
       },
     });
   });
