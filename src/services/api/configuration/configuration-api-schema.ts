@@ -10,9 +10,9 @@ import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
 } from "@/validation/common.ts";
-import { ConfigurationFingerprintSchema } from "@/validation/configuration/configuration-fingerprint.ts";
-import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
-import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label.ts";
+import { ConfigurationFingerprintSchema } from "@/validation/configuration/configuration-fingerprint-schema.ts";
+import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id-schema.ts";
+import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label-schema.ts";
 
 export const SaveConfigurationApiRequestSchema = Schema.Struct({
   configuration: FellowshipMilestoneConfigurationFileSchema,

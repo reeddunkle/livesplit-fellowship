@@ -23,7 +23,7 @@ import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/mil
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 type FellowshipTrackerConfigurationSource =
   | {

@@ -24,7 +24,7 @@ import { ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
 import {
   type ConfigurationId,
   ConfigurationIdSchema,
-} from "@/validation/configuration/configuration-id.ts";
+} from "@/validation/configuration/configuration-id-schema.ts";
 
 function mapConfigurationDAOError(cause: unknown): ConfigurationDAOError {
   if (cause instanceof ConfigurationDAOError) {

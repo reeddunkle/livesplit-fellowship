@@ -1,7 +1,7 @@
 import * as E from "effect/Effect";
 
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
-import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
+import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint-schema.ts";
 
 import { serializeCanonicalConfiguration } from "./canonicalize-configuration.ts";
 

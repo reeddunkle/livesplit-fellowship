@@ -2,9 +2,9 @@ import * as DateTime from "effect/DateTime";
 import * as Schema from "effect/Schema";
 
 import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
-import { ConfigurationFingerprintSchema } from "@/validation/configuration/configuration-fingerprint.ts";
-import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
-import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label.ts";
+import { ConfigurationFingerprintSchema } from "@/validation/configuration/configuration-fingerprint-schema.ts";
+import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id-schema.ts";
+import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label-schema.ts";
 
 export const TEST_CONFIGURATION_ID = Schema.decodeUnknownSync(
   ConfigurationIdSchema,

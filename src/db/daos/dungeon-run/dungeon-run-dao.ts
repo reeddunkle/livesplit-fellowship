@@ -8,7 +8,7 @@ import {
 } from "@/db/models/dungeon-run-model.ts";
 import { type DungeonRunObservationModel } from "@/db/models/dungeon-run-observation-model.ts";
 import { type DungeonRunDAOError } from "@/errors/dungeon-run-dao-error.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 type GetDungeonRunByIdOptions = {
   readonly id: DungeonRunId;

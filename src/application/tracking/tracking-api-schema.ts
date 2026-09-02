@@ -1,7 +1,7 @@
 import * as Schema from "effect/Schema";
 
 import { DungeonIdSchema } from "@/services/fellowship/validation/fellowship-common.ts";
-import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
+import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id-schema.ts";
 
 export const StartTrackingApiRequestSchema = Schema.Struct({
   configurationId: ConfigurationIdSchema,

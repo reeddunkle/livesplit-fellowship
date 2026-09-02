@@ -10,7 +10,7 @@ import {
   DeleteConfigurationsByDungeonAndLevelApiRequestSchema,
   SaveConfigurationApiRequestSchema,
 } from "@/services/api/configuration/configuration-api-schema.ts";
-import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
+import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id-schema.ts";
 
 const CONFIGURATIONS_ROUTE = "/configurations" as const;
 

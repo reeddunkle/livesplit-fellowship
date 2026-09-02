@@ -19,7 +19,7 @@ import {
   TEST_UPDATED_CONFIGURATION_LABEL,
 } from "@/tests/common/fixtures/configuration-fixtures.ts";
 import { runTest } from "@/tests/common/run-test.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 type MilestoneDefinition =
   FellowshipMilestoneConfiguration["milestones"][number];

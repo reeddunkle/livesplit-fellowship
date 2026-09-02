@@ -26,8 +26,8 @@ import {
   TEST_CONFIGURATION_ID,
   TEST_CONFIGURATION_LABEL,
 } from "@/tests/common/fixtures/configuration-fixtures.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
-import { type ConfigurationLabel } from "@/validation/configuration/configuration-label.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
+import { type ConfigurationLabel } from "@/validation/configuration/configuration-label-schema.ts";
 
 import { makeFellowshipTestHarness } from "./fellowship-test-harness.ts";
 import { makeWebSocketBroadcasterTestHarness } from "./websocket-broadcaster-test-harness.ts";

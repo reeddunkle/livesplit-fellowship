@@ -15,7 +15,7 @@ import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/mil
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 import { isNonEmptyArray } from "@/util/is-non-empty-array.ts";
-import { type ConfigurationLabel } from "@/validation/configuration/configuration-label.ts";
+import { type ConfigurationLabel } from "@/validation/configuration/configuration-label-schema.ts";
 
 import { type PersistedConfiguration } from "./configuration-dao.ts";
 

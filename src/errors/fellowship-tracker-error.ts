@@ -1,7 +1,7 @@
 import * as Data from "effect/Data";
 import * as Schema from "effect/Schema";
 
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 const FELLOWSHIP_TRACKER_ALREADY_RUNNING_ERROR =
   "FellowshipTrackerAlreadyRunningError" as const;

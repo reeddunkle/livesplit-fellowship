@@ -3,9 +3,9 @@ import * as Model from "effect/unstable/schema/Model";
 
 import { DungeonIdSchema } from "@/services/fellowship/validation/fellowship-common.ts";
 import { PositiveIntegerSchema } from "@/validation/common.ts";
-import { ConfigurationFingerprintSchema } from "@/validation/configuration/configuration-fingerprint.ts";
-import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
-import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label.ts";
+import { ConfigurationFingerprintSchema } from "@/validation/configuration/configuration-fingerprint-schema.ts";
+import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id-schema.ts";
+import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label-schema.ts";
 
 export class ConfigurationModel extends Model.Class<ConfigurationModel>(
   "ConfigurationModel",
