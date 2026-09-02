@@ -26,7 +26,7 @@ import {
   useSelectedConfigurationId,
 } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 import { ConfigurationEditorProvider } from "./configuration-editor-provider.tsx";
 import {

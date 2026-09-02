@@ -1,4 +1,4 @@
-import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint.ts";
+import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint-schema.ts";
 
 export type ConfigurationOption = {
   readonly fingerprint: ConfigurationFingerprint;

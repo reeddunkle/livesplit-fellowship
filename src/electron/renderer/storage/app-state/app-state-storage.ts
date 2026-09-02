@@ -4,7 +4,7 @@ import * as Option from "effect/Option";
 import type * as Schema from "effect/Schema";
 import * as KeyValueStore from "effect/unstable/persistence/KeyValueStore";
 
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 import {
   type AppState,

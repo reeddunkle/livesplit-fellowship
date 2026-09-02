@@ -10,8 +10,8 @@ import {
   IntegerFromStringSchema,
   NonEmptyStringSchema,
   PositiveIntegerSchema,
-} from "@/validation/common.ts";
-import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label.ts";
+} from "@/validation/common-schemas";
+import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label-schema.ts";
 
 const PositiveIntegerFromStringSchema = IntegerFromStringSchema.pipe(
   Schema.decodeTo(PositiveIntegerSchema),

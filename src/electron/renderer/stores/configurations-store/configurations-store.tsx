@@ -19,7 +19,7 @@ import {
   type ConfigurationApiConfiguration,
   type ConfigurationApiConfigurationList,
 } from "@/services/api/configuration/configuration-api-schema.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 import { groupConfigurations } from "./configuration-grouping.ts";
 import { reduceConfigurations } from "./configuration-optimistic-state.ts";

@@ -7,7 +7,7 @@ import {
   type Theme,
 } from "@/electron/renderer/storage/app-state/app-state-schema.ts";
 import { AppStateStorage } from "@/electron/renderer/storage/app-state/app-state-storage.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 type Listener = () => void;
 

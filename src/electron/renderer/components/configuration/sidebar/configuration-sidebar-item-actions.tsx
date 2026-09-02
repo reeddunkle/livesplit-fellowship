@@ -12,7 +12,7 @@ import {
 import { Separator } from "@/electron/renderer/components/ui/separator";
 import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
 import { formatLocalDateTime } from "@/util/format-date-time.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 type ConfigurationSidebarItemActionsProps = {
   readonly configuration: ConfigurationApiConfiguration;

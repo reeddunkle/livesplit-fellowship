@@ -1,6 +1,6 @@
 import * as Schema from "effect/Schema";
 
-import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id.ts";
+import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id-schema.ts";
 
 export const ThemeSchema = Schema.Union([
   Schema.Literal("dark"),

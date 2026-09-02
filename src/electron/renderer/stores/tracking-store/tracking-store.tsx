@@ -13,7 +13,7 @@ import { type TrackingApiStatus } from "@/application/tracking/tracking-api-sche
 import { type ApiConnectionState } from "@/electron/renderer/api/common.ts";
 import * as trackingClient from "@/electron/renderer/api/tracking/tracking-client.ts";
 import { trackingEventStore } from "@/electron/renderer/stores/tracking-store/tracking-event-store.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id.ts";
+import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 type StartTrackingActionInput = {
   readonly configurationId: ConfigurationId;
