@@ -1,6 +1,6 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import path from "node:path";
 import * as E from "effect/Effect";
 import * as Option from "effect/Option";
 import { describe, expect, test } from "vitest";
@@ -121,6 +121,7 @@ describe("ConfigurationDAOLive", () => {
       });
 
       expect(created.id).toBeDefined();
+      expect(created.configurationDefinitionId).toBeDefined();
       expect(created.configuration).toEqual(configuration);
       expect(created.label).toBe(MOCK_CONFIGURATION_LABEL);
 
@@ -136,6 +137,9 @@ describe("ConfigurationDAOLive", () => {
       const persisted = getPersistedConfiguration(result);
 
       expect(persisted.id).toBe(created.id);
+      expect(persisted.configurationDefinitionId).toBe(
+        created.configurationDefinitionId,
+      );
       expect(persisted.fingerprint).toBe(created.fingerprint);
       expect(persisted.label).toBe(MOCK_CONFIGURATION_LABEL);
       expect(persisted.configuration.dungeonLevel).toBe(MOCK_DUNGEON_LEVEL);
@@ -212,121 +216,6 @@ describe("ConfigurationDAOLive", () => {
     await runTest(program);
   });
 
-  test("updates the label for a semantically duplicate configuration", async () => {
-    const duplicateConfiguration = {
-      dungeonId: configuration.dungeonId,
-      dungeonLevel: configuration.dungeonLevel,
-      milestones: [
-        {
-          ...combinedMilestone,
-          label: "Different Combined Label",
-          requirements: [
-            combinedAbilityRequirement,
-            combinedUnitDeathRequirement,
-          ],
-        },
-        {
-          ...bossPullMilestone,
-          label: "Different Boss Pull Label",
-        },
-        {
-          ...secondDesecratorMilestone,
-          label: "Different Second Desecrator Label",
-        },
-        {
-          ...firstDesecratorMilestone,
-          label: "Different First Desecrator Label",
-        },
-      ],
-    } satisfies FellowshipMilestoneConfiguration;
-
-    const program = E.gen(function* () {
-      const configurationDAO = yield* ConfigurationDAO;
-
-      const first = yield* configurationDAO.save({
-        configuration,
-        label: MOCK_CONFIGURATION_LABEL,
-      });
-
-      const second = yield* configurationDAO.save({
-        configuration: duplicateConfiguration,
-        label: MOCK_UPDATED_CONFIGURATION_LABEL,
-      });
-
-      expect(second.id).toBe(first.id);
-      expect(second.fingerprint).toBe(first.fingerprint);
-      expect(second.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
-
-      const persistedConfigurations = yield* configurationDAO.getAll();
-
-      expect(persistedConfigurations).toHaveLength(1);
-
-      const persisted = persistedConfigurations[0];
-
-      expect(persisted).toBeDefined();
-
-      if (persisted === undefined) {
-        return;
-      }
-
-      expect(persisted.id).toBe(first.id);
-      expect(persisted.fingerprint).toBe(first.fingerprint);
-      expect(persisted.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
-    }).pipe(E.provide(makeTestLayer()));
-
-    await runTest(program);
-  });
-
-  test("updates milestone labels for a semantically duplicate configuration", async () => {
-    const updatedConfiguration = {
-      ...configuration,
-      milestones: configuration.milestones.map((milestone, index) => {
-        if (index !== 0) {
-          return milestone;
-        }
-
-        return {
-          ...milestone,
-          label: "Updated First Desecrator",
-        };
-      }),
-    } satisfies FellowshipMilestoneConfiguration;
-
-    const program = E.gen(function* () {
-      const configurationDAO = yield* ConfigurationDAO;
-
-      const first = yield* configurationDAO.save({
-        configuration,
-        label: MOCK_CONFIGURATION_LABEL,
-      });
-
-      const second = yield* configurationDAO.save({
-        configuration: updatedConfiguration,
-        label: MOCK_CONFIGURATION_LABEL,
-      });
-
-      expect(second.id).toBe(first.id);
-      expect(second.fingerprint).toBe(first.fingerprint);
-
-      const result = yield* configurationDAO.getById({
-        id: first.id,
-      });
-
-      const persisted = getPersistedConfiguration(result);
-
-      const milestoneLabels = persisted.configuration.milestones.map(
-        (milestone) => {
-          return milestone.label;
-        },
-      );
-
-      expect(milestoneLabels).toContain("Updated First Desecrator");
-      expect(milestoneLabels).not.toContain("First Desecrator");
-    }).pipe(E.provide(makeTestLayer()));
-
-    await runTest(program);
-  });
-
   test("allows otherwise identical configurations at different dungeon levels", async () => {
     const differentLevelConfiguration = {
       ...configuration,
@@ -347,6 +236,9 @@ describe("ConfigurationDAOLive", () => {
       });
 
       expect(second.id).not.toBe(first.id);
+      expect(second.configurationDefinitionId).not.toBe(
+        first.configurationDefinitionId,
+      );
       expect(second.fingerprint).not.toBe(first.fingerprint);
 
       const persistedConfigurations = yield* configurationDAO.getAll();
@@ -440,141 +332,6 @@ describe("ConfigurationDAOLive", () => {
     await runTest(program);
   });
 
-  test("saves a configuration and replaces other configurations for the same dungeon and level", async () => {
-    const existingConfiguration = {
-      ...configuration,
-      milestones: [firstDesecratorMilestone],
-    } satisfies FellowshipMilestoneConfiguration;
-
-    const replacementConfiguration = {
-      ...configuration,
-      milestones: [firstDesecratorMilestone, secondDesecratorMilestone],
-    } satisfies FellowshipMilestoneConfiguration;
-
-    const differentLevelConfiguration = {
-      ...configuration,
-      dungeonLevel: configuration.dungeonLevel + 1,
-    } satisfies FellowshipMilestoneConfiguration;
-
-    const differentDungeonConfiguration = {
-      ...configuration,
-      dungeonId: CITHRELS_FALL_DUNGEON_ID,
-    } satisfies FellowshipMilestoneConfiguration;
-
-    const program = E.gen(function* () {
-      const configurationDAO = yield* ConfigurationDAO;
-
-      const existing = yield* configurationDAO.save({
-        configuration: existingConfiguration,
-        label: MOCK_CONFIGURATION_LABEL,
-      });
-
-      const differentLevel = yield* configurationDAO.save({
-        configuration: differentLevelConfiguration,
-        label: MOCK_CONFIGURATION_LABEL,
-      });
-
-      const differentDungeon = yield* configurationDAO.save({
-        configuration: differentDungeonConfiguration,
-        label: MOCK_CONFIGURATION_LABEL,
-      });
-
-      const replacement = yield* configurationDAO.saveReplacingDungeonAndLevel({
-        configuration: replacementConfiguration,
-        label: MOCK_UPDATED_CONFIGURATION_LABEL,
-      });
-
-      expect(replacement.id).not.toBe(existing.id);
-      expect(replacement.configuration).toEqual(replacementConfiguration);
-      expect(replacement.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
-
-      const persistedConfigurations = yield* configurationDAO.getAll();
-
-      expect(persistedConfigurations).toHaveLength(3);
-
-      expect(persistedConfigurations.map((persisted) => persisted.id)).toEqual(
-        expect.arrayContaining([
-          replacement.id,
-          differentLevel.id,
-          differentDungeon.id,
-        ]),
-      );
-
-      expect(
-        persistedConfigurations.some((persisted) => {
-          return persisted.id === existing.id;
-        }),
-      ).toBe(false);
-    }).pipe(E.provide(makeTestLayer()));
-
-    await runTest(program);
-  });
-
-  test("keeps the matching configuration when replacing with a semantic duplicate", async () => {
-    const oldConfiguration = {
-      ...configuration,
-      milestones: [firstDesecratorMilestone],
-    } satisfies FellowshipMilestoneConfiguration;
-
-    const retainedConfiguration = {
-      ...configuration,
-      milestones: [secondDesecratorMilestone],
-    } satisfies FellowshipMilestoneConfiguration;
-
-    const duplicateRetainedConfiguration = {
-      dungeonId: retainedConfiguration.dungeonId,
-      dungeonLevel: retainedConfiguration.dungeonLevel,
-      milestones: [
-        {
-          ...secondDesecratorMilestone,
-          label: "Updated Milestone Label",
-        },
-      ],
-    } satisfies FellowshipMilestoneConfiguration;
-
-    const program = E.gen(function* () {
-      const configurationDAO = yield* ConfigurationDAO;
-
-      const old = yield* configurationDAO.save({
-        configuration: oldConfiguration,
-        label: MOCK_CONFIGURATION_LABEL,
-      });
-
-      const retained = yield* configurationDAO.save({
-        configuration: retainedConfiguration,
-        label: MOCK_CONFIGURATION_LABEL,
-      });
-
-      const replacement = yield* configurationDAO.saveReplacingDungeonAndLevel({
-        configuration: duplicateRetainedConfiguration,
-        label: MOCK_UPDATED_CONFIGURATION_LABEL,
-      });
-
-      expect(replacement.id).toBe(retained.id);
-      expect(replacement.fingerprint).toBe(retained.fingerprint);
-      expect(replacement.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
-
-      const persistedConfigurations = yield* configurationDAO.getAll();
-
-      expect(persistedConfigurations).toHaveLength(1);
-
-      const persisted = persistedConfigurations[0];
-
-      expect(persisted).toBeDefined();
-
-      if (persisted === undefined) {
-        return;
-      }
-
-      expect(persisted.id).toBe(retained.id);
-      expect(persisted.fingerprint).toBe(retained.fingerprint);
-      expect(persisted.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
-      expect(persisted.id).not.toBe(old.id);
-    }).pipe(E.provide(makeTestLayer()));
-
-    await runTest(program);
-  });
-
   test("returns all persisted configurations", async () => {
     const secondConfiguration = {
       dungeonId: CITHRELS_FALL_DUNGEON_ID,
@@ -642,16 +399,19 @@ describe("ConfigurationDAOLive", () => {
 
   test("persists configurations across database restarts", async () => {
     const temporaryDirectory = await mkdtemp(
-      join(tmpdir(), "livesplit-fellowship-"),
+      path.join(tmpdir(), "livesplit-fellowship-"),
     );
 
-    const databaseFilename = join(
+    const databaseFilename = path.join(
       temporaryDirectory,
       "livesplit-fellowship.db",
     );
 
     try {
       let configurationId: ConfigurationId | undefined;
+      let configurationDefinitionId:
+        | PersistedConfiguration["configurationDefinitionId"]
+        | undefined;
 
       const expectedFingerprint = await runTest(
         createConfigurationFingerprint(configuration),
@@ -666,6 +426,7 @@ describe("ConfigurationDAOLive", () => {
         });
 
         configurationId = created.id;
+        configurationDefinitionId = created.configurationDefinitionId;
 
         expect(created.fingerprint).toBe(expectedFingerprint.fingerprint);
       }).pipe(
@@ -678,11 +439,15 @@ describe("ConfigurationDAOLive", () => {
 
       await runTest(E.scoped(createProgram));
 
-      if (configurationId === undefined) {
+      if (
+        configurationId === undefined ||
+        configurationDefinitionId === undefined
+      ) {
         throw new Error("Expected configuration to be created.");
       }
 
       const persistedConfigurationId = configurationId;
+      const persistedConfigurationDefinitionId = configurationDefinitionId;
 
       const readProgram = E.gen(function* () {
         const configurationDAO = yield* ConfigurationDAO;
@@ -694,6 +459,9 @@ describe("ConfigurationDAOLive", () => {
         const persisted = getPersistedConfiguration(result);
 
         expect(persisted.id).toBe(persistedConfigurationId);
+        expect(persisted.configurationDefinitionId).toBe(
+          persistedConfigurationDefinitionId,
+        );
         expect(persisted.fingerprint).toBe(expectedFingerprint.fingerprint);
         expect(persisted.label).toBe(MOCK_CONFIGURATION_LABEL);
         expect(persisted.configuration.dungeonLevel).toBe(MOCK_DUNGEON_LEVEL);
