@@ -174,9 +174,9 @@ function getNewlyCompletedMilestones({
       return [];
     }
 
-    const previousMilestone = previousMilestones.find((milestone) => {
+    const previousMilestone = previousMilestones.find((candidateMilestone) => {
       return (
-        milestone.definition.milestoneId ===
+        candidateMilestone.definition.milestoneId ===
         nextMilestone.definition.milestoneId
       );
     });

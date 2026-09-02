@@ -51,17 +51,17 @@ export function makeDungeonRunEventStore() {
 
   const handleDungeonRunEvent = Match.type<DungeonRunEventStreamEvent>().pipe(
     Match.when({ type: "CONNECTION_STATE_CHANGED" }, (event) => {
-      return updateSnapshot((snapshot) => {
+      return updateSnapshot((currentSnapshot) => {
         return {
-          ...snapshot,
+          ...currentSnapshot,
           connectionState: event.state,
         };
       });
     }),
     Match.when({ type: "MESSAGE_RECEIVED" }, (event) => {
-      return updateSnapshot((snapshot) => {
+      return updateSnapshot((currentSnapshot) => {
         return {
-          ...snapshot,
+          ...currentSnapshot,
           runState: event.message.state,
         };
       });
@@ -82,9 +82,9 @@ export function makeDungeonRunEventStore() {
             error,
           });
 
-          yield* updateSnapshot((snapshot) => {
+          yield* updateSnapshot((currentSnapshot) => {
             return {
-              ...snapshot,
+              ...currentSnapshot,
               connectionState: API_CONNECTION_STATE.DISCONNECTED,
             };
           });

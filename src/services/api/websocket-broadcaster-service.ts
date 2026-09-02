@@ -42,14 +42,14 @@ const make = E.gen(function* () {
   const latestMessage = yield* Ref.make<string | undefined>(undefined);
 
   const clientCount = Ref.get(clients).pipe(
-    E.map((clients) => {
-      return HashSet.size(clients);
+    E.map((currentClients) => {
+      return HashSet.size(currentClients);
     }),
   );
 
   const removeClient = (writer: WebSocketWriter): E.Effect<void> => {
-    return Ref.update(clients, (clients) => {
-      return HashSet.remove(clients, writer);
+    return Ref.update(clients, (currentClients) => {
+      return HashSet.remove(currentClients, writer);
     });
   };
 
@@ -77,8 +77,8 @@ const make = E.gen(function* () {
     writer: WebSocketWriter,
   ): E.Effect<void, never, Scope.Scope> => {
     return E.acquireRelease(
-      Ref.update(clients, (clients) => {
-        return HashSet.add(clients, writer);
+      Ref.update(clients, (currentClients) => {
+        return HashSet.add(currentClients, writer);
       }),
       () => {
         return removeClient(writer);

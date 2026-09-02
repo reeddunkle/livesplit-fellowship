@@ -126,15 +126,24 @@
         "useAtIndex": "on",
         "useBlockStatements": "on",
         "useConsistentCurlyBraces": "on",
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "filenameCases": ["kebab-case"]
+          }
+        },
         "useImportType": {
           "level": "warn",
           "options": {
             "style": "inlineType"
           }
-        }
+        },
+        "useSingleVarDeclarator": "on"
       },
       "suspicious": {
         "noDoubleEquals": "error",
+        "noReturnAssign": "on",
+        "noShadow": "on",
         "useIsArray": "error"
       }
     }

@@ -22,45 +22,57 @@ export function getMilestoneRequirementLookup({
   requirement,
 }: GetMilestoneRequirementLookupOptions): MilestoneRequirementLookup {
   return Match.value(requirement).pipe(
-    Match.when({ type: FELLOWSHIP_EVENT.ABILITY_ACTIVATED }, (requirement) => {
-      return {
-        targetId: requirement.abilityId,
-        type: requirement.type,
-      };
-    }),
+    Match.when(
+      { type: FELLOWSHIP_EVENT.ABILITY_ACTIVATED },
+      (matchedRequirement) => {
+        return {
+          targetId: matchedRequirement.abilityId,
+          type: matchedRequirement.type,
+        };
+      },
+    ),
 
-    Match.when({ type: FELLOWSHIP_EVENT.DUNGEON_START }, (requirement) => {
+    Match.when(
+      { type: FELLOWSHIP_EVENT.DUNGEON_START },
+      (matchedRequirement) => {
+        return {
+          targetId: dungeonId,
+          type: matchedRequirement.type,
+        };
+      },
+    ),
+
+    Match.when({ type: FELLOWSHIP_EVENT.DUNGEON_END }, (matchedRequirement) => {
       return {
         targetId: dungeonId,
-        type: requirement.type,
+        type: matchedRequirement.type,
       };
     }),
 
-    Match.when({ type: FELLOWSHIP_EVENT.DUNGEON_END }, (requirement) => {
-      return {
-        targetId: dungeonId,
-        type: requirement.type,
-      };
-    }),
+    Match.when(
+      { type: FELLOWSHIP_EVENT.ENCOUNTER_START },
+      (matchedRequirement) => {
+        return {
+          targetId: matchedRequirement.encounterId,
+          type: matchedRequirement.type,
+        };
+      },
+    ),
 
-    Match.when({ type: FELLOWSHIP_EVENT.ENCOUNTER_START }, (requirement) => {
-      return {
-        targetId: requirement.encounterId,
-        type: requirement.type,
-      };
-    }),
+    Match.when(
+      { type: FELLOWSHIP_EVENT.ENCOUNTER_END },
+      (matchedRequirement) => {
+        return {
+          targetId: matchedRequirement.encounterId,
+          type: matchedRequirement.type,
+        };
+      },
+    ),
 
-    Match.when({ type: FELLOWSHIP_EVENT.ENCOUNTER_END }, (requirement) => {
+    Match.when({ type: FELLOWSHIP_EVENT.UNIT_DEATH }, (matchedRequirement) => {
       return {
-        targetId: requirement.encounterId,
-        type: requirement.type,
-      };
-    }),
-
-    Match.when({ type: FELLOWSHIP_EVENT.UNIT_DEATH }, (requirement) => {
-      return {
-        targetId: requirement.unitTypeId,
-        type: requirement.type,
+        targetId: matchedRequirement.unitTypeId,
+        type: matchedRequirement.type,
       };
     }),
 
@@ -72,31 +84,31 @@ export function getMilestoneRequirementLookupForEvent(
   event: FellowshipEvent,
 ): MilestoneRequirementLookup | undefined {
   return Match.value(event).pipe(
-    Match.when({ type: FELLOWSHIP_EVENT.ABILITY_ACTIVATED }, (event) => {
+    Match.when({ type: FELLOWSHIP_EVENT.ABILITY_ACTIVATED }, (matchedEvent) => {
       return {
-        targetId: event.abilityId,
-        type: event.type,
+        targetId: matchedEvent.abilityId,
+        type: matchedEvent.type,
       };
     }),
 
-    Match.when({ type: FELLOWSHIP_EVENT.DUNGEON_START }, (event) => {
+    Match.when({ type: FELLOWSHIP_EVENT.DUNGEON_START }, (matchedEvent) => {
       return {
-        targetId: event.dungeonId,
-        type: event.type,
+        targetId: matchedEvent.dungeonId,
+        type: matchedEvent.type,
       };
     }),
 
-    Match.when({ type: FELLOWSHIP_EVENT.DUNGEON_END }, (event) => {
+    Match.when({ type: FELLOWSHIP_EVENT.DUNGEON_END }, (matchedEvent) => {
       return {
-        targetId: event.dungeonId,
-        type: event.type,
+        targetId: matchedEvent.dungeonId,
+        type: matchedEvent.type,
       };
     }),
 
-    Match.when({ type: FELLOWSHIP_EVENT.ENCOUNTER_START }, (event) => {
+    Match.when({ type: FELLOWSHIP_EVENT.ENCOUNTER_START }, (matchedEvent) => {
       return {
-        targetId: event.encounterId,
-        type: event.type,
+        targetId: matchedEvent.encounterId,
+        type: matchedEvent.type,
       };
     }),
 
@@ -105,18 +117,18 @@ export function getMilestoneRequirementLookupForEvent(
         succeeded: true,
         type: FELLOWSHIP_EVENT.ENCOUNTER_END,
       },
-      (event) => {
+      (matchedEvent) => {
         return {
-          targetId: event.encounterId,
-          type: event.type,
+          targetId: matchedEvent.encounterId,
+          type: matchedEvent.type,
         };
       },
     ),
 
-    Match.when({ type: FELLOWSHIP_EVENT.UNIT_DEATH }, (event) => {
+    Match.when({ type: FELLOWSHIP_EVENT.UNIT_DEATH }, (matchedEvent) => {
       return {
-        targetId: event.unitTypeId,
-        type: event.type,
+        targetId: matchedEvent.unitTypeId,
+        type: matchedEvent.type,
       };
     }),
 

@@ -91,7 +91,7 @@ const make = E.gen(function* () {
         port,
       });
 
-      const client = yield* makeLiveSplitClient({
+      const liveSplitClient = yield* makeLiveSplitClient({
         transport,
       });
 
@@ -100,7 +100,7 @@ const make = E.gen(function* () {
         port,
       });
 
-      yield* client.unavailability.pipe(
+      yield* liveSplitClient.unavailability.pipe(
         Stream.runForEach((cause) => {
           return E.gen(function* () {
             yield* E.logWarning("LiveSplit client became unavailable.", {
@@ -119,7 +119,7 @@ const make = E.gen(function* () {
 
       yield* E.logDebug("LiveSplit client availability watcher started.");
 
-      return Option.some(client);
+      return Option.some(liveSplitClient);
     }).pipe(
       E.tapCause((cause) => {
         return E.logError("Failed to acquire LiveSplit client.", {

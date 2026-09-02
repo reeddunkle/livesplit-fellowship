@@ -51,17 +51,17 @@ export function makeTrackingEventStore() {
 
   const handleTrackingEvent = Match.type<TrackingEventStreamEvent>().pipe(
     Match.when({ type: "CONNECTION_STATE_CHANGED" }, (event) => {
-      return updateSnapshot((snapshot) => {
+      return updateSnapshot((currentSnapshot) => {
         return {
-          ...snapshot,
+          ...currentSnapshot,
           connectionState: event.state,
         };
       });
     }),
     Match.when({ type: "MESSAGE_RECEIVED" }, (event) => {
-      return updateSnapshot((snapshot) => {
+      return updateSnapshot((currentSnapshot) => {
         return {
-          ...snapshot,
+          ...currentSnapshot,
           trackingStatus: event.message.status,
         };
       });
@@ -82,9 +82,9 @@ export function makeTrackingEventStore() {
             error,
           });
 
-          yield* updateSnapshot((snapshot) => {
+          yield* updateSnapshot((currentSnapshot) => {
             return {
-              ...snapshot,
+              ...currentSnapshot,
               connectionState: API_CONNECTION_STATE.DISCONNECTED,
             };
           });

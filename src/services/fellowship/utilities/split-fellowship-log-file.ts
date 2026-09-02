@@ -107,21 +107,21 @@ function splitRunAttempts(
   };
 
   const state = inspectedLines.reduce<SplitRunAttemptsState>(
-    (state, { event, line }) => {
+    (currentState, { event, line }) => {
       if (!event) {
-        return state;
+        return currentState;
       }
 
       if (event.type === FELLOWSHIP_EVENT.DUNGEON_START) {
-        const attempts = state.currentAttempt
+        const attempts = currentState.currentAttempt
           ? [
-              ...state.attempts,
+              ...currentState.attempts,
               completeAttempt({
-                attempt: state.currentAttempt,
+                attempt: currentState.currentAttempt,
                 isComplete: false,
               }),
             ]
-          : state.attempts;
+          : currentState.attempts;
 
         return {
           attempts,
@@ -132,21 +132,21 @@ function splitRunAttempts(
         };
       }
 
-      if (!state.currentAttempt) {
-        return state;
+      if (!currentState.currentAttempt) {
+        return currentState;
       }
 
       if (
         isDungeonExitEvent({
           event,
-          runStart: state.currentAttempt.start,
+          runStart: currentState.currentAttempt.start,
         })
       ) {
         return {
           attempts: [
-            ...state.attempts,
+            ...currentState.attempts,
             completeAttempt({
-              attempt: state.currentAttempt,
+              attempt: currentState.currentAttempt,
               isComplete: false,
             }),
           ],
@@ -154,18 +154,18 @@ function splitRunAttempts(
         };
       }
 
-      state.currentAttempt.lines.push(line);
+      currentState.currentAttempt.lines.push(line);
 
       if (
         event.type === FELLOWSHIP_EVENT.DUNGEON_END &&
-        event.dungeonId === state.currentAttempt.start.dungeonId &&
-        event.dungeonLevel === state.currentAttempt.start.dungeonLevel
+        event.dungeonId === currentState.currentAttempt.start.dungeonId &&
+        event.dungeonLevel === currentState.currentAttempt.start.dungeonLevel
       ) {
         return {
           attempts: [
-            ...state.attempts,
+            ...currentState.attempts,
             completeAttempt({
-              attempt: state.currentAttempt,
+              attempt: currentState.currentAttempt,
               isComplete: true,
             }),
           ],
@@ -173,7 +173,7 @@ function splitRunAttempts(
         };
       }
 
-      return state;
+      return currentState;
     },
     initialState,
   );

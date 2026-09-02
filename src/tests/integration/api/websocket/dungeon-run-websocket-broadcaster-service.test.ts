@@ -26,8 +26,8 @@ describe("WebSocketBroadcaster", () => {
         const messages = yield* Ref.make<ReadonlyArray<string>>([]);
 
         const writer: WebSocketWriter = (message) => {
-          return Ref.update(messages, (messages) => {
-            return [...messages, message];
+          return Ref.update(messages, (currentMessages) => {
+            return [...currentMessages, message];
           });
         };
 
@@ -52,8 +52,8 @@ describe("WebSocketBroadcaster", () => {
         const healthyMessages = yield* Ref.make<ReadonlyArray<string>>([]);
 
         const healthyWriter: WebSocketWriter = (message) => {
-          return Ref.update(healthyMessages, (messages) => {
-            return [...messages, message];
+          return Ref.update(healthyMessages, (currentMessages) => {
+            return [...currentMessages, message];
           });
         };
 
@@ -102,8 +102,8 @@ describe("WebSocketBroadcaster", () => {
         yield* webSocketBroadcaster.publish("second");
 
         const writer: WebSocketWriter = (message) => {
-          return Ref.update(messages, (messages) => {
-            return [...messages, message];
+          return Ref.update(messages, (currentMessages) => {
+            return [...currentMessages, message];
           });
         };
 
@@ -123,8 +123,8 @@ describe("WebSocketBroadcaster", () => {
         const messages = yield* Ref.make<ReadonlyArray<string>>([]);
 
         const writer: WebSocketWriter = (message) => {
-          return Ref.update(messages, (messages) => {
-            return [...messages, message];
+          return Ref.update(messages, (currentMessages) => {
+            return [...currentMessages, message];
           });
         };
 

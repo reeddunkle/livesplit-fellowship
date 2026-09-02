@@ -19,8 +19,8 @@ export function makeWebSocketBroadcasterTestHarness() {
         return E.gen(function* () {
           yield* Ref.set(latestMessage, message);
 
-          yield* Ref.update(messages, (messages) => {
-            return [...messages, message];
+          yield* Ref.update(messages, (currentMessages) => {
+            return [...currentMessages, message];
           });
         });
       },
@@ -57,8 +57,8 @@ export function makeWebSocketBroadcasterTestHarness() {
 
     const getParsedMessages = () => {
       return Ref.get(messages).pipe(
-        E.map((messages) => {
-          return messages.map((message) => {
+        E.map((storedMessages) => {
+          return storedMessages.map((message) => {
             return JSON.parse(message) as unknown;
           });
         }),
