@@ -6,9 +6,22 @@ import * as SqlClient from "effect/unstable/sql/SqlClient";
 import {
   DungeonRunObservationDAO,
   type DungeonRunObservationDAOShape,
+  type DungeonRunObservationHistory,
 } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao.ts";
 import { DungeonRunObservationModel } from "@/db/models/dungeon-run-observation-model.ts";
 import { DungeonRunObservationDAOError } from "@/errors/dungeon-run-observation-dao-error.ts";
+import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import {
+  NonEmptyStringSchema,
+  PositiveIntegerSchema,
+} from "@/validation/common-schemas.ts";
+
+const DungeonRunObservationHistorySchema = Schema.Struct({
+  elapsedMilliseconds: Schema.Number,
+  occurrence: PositiveIntegerSchema,
+  targetId: NonEmptyStringSchema,
+  type: MilestoneRequirementEventTypeSchema,
+});
 
 function mapDungeonRunObservationDAOError(
   cause: unknown,
@@ -36,6 +49,17 @@ function decodeDungeonRunObservationRows(
   ).pipe(E.mapError(mapDungeonRunObservationDAOError));
 }
 
+function decodeDungeonRunObservationHistoryRows(
+  rows: unknown,
+): E.Effect<
+  ReadonlyArray<DungeonRunObservationHistory>,
+  DungeonRunObservationDAOError
+> {
+  return Schema.decodeUnknownEffect(
+    Schema.Array(DungeonRunObservationHistorySchema),
+  )(rows).pipe(E.mapError(mapDungeonRunObservationDAOError));
+}
+
 const make = E.gen(function* () {
   const sql = yield* SqlClient.SqlClient;
 
@@ -56,6 +80,32 @@ const make = E.gen(function* () {
         `;
 
         return yield* decodeDungeonRunObservationRows(rows);
+      }).pipe(E.mapError(mapDungeonRunObservationDAOError));
+    };
+
+  const getHistoryByConfigurationDefinitionId: DungeonRunObservationDAOShape["getHistoryByConfigurationDefinitionId"] =
+    ({ configurationDefinitionId }) => {
+      return E.gen(function* () {
+        const rows = yield* sql`
+          SELECT
+            dungeon_run_observation.type,
+            dungeon_run_observation.target_id,
+            dungeon_run_observation.occurrence,
+            dungeon_run_observation.observed_at - dungeon_run.started_at
+              AS elapsed_milliseconds
+          FROM dungeon_run_observation
+          INNER JOIN dungeon_run
+            ON dungeon_run.id = dungeon_run_observation.dungeon_run_id
+          WHERE dungeon_run.configuration_definition_id =
+            ${configurationDefinitionId}
+          ORDER BY
+            dungeon_run_observation.type,
+            dungeon_run_observation.target_id,
+            dungeon_run_observation.occurrence,
+            elapsed_milliseconds
+        `;
+
+        return yield* decodeDungeonRunObservationHistoryRows(rows);
       }).pipe(E.mapError(mapDungeonRunObservationDAOError));
     };
 
@@ -147,6 +197,7 @@ const make = E.gen(function* () {
 
   return {
     getByDungeonRunId,
+    getHistoryByConfigurationDefinitionId,
     observe,
   } satisfies DungeonRunObservationDAOShape;
 });

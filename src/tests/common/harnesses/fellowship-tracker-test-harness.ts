@@ -169,6 +169,9 @@ export function makeFellowshipTrackerTestHarness(
       getByDungeonRunId: () => {
         return E.succeed([]);
       },
+      getHistoryByConfigurationDefinitionId: () => {
+        return E.succeed([]);
+      },
       observe: () => {
         return E.void;
       },
