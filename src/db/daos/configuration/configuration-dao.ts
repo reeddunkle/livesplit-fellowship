@@ -5,12 +5,14 @@ import type * as Option from "effect/Option";
 import { type ConfigurationModel } from "@/db/models/configuration-model.ts";
 import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 import { type ConfigurationLabel } from "@/validation/configuration/configuration-label-schema.ts";
 
 export type PersistedConfiguration = {
   readonly configuration: FellowshipMilestoneConfiguration;
+  readonly configurationDefinitionId: ConfigurationDefinitionId;
   readonly createdAt: ConfigurationModel["createdAt"];
   readonly fingerprint: ConfigurationFingerprint;
   readonly id: ConfigurationId;

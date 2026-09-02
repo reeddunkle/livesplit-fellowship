@@ -2,12 +2,14 @@ import * as A from "effect/Array";
 import * as E from "effect/Effect";
 import * as Match from "effect/Match";
 
-import { createConfigurationFingerprint } from "@/application/configurations/configuration-fingerprint.ts";
-import { ConfigurationModel } from "@/db/models/configuration-model.ts";
 import {
-  type MilestoneId,
-  MilestoneModel,
-} from "@/db/models/milestone-model.ts";
+  createConfigurationDefinitionFingerprint,
+  createConfigurationFingerprint,
+} from "@/application/configurations/configuration-fingerprint.ts";
+import { ConfigurationDefinitionModel } from "@/db/models/configuration-definition-model.ts";
+import { ConfigurationModel } from "@/db/models/configuration-model.ts";
+import { MilestoneModel } from "@/db/models/milestone-model.ts";
+import { MilestoneRequirementModel } from "@/db/models/milestone-requirement-model.ts";
 import { RequirementModel } from "@/db/models/requirement-model.ts";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
@@ -15,12 +17,16 @@ import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/mil
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 import { isNonEmptyArray } from "@/util/is-non-empty-array.ts";
+import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 import { type ConfigurationLabel } from "@/validation/configuration/configuration-label-schema.ts";
 
 import { type PersistedConfiguration } from "./configuration-dao.ts";
 
+type ConfigurationDefinitionInsert =
+  typeof ConfigurationDefinitionModel.insert.Type;
 type ConfigurationInsert = typeof ConfigurationModel.insert.Type;
 type MilestoneInsert = typeof MilestoneModel.insert.Type;
+type MilestoneRequirementInsert = typeof MilestoneRequirementModel.insert.Type;
 type RequirementInsert = typeof RequirementModel.insert.Type;
 
 type RequirementIdentity = {
@@ -32,6 +38,8 @@ type RequirementIdentity = {
 
 export type ConfigurationPersistenceRecords = {
   readonly configuration: ConfigurationInsert;
+  readonly configurationDefinition: ConfigurationDefinitionInsert;
+  readonly milestoneRequirements: ReadonlyArray<MilestoneRequirementInsert>;
   readonly milestones: ReadonlyArray<MilestoneInsert>;
   readonly requirements: ReadonlyArray<RequirementInsert>;
 };
@@ -43,6 +51,8 @@ export type CreateConfigurationPersistenceRecordsOptions = {
 
 export type CreatePersistedConfigurationOptions = {
   readonly configuration: ConfigurationModel;
+  readonly configurationDefinition: ConfigurationDefinitionModel;
+  readonly milestoneRequirements: ReadonlyArray<MilestoneRequirementModel>;
   readonly milestones: ReadonlyArray<MilestoneModel>;
   readonly requirements: ReadonlyArray<RequirementModel>;
 };
@@ -62,26 +72,43 @@ export function getMilestoneRequirementsIdentityKey(
   return JSON.stringify(requirements.map(getRequirementIdentityKey).sort());
 }
 
-function createRequirementInsert({
+function createRequirementIdentity({
   configuration,
-  milestoneId,
   requirement,
 }: {
   readonly configuration: FellowshipMilestoneConfiguration;
-  readonly milestoneId: MilestoneId;
   readonly requirement: FellowshipMilestoneRequirement;
-}): RequirementInsert {
+}): RequirementIdentity {
   const lookup = getMilestoneRequirementLookup({
     dungeonId: configuration.dungeonId,
     requirement,
   });
 
-  return RequirementModel.insert.make({
-    milestoneId,
+  return {
     requiredCount: requirement.requiredCount,
     startOccurrence: requirement.startOccurrence,
     targetId: lookup.targetId,
     type: lookup.type,
+  };
+}
+
+function createRequirementInsert({
+  configuration,
+  configurationDefinitionId,
+  requirement,
+}: {
+  readonly configuration: FellowshipMilestoneConfiguration;
+  readonly configurationDefinitionId: ConfigurationDefinitionId;
+  readonly requirement: FellowshipMilestoneRequirement;
+}): RequirementInsert {
+  const identity = createRequirementIdentity({
+    configuration,
+    requirement,
+  });
+
+  return RequirementModel.insert.make({
+    configurationDefinitionId,
+    ...identity,
   });
 }
 
@@ -134,19 +161,55 @@ export function createConfigurationPersistenceRecords({
   Error
 > {
   return E.gen(function* () {
-    const { canonicalJson, fingerprint } =
+    const definitionFingerprintResult =
+      yield* createConfigurationDefinitionFingerprint(configuration);
+
+    const configurationFingerprintResult =
       yield* createConfigurationFingerprint(configuration);
 
-    const configurationRecord = ConfigurationModel.insert.make({
-      canonicalJson,
+    const configurationDefinition = ConfigurationDefinitionModel.insert.make({
+      canonicalJson: definitionFingerprintResult.canonicalJson,
       dungeonId: configuration.dungeonId,
       dungeonLevel: configuration.dungeonLevel,
-      fingerprint,
+      fingerprint: definitionFingerprintResult.fingerprint,
+    });
+
+    const configurationRecord = ConfigurationModel.insert.make({
+      canonicalJson: configurationFingerprintResult.canonicalJson,
+      configurationDefinitionId: configurationDefinition.id,
+      fingerprint: configurationFingerprintResult.fingerprint,
       label,
     });
 
+    const requirementsByIdentity = new Map<string, RequirementInsert>();
+
+    configuration.milestones.forEach((milestone) => {
+      milestone.requirements.forEach((requirement) => {
+        const identity = createRequirementIdentity({
+          configuration,
+          requirement,
+        });
+
+        const identityKey = getRequirementIdentityKey(identity);
+
+        if (requirementsByIdentity.has(identityKey)) {
+          return;
+        }
+
+        requirementsByIdentity.set(
+          identityKey,
+          createRequirementInsert({
+            configuration,
+            configurationDefinitionId: configurationDefinition.id,
+            requirement,
+          }),
+        );
+      });
+    });
+
+    const requirements = Array.from(requirementsByIdentity.values());
     const milestones: Array<MilestoneInsert> = [];
-    const requirements: Array<RequirementInsert> = [];
+    const milestoneRequirements: Array<MilestoneRequirementInsert> = [];
 
     configuration.milestones.forEach((milestone) => {
       const milestoneRecord = MilestoneModel.insert.make({
@@ -157,11 +220,25 @@ export function createConfigurationPersistenceRecords({
       milestones.push(milestoneRecord);
 
       milestone.requirements.forEach((requirement) => {
-        requirements.push(
-          createRequirementInsert({
-            configuration,
+        const identity = createRequirementIdentity({
+          configuration,
+          requirement,
+        });
+
+        const requirementRecord = requirementsByIdentity.get(
+          getRequirementIdentityKey(identity),
+        );
+
+        if (requirementRecord === undefined) {
+          throw new Error(
+            `Could not resolve requirement for milestone "${milestone.label}".`,
+          );
+        }
+
+        milestoneRequirements.push(
+          MilestoneRequirementModel.insert.make({
             milestoneId: milestoneRecord.id,
-            requirement,
+            requirementId: requirementRecord.id,
           }),
         );
       });
@@ -169,6 +246,8 @@ export function createConfigurationPersistenceRecords({
 
     return {
       configuration: configurationRecord,
+      configurationDefinition,
+      milestoneRequirements,
       milestones,
       requirements,
     };
@@ -177,17 +256,25 @@ export function createConfigurationPersistenceRecords({
 
 export function createPersistedConfiguration({
   configuration,
+  configurationDefinition,
+  milestoneRequirements,
   milestones,
   requirements,
 }: CreatePersistedConfigurationOptions): PersistedConfiguration {
   const configurationMilestones = A.map(milestones, (milestone) => {
-    const milestoneRequirements = requirements
-      .filter((requirement) => {
-        return requirement.milestoneId === milestone.id;
+    const requirementIds = milestoneRequirements
+      .filter((milestoneRequirement) => {
+        return milestoneRequirement.milestoneId === milestone.id;
       })
-      .map(createMilestoneRequirement);
+      .map((milestoneRequirement) => {
+        return milestoneRequirement.requirementId;
+      });
 
-    if (!isNonEmptyArray(milestoneRequirements)) {
+    const milestoneRequirementModels = requirements.filter((requirement) => {
+      return requirementIds.includes(requirement.id);
+    });
+
+    if (!isNonEmptyArray(milestoneRequirementModels)) {
       throw new Error(
         `Persisted milestone "${milestone.id}" has no requirements.`,
       );
@@ -195,16 +282,20 @@ export function createPersistedConfiguration({
 
     return {
       label: milestone.label,
-      requirements: milestoneRequirements,
+      requirements: A.map(
+        milestoneRequirementModels,
+        createMilestoneRequirement,
+      ),
     };
   });
 
   return {
     configuration: {
-      dungeonId: configuration.dungeonId,
-      dungeonLevel: configuration.dungeonLevel,
+      dungeonId: configurationDefinition.dungeonId,
+      dungeonLevel: configurationDefinition.dungeonLevel,
       milestones: configurationMilestones,
     },
+    configurationDefinitionId: configurationDefinition.id,
     createdAt: configuration.createdAt,
     fingerprint: configuration.fingerprint,
     id: configuration.id,

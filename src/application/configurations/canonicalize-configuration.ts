@@ -1,23 +1,16 @@
 import * as Order from "effect/Order";
 
+import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import {
-  getMilestoneRequirementLookup,
-  type MilestoneRequirementTargetId,
-} from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+  type ConfigurationDefinitionRequirement,
+  type FellowshipConfigurationDefinition,
+  type FellowshipMilestoneConfiguration,
+} from "@/services/fellowship/milestones/milestone-types.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
-
-type CanonicalMilestoneRequirement = {
-  readonly requiredCount: number;
-  readonly startOccurrence: number;
-  readonly targetId: MilestoneRequirementTargetId;
-  readonly type: MilestoneRequirementEventType;
-};
 
 type CanonicalMilestone = {
-  readonly requirements: ReadonlyArray<CanonicalMilestoneRequirement>;
+  readonly requirements: ReadonlyArray<ConfigurationDefinitionRequirement>;
 };
 
 type CanonicalConfiguration = {
@@ -30,11 +23,17 @@ export type CanonicalConfigurationInput = {
   readonly dungeonId: DungeonId;
   readonly dungeonLevel: number;
   readonly milestones: ReadonlyArray<{
-    readonly requirements: ReadonlyArray<CanonicalMilestoneRequirement>;
+    readonly requirements: ReadonlyArray<ConfigurationDefinitionRequirement>;
   }>;
 };
 
-const CanonicalMilestoneRequirementOrder = Order.Struct({
+export type CanonicalConfigurationDefinitionInput = {
+  readonly dungeonId: DungeonId;
+  readonly dungeonLevel: number;
+  readonly requirements: ReadonlyArray<ConfigurationDefinitionRequirement>;
+};
+
+const ConfigurationDefinitionRequirementOrder = Order.Struct({
   requiredCount: Order.Number,
   startOccurrence: Order.Number,
   targetId: Order.String,
@@ -42,8 +41,19 @@ const CanonicalMilestoneRequirementOrder = Order.Struct({
 });
 
 const CanonicalMilestoneOrder = Order.Struct({
-  requirements: Order.Array(CanonicalMilestoneRequirementOrder),
+  requirements: Order.Array(ConfigurationDefinitionRequirementOrder),
 });
+
+function getRequirementIdentityKey(
+  requirement: ConfigurationDefinitionRequirement,
+): string {
+  return JSON.stringify([
+    requirement.type,
+    requirement.targetId,
+    requirement.startOccurrence,
+    requirement.requiredCount,
+  ]);
+}
 
 function canonicalizeRequirement({
   configuration,
@@ -51,7 +61,7 @@ function canonicalizeRequirement({
 }: {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly requirement: FellowshipMilestoneRequirement;
-}): CanonicalMilestoneRequirement {
+}): ConfigurationDefinitionRequirement {
   const lookup = getMilestoneRequirementLookup({
     dungeonId: configuration.dungeonId,
     requirement,
@@ -84,12 +94,41 @@ function canonicalizeConfiguration(
   });
 }
 
+function canonicalizeConfigurationDefinition(
+  configuration: FellowshipMilestoneConfiguration,
+): FellowshipConfigurationDefinition {
+  const requirementsByIdentity = new Map<
+    string,
+    ConfigurationDefinitionRequirement
+  >();
+
+  configuration.milestones.forEach((milestone) => {
+    milestone.requirements.forEach((requirement) => {
+      const canonicalRequirement = canonicalizeRequirement({
+        configuration,
+        requirement,
+      });
+
+      requirementsByIdentity.set(
+        getRequirementIdentityKey(canonicalRequirement),
+        canonicalRequirement,
+      );
+    });
+  });
+
+  return canonicalizeNormalizedConfigurationDefinition({
+    dungeonId: configuration.dungeonId,
+    dungeonLevel: configuration.dungeonLevel,
+    requirements: Array.from(requirementsByIdentity.values()),
+  });
+}
+
 function canonicalizeNormalizedConfiguration(
   configuration: CanonicalConfigurationInput,
 ): CanonicalConfiguration {
   const milestones = configuration.milestones.map((milestone) => {
     const requirements = [...milestone.requirements].sort(
-      CanonicalMilestoneRequirementOrder,
+      ConfigurationDefinitionRequirementOrder,
     );
 
     return {
@@ -106,14 +145,42 @@ function canonicalizeNormalizedConfiguration(
   };
 }
 
+function canonicalizeNormalizedConfigurationDefinition(
+  definition: CanonicalConfigurationDefinitionInput,
+): FellowshipConfigurationDefinition {
+  const requirements = [...definition.requirements].sort(
+    ConfigurationDefinitionRequirementOrder,
+  );
+
+  return {
+    dungeonId: definition.dungeonId,
+    dungeonLevel: definition.dungeonLevel,
+    requirements,
+  };
+}
+
 export function serializeCanonicalConfiguration(
   configuration: FellowshipMilestoneConfiguration,
 ): string {
   return JSON.stringify(canonicalizeConfiguration(configuration));
 }
 
+export function serializeCanonicalConfigurationDefinition(
+  configuration: FellowshipMilestoneConfiguration,
+): string {
+  return JSON.stringify(canonicalizeConfigurationDefinition(configuration));
+}
+
 export function serializeNormalizedCanonicalConfiguration(
   configuration: CanonicalConfigurationInput,
 ): string {
   return JSON.stringify(canonicalizeNormalizedConfiguration(configuration));
+}
+
+export function serializeNormalizedCanonicalConfigurationDefinition(
+  definition: CanonicalConfigurationDefinitionInput,
+): string {
+  return JSON.stringify(
+    canonicalizeNormalizedConfigurationDefinition(definition),
+  );
 }

@@ -11,12 +11,20 @@ export type FellowshipMilestoneConfiguration = {
   readonly milestones: ReadonlyArray<FellowshipMilestoneDefinition>;
 };
 
-export type CompiledMilestoneRequirement = {
+export type ConfigurationDefinitionRequirement = {
   readonly requiredCount: number;
   readonly startOccurrence: number;
   readonly targetId: MilestoneRequirementTargetId;
   readonly type: MilestoneRequirementEventType;
 };
+
+export type FellowshipConfigurationDefinition = {
+  readonly dungeonId: DungeonId;
+  readonly dungeonLevel: number;
+  readonly requirements: ReadonlyArray<ConfigurationDefinitionRequirement>;
+};
+
+export type CompiledMilestoneRequirement = ConfigurationDefinitionRequirement;
 
 export type CompiledMilestoneDefinition = Omit<
   FellowshipMilestoneDefinition,
