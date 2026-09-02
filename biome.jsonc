@@ -115,6 +115,8 @@
       },
       "style": {
         "noContinue": "on",
+        "noEnum": "on",
+        "noExportedImports": "on",
         "useImportType": {
           "level": "warn",
           "options": {
