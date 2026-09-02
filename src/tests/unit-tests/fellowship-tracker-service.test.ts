@@ -7,10 +7,11 @@ import { describe, expect, test } from "vitest";
 import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
 import { FellowshipTrackerAlreadyRunningError } from "@/errors/fellowship-tracker-error.ts";
 import { makeFellowshipTrackerTestHarness } from "@/tests/common/harnesses/fellowship-tracker-test-harness.ts";
+import { runTest } from "@/tests/common/run-test.ts";
 
 describe("FellowshipTracker", () => {
   test("starts idle", async () => {
-    const status = await E.runPromise(
+    const status = await runTest(
       E.scoped(
         E.gen(function* () {
           const harness = yield* makeFellowshipTrackerTestHarness();
@@ -30,46 +31,7 @@ describe("FellowshipTracker", () => {
   });
 
   test("changes status to tracking after starting", async () => {
-    const result = await E.runPromise(
-      E.scoped(
-        E.gen(function* () {
-          const harness = yield* makeFellowshipTrackerTestHarness();
-
-          const status = yield* E.gen(function* () {
-            const tracker = yield* FellowshipTracker;
-
-            yield* tracker.start({
-              configurationId: harness.configurationId,
-            });
-
-            yield* Deferred.await(harness.trackingStarted);
-
-            return yield* tracker.status;
-          }).pipe(E.provide(harness.layer));
-
-          return {
-            configurationDefinitionId: harness.configurationDefinitionId,
-            configurationId: harness.configurationId,
-            dungeonId: harness.configuration.dungeonId,
-            status,
-          };
-        }),
-      ),
-    );
-
-    expect(result.status).toEqual({
-      _tag: "Tracking",
-      dungeonId: result.dungeonId,
-      source: {
-        _tag: "Persisted",
-        configurationDefinitionId: result.configurationDefinitionId,
-        configurationId: result.configurationId,
-      },
-    });
-  });
-
-  test("changes status to tracking after starting", async () => {
-    const result = await E.runPromise(
+    const result = await runTest(
       E.scoped(
         E.gen(function* () {
           const harness = yield* makeFellowshipTrackerTestHarness();
@@ -108,7 +70,7 @@ describe("FellowshipTracker", () => {
   });
 
   test("fails when starting while already tracking", async () => {
-    const result = await E.runPromise(
+    const result = await runTest(
       E.scoped(
         E.gen(function* () {
           const harness = yield* makeFellowshipTrackerTestHarness();
@@ -142,7 +104,7 @@ describe("FellowshipTracker", () => {
   });
 
   test("interrupts the tracking fiber when stopped", async () => {
-    await E.runPromise(
+    await runTest(
       E.scoped(
         E.gen(function* () {
           const harness = yield* makeFellowshipTrackerTestHarness();
@@ -166,7 +128,7 @@ describe("FellowshipTracker", () => {
   });
 
   test("returns to idle after stopping", async () => {
-    const status = await E.runPromise(
+    const status = await runTest(
       E.scoped(
         E.gen(function* () {
           const harness = yield* makeFellowshipTrackerTestHarness();
@@ -194,7 +156,7 @@ describe("FellowshipTracker", () => {
   });
 
   test("does nothing when stopped while idle", async () => {
-    const status = await E.runPromise(
+    const status = await runTest(
       E.scoped(
         E.gen(function* () {
           const harness = yield* makeFellowshipTrackerTestHarness();
@@ -216,7 +178,7 @@ describe("FellowshipTracker", () => {
   });
 
   test("returns to idle when the tracking effect completes", async () => {
-    const status = await E.runPromise(
+    const status = await runTest(
       E.scoped(
         E.gen(function* () {
           const harness = yield* makeFellowshipTrackerTestHarness({
@@ -244,7 +206,7 @@ describe("FellowshipTracker", () => {
   });
 
   test("allows only one concurrent start", async () => {
-    const results = await E.runPromise(
+    const results = await runTest(
       E.scoped(
         E.gen(function* () {
           const harness = yield* makeFellowshipTrackerTestHarness();
@@ -290,7 +252,7 @@ describe("FellowshipTracker", () => {
   });
 
   test("interrupts the tracking fiber when the service scope closes", async () => {
-    const trackingInterrupted = await E.runPromise(
+    const trackingInterrupted = await runTest(
       E.scoped(
         E.gen(function* () {
           const harness = yield* makeFellowshipTrackerTestHarness();
@@ -310,6 +272,6 @@ describe("FellowshipTracker", () => {
       ),
     );
 
-    await E.runPromise(Deferred.await(trackingInterrupted));
+    await runTest(Deferred.await(trackingInterrupted));
   });
 });
