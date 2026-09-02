@@ -144,6 +144,7 @@
         "noDoubleEquals": "error",
         "noReturnAssign": "on",
         "noShadow": "on",
+        "useArraySortCompare": "on",
         "useIsArray": "error"
       }
     }
