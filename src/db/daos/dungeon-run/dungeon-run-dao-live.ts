@@ -145,7 +145,7 @@ const make = E.gen(function* () {
       DungeonRunDAOShape["complete"]
     >[0]["dungeonRunId"];
     readonly endedAt: Parameters<DungeonRunDAOShape["complete"]>[0]["endedAt"];
-    readonly status: "COMPLETED" | "EXITED";
+    readonly status: "COMPLETED" | "EXITED" | "INTERRUPTED";
   }): E.Effect<void, DungeonRunDAOError> => {
     return E.gen(function* () {
       const encodedEndedAt = yield* Schema.encodeEffect(
@@ -201,10 +201,22 @@ const make = E.gen(function* () {
     });
   };
 
+  const interrupt: DungeonRunDAOShape["interrupt"] = ({
+    dungeonRunId,
+    endedAt,
+  }) => {
+    return finishRun({
+      dungeonRunId,
+      endedAt,
+      status: "INTERRUPTED",
+    });
+  };
+
   return {
     complete,
     exit,
     getById,
+    interrupt,
     start,
   } satisfies DungeonRunDAOShape;
 });

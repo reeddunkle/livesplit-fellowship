@@ -30,6 +30,11 @@ type ExitDungeonRunOptions = {
   readonly endedAt: NonNullable<DungeonRunModel["endedAt"]>;
 };
 
+type InterruptDungeonRunOptions = {
+  readonly dungeonRunId: DungeonRunId;
+  readonly endedAt: NonNullable<DungeonRunModel["endedAt"]>;
+};
+
 export type DungeonRunDAOShape = {
   readonly complete: (
     options: CompleteDungeonRunOptions,
@@ -42,6 +47,10 @@ export type DungeonRunDAOShape = {
   readonly getById: (
     options: GetDungeonRunByIdOptions,
   ) => E.Effect<Option.Option<DungeonRunModel>, DungeonRunDAOError>;
+
+  readonly interrupt: (
+    options: InterruptDungeonRunOptions,
+  ) => E.Effect<void, DungeonRunDAOError>;
 
   readonly start: (
     options: StartDungeonRunOptions,

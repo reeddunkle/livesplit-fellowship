@@ -11,7 +11,11 @@ import * as SubscriptionRef from "effect/SubscriptionRef";
 import { publishDungeonRunState } from "@/api/websocket/dungeon-run/publish-dungeon-run-state.ts";
 import { handleLogDungeonRunEvent } from "@/application/dungeon-run-processing/handle-log-dungeon-run-event.ts";
 import { ConfigurationDAO } from "@/db/daos/configuration/configuration-dao.ts";
+import { DungeonRunDAO } from "@/db/daos/dungeon-run/dungeon-run-dao.ts";
+import { DungeonRunObservationDAO } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao.ts";
+import { type DungeonRunId } from "@/db/models/dungeon-run-model.ts";
 import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
+import { type DungeonRunDAOError } from "@/errors/dungeon-run-dao-error.ts";
 import {
   FellowshipTrackerAlreadyRunningError,
   FellowshipTrackerConfigurationNotFoundError,
@@ -23,11 +27,18 @@ import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/mil
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
+import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
+
+import {
+  interruptDungeonRun,
+  persistDungeonRunResult,
+} from "./persist-dungeon-run-result.ts";
 
 type FellowshipTrackerConfigurationSource =
   | {
       readonly _tag: "Persisted";
+      readonly configurationDefinitionId: ConfigurationDefinitionId;
       readonly configurationId: ConfigurationId;
     }
   | {
@@ -79,7 +90,7 @@ export type FellowshipTrackerServiceShape = {
 
   readonly statusChanges: Stream.Stream<FellowshipTrackerStatus>;
 
-  readonly stop: () => E.Effect<void>;
+  readonly stop: () => E.Effect<void, DungeonRunDAOError>;
 };
 
 export class FellowshipTracker extends Context.Service<
@@ -88,6 +99,7 @@ export class FellowshipTracker extends Context.Service<
 >()("app/FellowshipTracker") {}
 
 type ActiveTracker = {
+  readonly activeDungeonRunIdRef: Ref.Ref<Option.Option<DungeonRunId>>;
   readonly dungeonId: DungeonId;
   readonly fiber: Fiber.Fiber<void, unknown>;
   readonly source: FellowshipTrackerConfigurationSource;
@@ -101,6 +113,8 @@ type StartTrackingOptions = {
 
 const make = E.gen(function* () {
   const configurationDAO = yield* ConfigurationDAO;
+  const dungeonRunDAO = yield* DungeonRunDAO;
+  const dungeonRunObservationDAO = yield* DungeonRunObservationDAO;
   const fellowship = yield* Fellowship;
   const liveSplit = yield* LiveSplit;
   const runWebSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
@@ -147,12 +161,19 @@ const make = E.gen(function* () {
           "fellowship.dungeonId",
           activeTracker.value.dungeonId,
         );
+
         yield* E.annotateCurrentSpan(
           "fellowship.tracker.source",
           activeTracker.value.source._tag,
         );
 
         yield* Fiber.interrupt(activeTracker.value.fiber);
+
+        if (activeTracker.value.source._tag === "Persisted") {
+          yield* interruptDungeonRun({
+            activeDungeonRunIdRef: activeTracker.value.activeDungeonRunIdRef,
+          }).pipe(E.provideService(DungeonRunDAO, dungeonRunDAO));
+        }
 
         yield* E.logInfo("Stopped Fellowship tracker.", {
           dungeonId: activeTracker.value.dungeonId,
@@ -182,11 +203,31 @@ const make = E.gen(function* () {
           return yield* E.fail(new FellowshipTrackerAlreadyRunningError());
         }
 
+        const activeDungeonRunIdRef = yield* Ref.make<
+          Option.Option<DungeonRunId>
+        >(Option.none());
+
         const trackingEffect = processDungeonRunEventStream({
           configuration,
           events,
         }).pipe(
           Stream.runForEach((result) => {
+            const persistResult =
+              source._tag === "Persisted"
+                ? persistDungeonRunResult({
+                    activeDungeonRunIdRef,
+                    configuration,
+                    configurationDefinitionId: source.configurationDefinitionId,
+                    result,
+                  }).pipe(
+                    E.provideService(DungeonRunDAO, dungeonRunDAO),
+                    E.provideService(
+                      DungeonRunObservationDAO,
+                      dungeonRunObservationDAO,
+                    ),
+                  )
+                : E.void;
+
             const handleEvents = E.forEach(
               result.events,
               (event) => {
@@ -214,10 +255,14 @@ const make = E.gen(function* () {
                 })
               : E.void;
 
-            return E.all([handleEvents, publishState], {
-              concurrency: "unbounded",
-              discard: true,
-            });
+            return persistResult.pipe(
+              E.andThen(
+                E.all([handleEvents, publishState], {
+                  concurrency: "unbounded",
+                  discard: true,
+                }),
+              ),
+            );
           }),
           E.tapCause((cause) => {
             return E.logError("Fellowship tracker failed.", {
@@ -234,6 +279,7 @@ const make = E.gen(function* () {
         yield* Ref.set(
           activeTrackerRef,
           Option.some({
+            activeDungeonRunIdRef,
             dungeonId: configuration.dungeonId,
             fiber,
             source,
@@ -277,6 +323,8 @@ const make = E.gen(function* () {
       events: fellowship.liveEvents(),
       source: {
         _tag: "Persisted",
+        configurationDefinitionId:
+          persistedConfiguration.value.configurationDefinitionId,
         configurationId,
       },
     });

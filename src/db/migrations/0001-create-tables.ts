@@ -230,7 +230,7 @@ export const createTables = E.gen(function* () {
       dungeon_level INTEGER NOT NULL
         CHECK (dungeon_level >= 1),
       status TEXT NOT NULL
-        CHECK (status IN ('ACTIVE', 'COMPLETED', 'EXITED')),
+        CHECK (status IN ('ACTIVE', 'COMPLETED', 'INTERRUPTED', 'EXITED')),
       started_at INTEGER NOT NULL,
       ended_at INTEGER,
       created_at INTEGER NOT NULL,
@@ -238,7 +238,7 @@ export const createTables = E.gen(function* () {
 
       CHECK (
         (status = 'ACTIVE' AND ended_at IS NULL) OR
-        (status IN ('COMPLETED', 'EXITED') AND ended_at IS NOT NULL)
+        (status IN ('COMPLETED', 'INTERRUPTED', 'EXITED') AND ended_at IS NOT NULL)
       ),
 
       FOREIGN KEY (configuration_definition_id)
