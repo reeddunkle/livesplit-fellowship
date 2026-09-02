@@ -35,6 +35,7 @@ const StopTrackingEndpoint = HttpApiEndpoint.delete(
   "stopTracking",
   TRACKING_ROUTE,
   {
+    error: TrackingApiStartErrorSchema,
     success: TrackingApiStatusSchema,
   },
 );

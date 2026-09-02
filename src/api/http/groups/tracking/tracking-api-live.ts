@@ -8,6 +8,7 @@ import {
   FellowshipTracker,
   type FellowshipTrackerStartError,
 } from "@/application/tracking/fellowship-tracker-service.ts";
+import { type DungeonRunDAOError } from "@/errors/dungeon-run-dao-error.ts";
 import {
   FellowshipTrackerAlreadyRunningError,
   FellowshipTrackerConfigurationNotFoundError,
@@ -54,6 +55,22 @@ function mapFellowshipTrackerStartError(
   });
 }
 
+function mapFellowshipTrackerStopError(
+  error: DungeonRunDAOError,
+): E.Effect<never, TrackingApiStartError> {
+  return E.gen(function* () {
+    yield* E.logError("Fellowship tracker failed to stop.", {
+      error,
+    });
+
+    return yield* E.fail(
+      new TrackingApiStartError({
+        message: "Tracking could not be stopped.",
+      }),
+    );
+  });
+}
+
 const TrackingApiHandlersInferred = HttpApiBuilder.group(
   AppHttpApi,
   "tracking",
@@ -79,7 +96,9 @@ const TrackingApiHandlersInferred = HttpApiBuilder.group(
       })
       .handle("stopTracking", () => {
         return E.gen(function* () {
-          yield* fellowshipTracker.stop();
+          yield* fellowshipTracker
+            .stop()
+            .pipe(E.catch(mapFellowshipTrackerStopError));
 
           const status = yield* fellowshipTracker.status;
 
