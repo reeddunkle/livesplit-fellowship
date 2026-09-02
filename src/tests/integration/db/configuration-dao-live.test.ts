@@ -13,10 +13,10 @@ import {
 import { makePersistenceLayer } from "@/layers/persistence-layer.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import {
-  TEST_CONFIGURATION_LABEL,
-  TEST_DUNGEON_ID,
-  TEST_DUNGEON_LEVEL,
-  TEST_UPDATED_CONFIGURATION_LABEL,
+  MOCK_CONFIGURATION_LABEL,
+  MOCK_DUNGEON_ID,
+  MOCK_DUNGEON_LEVEL,
+  MOCK_UPDATED_CONFIGURATION_LABEL,
 } from "@/tests/common/fixtures/configuration-fixtures.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
@@ -84,8 +84,8 @@ const combinedMilestone = {
 } satisfies MilestoneDefinition;
 
 const configuration = {
-  dungeonId: TEST_DUNGEON_ID,
-  dungeonLevel: TEST_DUNGEON_LEVEL,
+  dungeonId: MOCK_DUNGEON_ID,
+  dungeonLevel: MOCK_DUNGEON_LEVEL,
   milestones: [
     firstDesecratorMilestone,
     secondDesecratorMilestone,
@@ -117,12 +117,12 @@ describe("ConfigurationDAOLive", () => {
 
       const created = yield* configurationDAO.save({
         configuration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       expect(created.id).toBeDefined();
       expect(created.configuration).toEqual(configuration);
-      expect(created.label).toBe(TEST_CONFIGURATION_LABEL);
+      expect(created.label).toBe(MOCK_CONFIGURATION_LABEL);
 
       const expectedFingerprint =
         yield* createConfigurationFingerprint(configuration);
@@ -137,8 +137,8 @@ describe("ConfigurationDAOLive", () => {
 
       expect(persisted.id).toBe(created.id);
       expect(persisted.fingerprint).toBe(created.fingerprint);
-      expect(persisted.label).toBe(TEST_CONFIGURATION_LABEL);
-      expect(persisted.configuration.dungeonLevel).toBe(TEST_DUNGEON_LEVEL);
+      expect(persisted.label).toBe(MOCK_CONFIGURATION_LABEL);
+      expect(persisted.configuration.dungeonLevel).toBe(MOCK_DUNGEON_LEVEL);
 
       expect(
         persisted.configuration.milestones.map((milestone) => {
@@ -245,17 +245,17 @@ describe("ConfigurationDAOLive", () => {
 
       const first = yield* configurationDAO.save({
         configuration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       const second = yield* configurationDAO.save({
         configuration: duplicateConfiguration,
-        label: TEST_UPDATED_CONFIGURATION_LABEL,
+        label: MOCK_UPDATED_CONFIGURATION_LABEL,
       });
 
       expect(second.id).toBe(first.id);
       expect(second.fingerprint).toBe(first.fingerprint);
-      expect(second.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
+      expect(second.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
 
       const persistedConfigurations = yield* configurationDAO.getAll();
 
@@ -271,7 +271,7 @@ describe("ConfigurationDAOLive", () => {
 
       expect(persisted.id).toBe(first.id);
       expect(persisted.fingerprint).toBe(first.fingerprint);
-      expect(persisted.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
+      expect(persisted.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
     }).pipe(E.provide(makeTestLayer()));
 
     await runTest(program);
@@ -297,12 +297,12 @@ describe("ConfigurationDAOLive", () => {
 
       const first = yield* configurationDAO.save({
         configuration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       const second = yield* configurationDAO.save({
         configuration: updatedConfiguration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       expect(second.id).toBe(first.id);
@@ -338,12 +338,12 @@ describe("ConfigurationDAOLive", () => {
 
       const first = yield* configurationDAO.save({
         configuration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       const second = yield* configurationDAO.save({
         configuration: differentLevelConfiguration,
-        label: TEST_UPDATED_CONFIGURATION_LABEL,
+        label: MOCK_UPDATED_CONFIGURATION_LABEL,
       });
 
       expect(second.id).not.toBe(first.id);
@@ -363,7 +363,7 @@ describe("ConfigurationDAOLive", () => {
 
       const created = yield* configurationDAO.save({
         configuration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       yield* configurationDAO.delete({
@@ -401,27 +401,27 @@ describe("ConfigurationDAOLive", () => {
 
       const first = yield* configurationDAO.save({
         configuration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       const second = yield* configurationDAO.save({
         configuration: matchingConfiguration,
-        label: TEST_UPDATED_CONFIGURATION_LABEL,
+        label: MOCK_UPDATED_CONFIGURATION_LABEL,
       });
 
       const differentLevel = yield* configurationDAO.save({
         configuration: differentLevelConfiguration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       const differentDungeon = yield* configurationDAO.save({
         configuration: differentDungeonConfiguration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       yield* configurationDAO.deleteByDungeonAndLevel({
-        dungeonId: TEST_DUNGEON_ID,
-        dungeonLevel: TEST_DUNGEON_LEVEL,
+        dungeonId: MOCK_DUNGEON_ID,
+        dungeonLevel: MOCK_DUNGEON_LEVEL,
       });
 
       const persistedConfigurations = yield* configurationDAO.getAll();
@@ -466,27 +466,27 @@ describe("ConfigurationDAOLive", () => {
 
       const existing = yield* configurationDAO.save({
         configuration: existingConfiguration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       const differentLevel = yield* configurationDAO.save({
         configuration: differentLevelConfiguration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       const differentDungeon = yield* configurationDAO.save({
         configuration: differentDungeonConfiguration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       const replacement = yield* configurationDAO.saveReplacingDungeonAndLevel({
         configuration: replacementConfiguration,
-        label: TEST_UPDATED_CONFIGURATION_LABEL,
+        label: MOCK_UPDATED_CONFIGURATION_LABEL,
       });
 
       expect(replacement.id).not.toBe(existing.id);
       expect(replacement.configuration).toEqual(replacementConfiguration);
-      expect(replacement.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
+      expect(replacement.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
 
       const persistedConfigurations = yield* configurationDAO.getAll();
 
@@ -537,22 +537,22 @@ describe("ConfigurationDAOLive", () => {
 
       const old = yield* configurationDAO.save({
         configuration: oldConfiguration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       const retained = yield* configurationDAO.save({
         configuration: retainedConfiguration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       const replacement = yield* configurationDAO.saveReplacingDungeonAndLevel({
         configuration: duplicateRetainedConfiguration,
-        label: TEST_UPDATED_CONFIGURATION_LABEL,
+        label: MOCK_UPDATED_CONFIGURATION_LABEL,
       });
 
       expect(replacement.id).toBe(retained.id);
       expect(replacement.fingerprint).toBe(retained.fingerprint);
-      expect(replacement.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
+      expect(replacement.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
 
       const persistedConfigurations = yield* configurationDAO.getAll();
 
@@ -568,7 +568,7 @@ describe("ConfigurationDAOLive", () => {
 
       expect(persisted.id).toBe(retained.id);
       expect(persisted.fingerprint).toBe(retained.fingerprint);
-      expect(persisted.label).toBe(TEST_UPDATED_CONFIGURATION_LABEL);
+      expect(persisted.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
       expect(persisted.id).not.toBe(old.id);
     }).pipe(E.provide(makeTestLayer()));
 
@@ -578,7 +578,7 @@ describe("ConfigurationDAOLive", () => {
   test("returns all persisted configurations", async () => {
     const secondConfiguration = {
       dungeonId: CITHRELS_FALL_DUNGEON_ID,
-      dungeonLevel: TEST_DUNGEON_LEVEL,
+      dungeonLevel: MOCK_DUNGEON_LEVEL,
       milestones: [
         {
           label: "Ghorn Defeated",
@@ -599,12 +599,12 @@ describe("ConfigurationDAOLive", () => {
 
       const first = yield* configurationDAO.save({
         configuration,
-        label: TEST_CONFIGURATION_LABEL,
+        label: MOCK_CONFIGURATION_LABEL,
       });
 
       const second = yield* configurationDAO.save({
         configuration: secondConfiguration,
-        label: TEST_UPDATED_CONFIGURATION_LABEL,
+        label: MOCK_UPDATED_CONFIGURATION_LABEL,
       });
 
       const persistedConfigurations = yield* configurationDAO.getAll();
@@ -623,8 +623,8 @@ describe("ConfigurationDAOLive", () => {
         }),
       ).toEqual(
         expect.arrayContaining([
-          TEST_CONFIGURATION_LABEL,
-          TEST_UPDATED_CONFIGURATION_LABEL,
+          MOCK_CONFIGURATION_LABEL,
+          MOCK_UPDATED_CONFIGURATION_LABEL,
         ]),
       );
 
@@ -662,7 +662,7 @@ describe("ConfigurationDAOLive", () => {
 
         const created = yield* configurationDAO.save({
           configuration,
-          label: TEST_CONFIGURATION_LABEL,
+          label: MOCK_CONFIGURATION_LABEL,
         });
 
         configurationId = created.id;
@@ -695,8 +695,8 @@ describe("ConfigurationDAOLive", () => {
 
         expect(persisted.id).toBe(persistedConfigurationId);
         expect(persisted.fingerprint).toBe(expectedFingerprint.fingerprint);
-        expect(persisted.label).toBe(TEST_CONFIGURATION_LABEL);
-        expect(persisted.configuration.dungeonLevel).toBe(TEST_DUNGEON_LEVEL);
+        expect(persisted.label).toBe(MOCK_CONFIGURATION_LABEL);
+        expect(persisted.configuration.dungeonLevel).toBe(MOCK_DUNGEON_LEVEL);
       }).pipe(
         E.provide(
           makePersistenceLayer({

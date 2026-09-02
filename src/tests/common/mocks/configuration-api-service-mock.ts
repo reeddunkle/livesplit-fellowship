@@ -9,8 +9,9 @@ import {
 } from "@/services/api/configuration/configuration-api-service.ts";
 import { createConfigurationApiResponse } from "@/services/api/configuration/create-configuration-api-response.ts";
 import {
-  TEST_CONFIGURATION_FINGERPRINT,
-  TEST_CONFIGURATION_ID,
+  MOCK_CONFIGURATION_DEFINITION_ID,
+  MOCK_CONFIGURATION_FINGERPRINT,
+  MOCK_CONFIGURATION_ID,
 } from "@/tests/common/fixtures/configuration-fixtures.ts";
 
 export type MakeConfigurationApiServiceMockOptions =
@@ -36,9 +37,10 @@ export function makeConfigurationApiServiceMock({
     return E.succeed(
       createConfigurationApiResponse({
         configuration,
+        configurationDefinitionId: MOCK_CONFIGURATION_DEFINITION_ID,
         createdAt: TEST_CREATED_AT,
-        fingerprint: TEST_CONFIGURATION_FINGERPRINT,
-        id: TEST_CONFIGURATION_ID,
+        fingerprint: MOCK_CONFIGURATION_FINGERPRINT,
+        id: MOCK_CONFIGURATION_ID,
         label,
         updatedAt: TEST_UPDATED_AT,
       }),
@@ -48,9 +50,10 @@ export function makeConfigurationApiServiceMock({
     return E.succeed(
       createConfigurationApiResponse({
         configuration,
+        configurationDefinitionId: MOCK_CONFIGURATION_DEFINITION_ID,
         createdAt: TEST_CREATED_AT,
-        fingerprint: TEST_CONFIGURATION_FINGERPRINT,
-        id: TEST_CONFIGURATION_ID,
+        fingerprint: MOCK_CONFIGURATION_FINGERPRINT,
+        id: MOCK_CONFIGURATION_ID,
         label,
         updatedAt: TEST_UPDATED_AT,
       }),
@@ -60,8 +63,9 @@ export function makeConfigurationApiServiceMock({
     return E.succeed(
       createConfigurationApiResponse({
         configuration,
+        configurationDefinitionId: MOCK_CONFIGURATION_DEFINITION_ID,
         createdAt: TEST_CREATED_AT,
-        fingerprint: TEST_CONFIGURATION_FINGERPRINT,
+        fingerprint: MOCK_CONFIGURATION_FINGERPRINT,
         id,
         label,
         updatedAt: TEST_UPDATED_AT,

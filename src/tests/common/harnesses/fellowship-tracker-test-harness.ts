@@ -22,10 +22,12 @@ import {
   type LiveSplitService,
 } from "@/services/live-split/core/live-split-service.ts";
 import {
-  TEST_CONFIGURATION_FINGERPRINT,
-  TEST_CONFIGURATION_ID,
-  TEST_CONFIGURATION_LABEL,
+  MOCK_CONFIGURATION_DEFINITION_ID,
+  MOCK_CONFIGURATION_FINGERPRINT,
+  MOCK_CONFIGURATION_ID,
+  MOCK_CONFIGURATION_LABEL,
 } from "@/tests/common/fixtures/configuration-fixtures.ts";
+import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 import { type ConfigurationLabel } from "@/validation/configuration/configuration-label-schema.ts";
 
@@ -36,6 +38,7 @@ type FellowshipLiveEvents = ReturnType<FellowshipService["liveEvents"]>;
 
 type MakeFellowshipTrackerTestHarnessOptions = {
   readonly configuration?: FellowshipMilestoneConfiguration;
+  readonly configurationDefinitionId?: ConfigurationDefinitionId;
   readonly configurationId?: ConfigurationId;
   readonly configurationLabel?: ConfigurationLabel;
   readonly liveEvents?: FellowshipLiveEvents;
@@ -54,17 +57,21 @@ export function makeFellowshipTrackerTestHarness(
   options: MakeFellowshipTrackerTestHarnessOptions = {},
 ) {
   return E.gen(function* () {
-    const configurationId = options.configurationId ?? TEST_CONFIGURATION_ID;
+    const configurationDefinitionId =
+      options.configurationDefinitionId ?? MOCK_CONFIGURATION_DEFINITION_ID;
+
+    const configurationId = options.configurationId ?? MOCK_CONFIGURATION_ID;
 
     const configuration = options.configuration ?? DEFAULT_CONFIGURATION;
 
     const configurationLabel =
-      options.configurationLabel ?? TEST_CONFIGURATION_LABEL;
+      options.configurationLabel ?? MOCK_CONFIGURATION_LABEL;
 
     const persistedConfiguration = {
       configuration,
+      configurationDefinitionId,
       createdAt: TEST_CREATED_AT,
-      fingerprint: TEST_CONFIGURATION_FINGERPRINT,
+      fingerprint: MOCK_CONFIGURATION_FINGERPRINT,
       id: configurationId,
       label: configurationLabel,
       updatedAt: TEST_UPDATED_AT,
@@ -159,6 +166,7 @@ export function makeFellowshipTrackerTestHarness(
 
     return {
       configuration,
+      configurationDefinitionId,
       configurationId,
       configurationLabel,
       dungeonRunWebSocketBroadcasterHarness,
