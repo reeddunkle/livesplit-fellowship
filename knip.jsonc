@@ -12,5 +12,6 @@
     "!src/electron/renderer/components/ui/textarea.tsx",
     "!src/electron/renderer/components/run-state.tsx",
     "!src/electron/renderer/stores/run-event-store.ts",
+    "!src/services/fellowship/constants/all-fellowship-events.ts",
   ]
 }
