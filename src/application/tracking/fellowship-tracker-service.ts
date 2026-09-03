@@ -223,31 +223,26 @@ const make = E.gen(function* () {
           events,
         }).pipe(
           Stream.runForEach((result) => {
-            const persistResult =
+            // This needs to capture the `dungeon_run` row ID
+            const persistLifecycle =
               source._tag === "Persisted"
                 ? E.gen(function* () {
-                    const activeDungeonRunId = yield* Ref.get(dungeonRunIdRef);
+                    const dungeonRunId = yield* Ref.get(dungeonRunIdRef);
 
-                    const nextActiveDungeonRunId =
-                      yield* persistDungeonRunResult({
-                        activeDungeonRunId,
+                    const nextDungeonRunId =
+                      yield* persistDungeonRunLifecycleEvents({
                         configuration,
                         configurationDefinitionId:
                           source.configurationDefinitionId,
-                        result,
-                      }).pipe(
-                        E.provideService(DungeonRunDAO, dungeonRunDAO),
-                        E.provideService(
-                          DungeonRunObservationDAO,
-                          dungeonRunObservationDAO,
-                        ),
-                      );
+                        dungeonRunId,
+                        events: result.lifecycleEvents,
+                      }).pipe(E.provideService(DungeonRunDAO, dungeonRunDAO));
 
-                    yield* Ref.set(dungeonRunIdRef, nextActiveDungeonRunId);
+                    yield* Ref.set(dungeonRunIdRef, nextDungeonRunId);
                   }).pipe(
                     E.catch((error) => {
                       return E.logError(
-                        "Failed to persist dungeon run result.",
+                        "Failed to persist dungeon run lifecycle.",
                         {
                           error,
                         },
@@ -256,13 +251,68 @@ const make = E.gen(function* () {
                   )
                 : E.void;
 
-            const handleEvents = E.forEach(
-              result.events,
-              (event) => {
+            // These need the `dungeon_run` row ID
+            const persistObservations =
+              source._tag === "Persisted"
+                ? E.gen(function* () {
+                    const dungeonRunId = yield* Ref.get(dungeonRunIdRef);
+
+                    if (Option.isNone(dungeonRunId)) {
+                      return;
+                    }
+
+                    yield* E.forEach(
+                      result.observations,
+                      (observation) => {
+                        return persistDungeonRunObservation({
+                          dungeonRunId: dungeonRunId.value,
+                          observation,
+                        }).pipe(
+                          E.provideService(
+                            DungeonRunObservationDAO,
+                            dungeonRunObservationDAO,
+                          ),
+                        );
+                      },
+                      {
+                        concurrency: "unbounded",
+                        discard: true,
+                      },
+                    );
+                  }).pipe(
+                    E.catch((error) => {
+                      return E.logError(
+                        "Failed to persist dungeon run observations.",
+                        {
+                          error,
+                        },
+                      );
+                    }),
+                  )
+                : E.void;
+
+            const publishSatisfiedRequirements = E.forEach(
+              result.satisfiedRequirements,
+              (requirement) => {
+                return publishDungeonRunRequirementSatisfied({
+                  configuration: result.configuration,
+                  requirement,
+                  webSocketBroadcaster: runWebSocketBroadcaster,
+                });
+              },
+              {
+                concurrency: "unbounded",
+                discard: true,
+              },
+            );
+
+            const handleCompletedMilestones = E.forEach(
+              result.completedMilestones,
+              (milestone) => {
                 return E.all(
                   [
-                    handleLogDungeonRunEvent(event),
-                    liveSplit.handleRunEvent(event),
+                    handleLogDungeonRunMilestone(milestone),
+                    liveSplit.handleMilestoneCompleted(milestone),
                   ],
                   {
                     concurrency: "unbounded",
@@ -271,6 +321,7 @@ const make = E.gen(function* () {
                 );
               },
               {
+                concurrency: "unbounded",
                 discard: true,
               },
             );
@@ -283,10 +334,22 @@ const make = E.gen(function* () {
                 })
               : E.void;
 
-            return E.all([persistResult, handleEvents, publishState], {
-              concurrency: "unbounded",
-              discard: true,
-            });
+            const persistence = persistLifecycle.pipe(
+              E.andThen(persistObservations),
+            );
+
+            return E.all(
+              [
+                persistence,
+                publishSatisfiedRequirements,
+                handleCompletedMilestones,
+                publishState,
+              ],
+              {
+                concurrency: "unbounded",
+                discard: true,
+              },
+            );
           }),
           E.tapCause((cause) => {
             return E.logError("Fellowship tracker failed.", {
