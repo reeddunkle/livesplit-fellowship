@@ -8,12 +8,12 @@ import {
   type MilestoneProgress,
   type RequirementProgress,
 } from "@/services/fellowship/configurations/analyze-milestone-progress.ts";
-import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
+import { type CompiledConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
 
 export type CreateRunApiStateOptions = {
-  readonly configuration: CompiledFellowshipMilestoneConfiguration;
+  readonly configuration: CompiledConfiguration;
   readonly state: DungeonRunProcessingState;
 };
 
@@ -63,7 +63,7 @@ export function createRunApiState({
 }: CreateRunApiStateOptions): DungeonRunStateApi {
   const analysis = analyzeMilestoneProgress({
     configuration,
-    state: state.milestoneProcessor,
+    state: state.requirementProcessor,
   });
 
   const runStart = state.runTracker.currentStart;
