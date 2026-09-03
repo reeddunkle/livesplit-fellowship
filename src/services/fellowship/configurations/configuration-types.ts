@@ -50,7 +50,7 @@ export type RequirementsByEvent = HashMap.HashMap<
   RequirementReferencesByTargetId
 >;
 
-export type CompiledFellowshipMilestoneConfiguration = Omit<
+export type CompiledConfiguration = Omit<
   FellowshipMilestoneConfiguration,
   "milestones"
 > & {

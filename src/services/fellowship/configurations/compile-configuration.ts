@@ -2,7 +2,7 @@ import * as HashMap from "effect/HashMap";
 import * as Option from "effect/Option";
 
 import {
-  type CompiledFellowshipMilestoneConfiguration,
+  type CompiledConfiguration,
   type CompiledMilestoneDefinition,
   type CompiledRequirement,
   type FellowshipMilestoneConfiguration,
@@ -167,7 +167,7 @@ function createIndexes(
 
 export function compileConfiguration(
   configuration: FellowshipMilestoneConfiguration,
-): CompiledFellowshipMilestoneConfiguration {
+): CompiledConfiguration {
   const milestones = compileMilestones(configuration);
 
   assertUniqueMilestones(milestones);

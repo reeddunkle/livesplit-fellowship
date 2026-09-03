@@ -5,16 +5,14 @@ import {
   DUNGEON_RUN_PROCESSING_EVENT,
   type DungeonRunProcessingEvent,
 } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event.ts";
-import { type LiveSplitClientService } from "@/services/live-split/core/live-split-client-service.ts";
+import { LiveSplitClientService } from "@/services/live-split/core/live-split-client-service.ts";
 
-export function handleLiveSplitDungeonRunEvent({
-  event,
-  liveSplitClient,
-}: {
-  readonly event: DungeonRunProcessingEvent;
-  readonly liveSplitClient: LiveSplitClientService;
-}) {
-  return Match.value(event).pipe(
+export const handleLiveSplitDungeonRunEvent = E.fn(
+  "handleLiveSplitDungeonRunEvent",
+)(function* (processingEvent: DungeonRunProcessingEvent) {
+  const liveSplitClient = yield* LiveSplitClientService;
+
+  return Match.value(processingEvent).pipe(
     Match.when({ type: DUNGEON_RUN_PROCESSING_EVENT.RUN_STARTED }, () => {
       return E.gen(function* () {
         yield* liveSplitClient.reset();
@@ -33,6 +31,5 @@ export function handleLiveSplitDungeonRunEvent({
         return liveSplitClient.split();
       },
     ),
-    Match.exhaustive,
   );
-}
+});
