@@ -1,6 +1,6 @@
 import * as Schema from "effect/Schema";
 
-import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { RequirementEventTypeSchema } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
@@ -14,7 +14,7 @@ export const DungeonRunApiObservationStatisticsSchema = Schema.Struct({
   occurrence: PositiveIntegerSchema,
   sampleCount: PositiveIntegerSchema,
   targetId: NonEmptyStringSchema,
-  type: MilestoneRequirementEventTypeSchema,
+  type: RequirementEventTypeSchema,
 });
 
 export type DungeonRunApiObservationStatistics =
