@@ -3,7 +3,7 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 
 import { DungeonDAO } from "@/db/daos/dungeon/dungeon-dao.ts";
-import { loadMilestoneConfiguration } from "@/services/fellowship/milestones/load-milestone-configuration.ts";
+import { loadMilestoneConfiguration } from "@/services/fellowship/configurations/load-milestone-configuration.ts";
 import { generateLSSFile } from "@/services/live-split/files/lss/generate-lss-file.ts";
 import { NonEmptyStringSchema } from "@/validation/common-schemas.ts";
 

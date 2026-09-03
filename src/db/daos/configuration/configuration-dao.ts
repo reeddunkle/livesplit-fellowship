@@ -4,7 +4,7 @@ import type * as Option from "effect/Option";
 
 import { type ConfigurationModel } from "@/db/models/configuration-model.ts";
 import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 import { type ConfigurationFingerprint } from "@/validation/configuration/configuration-fingerprint-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";

@@ -7,7 +7,7 @@ import * as HttpApiError from "effect/unstable/httpapi/HttpApiError";
 import { AppHttpApi } from "@/api/http/http-api.ts";
 import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
 import { ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 
 function mapConfigurationError(
   error: ConfigurationDAOError,

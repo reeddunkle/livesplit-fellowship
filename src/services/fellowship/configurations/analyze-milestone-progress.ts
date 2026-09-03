@@ -6,7 +6,7 @@ import {
   type CompiledFellowshipMilestoneConfiguration,
   type CompiledMilestoneDefinition,
   type CompiledRequirement,
-} from "@/services/fellowship/milestones/configuration-types.ts";
+} from "@/services/fellowship/configurations/configuration-types.ts";
 import {
   type RequirementObservation,
   type RequirementObservationHistory,

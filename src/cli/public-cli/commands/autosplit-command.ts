@@ -5,7 +5,7 @@ import * as Schema from "effect/Schema";
 
 import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
 import { DungeonDAO } from "@/db/daos/dungeon/dungeon-dao.ts";
-import { loadMilestoneConfiguration } from "@/services/fellowship/milestones/load-milestone-configuration.ts";
+import { loadMilestoneConfiguration } from "@/services/fellowship/configurations/load-milestone-configuration.ts";
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
 import { generateLSSFile } from "@/services/live-split/files/lss/generate-lss-file.ts";
 import { getLSSFileName } from "@/services/live-split/files/lss/get-lss-file-name.ts";

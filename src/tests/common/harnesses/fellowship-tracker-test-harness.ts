@@ -22,11 +22,11 @@ import {
 } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao.ts";
 import { type DungeonRunModel } from "@/db/models/dungeon-run-model.ts";
 import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import {
   Fellowship,
   type FellowshipService,
 } from "@/services/fellowship/fellowship-service.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import {
   LiveSplit,
   type LiveSplitService,

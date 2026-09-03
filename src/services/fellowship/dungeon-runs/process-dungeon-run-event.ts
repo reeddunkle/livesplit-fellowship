@@ -1,9 +1,9 @@
 import * as A from "effect/Array";
 import type * as DateTime from "effect/DateTime";
 
+import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { trackDungeonRunEvent } from "@/services/fellowship/dungeon-runs/track-dungeon-run.ts";
-import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import {
   type DungeonRunObservation,
   processRequirementEvent,

@@ -1,12 +1,12 @@
 import * as Stream from "effect/Stream";
 
+import { compileConfiguration } from "@/services/fellowship/configurations/compile-configuration.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import { createInitialDungeonRunState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import {
   type ProcessDungeonRunEventResult,
   processDungeonRunEvent,
 } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event.ts";
-import { compileConfiguration } from "@/services/fellowship/milestones/compile-configuration.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
 export type ProcessDungeonRunEventStreamOptions<Error> = {

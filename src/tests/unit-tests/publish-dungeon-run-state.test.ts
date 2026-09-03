@@ -4,17 +4,17 @@ import * as HashMap from "effect/HashMap";
 import { describe, expect, test } from "vitest";
 
 import { publishDungeonRunState } from "@/api/websocket/dungeon-run/publish-dungeon-run-state.ts";
+import { compileConfiguration } from "@/services/fellowship/configurations/compile-configuration.ts";
+import {
+  initialMilestoneProcessorState,
+  type MilestoneProcessorState,
+  type RequirementObservationsByTargetId,
+} from "@/services/fellowship/configurations/milestone-processor-state.ts";
 import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import {
   type DungeonRunTrackerState,
   initialDungeonRunTrackerState,
 } from "@/services/fellowship/dungeon-runs/track-dungeon-run.ts";
-import { compileConfiguration } from "@/services/fellowship/milestones/compile-configuration.ts";
-import {
-  initialMilestoneProcessorState,
-  type MilestoneProcessorState,
-  type RequirementObservationsByTargetId,
-} from "@/services/fellowship/milestones/milestone-processor-state.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 import { makeWebSocketBroadcasterTestHarness } from "@/tests/common/harnesses/websocket-broadcaster-test-harness.ts";

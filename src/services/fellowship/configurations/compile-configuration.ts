@@ -9,7 +9,7 @@ import {
   type RequirementReference,
   type RequirementReferencesByTargetId,
   type RequirementsByEvent,
-} from "@/services/fellowship/milestones/configuration-types.ts";
+} from "@/services/fellowship/configurations/configuration-types.ts";
 import { getRequirementLookup } from "@/services/fellowship/requirements/requirement-lookup.ts";
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";

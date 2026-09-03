@@ -3,13 +3,13 @@ import {
   type DungeonRunRequirementApi,
   type DungeonRunStateApi,
 } from "@/api/websocket/dungeon-run/dungeon-run-api-message-schema.ts";
-import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import {
   analyzeMilestoneProgress,
   type MilestoneProgress,
   type RequirementProgress,
-} from "@/services/fellowship/milestones/analyze-milestone-progress.ts";
-import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
+} from "@/services/fellowship/configurations/analyze-milestone-progress.ts";
+import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
+import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
 
 export type CreateRunApiStateOptions = {

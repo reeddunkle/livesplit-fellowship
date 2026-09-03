@@ -6,11 +6,11 @@ import * as Option from "effect/Option";
 import {
   analyzeMilestoneProgress,
   type MilestoneProgress,
-} from "@/services/fellowship/milestones/analyze-milestone-progress.ts";
+} from "@/services/fellowship/configurations/analyze-milestone-progress.ts";
 import {
   type CompiledFellowshipMilestoneConfiguration,
   type RequirementReference,
-} from "@/services/fellowship/milestones/configuration-types.ts";
+} from "@/services/fellowship/configurations/configuration-types.ts";
 import {
   getRequirementLookupForEvent,
   type RequirementLookup,

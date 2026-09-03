@@ -4,8 +4,8 @@ import {
   type ConfigurationDefinitionRequirement,
   type FellowshipConfigurationDefinition,
   type FellowshipMilestoneConfiguration,
-} from "@/services/fellowship/milestones/configuration-types.ts";
-import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
+} from "@/services/fellowship/configurations/configuration-types.ts";
+import { getMilestoneRequirementLookup } from "@/services/fellowship/configurations/milestone-requirement-lookup.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 

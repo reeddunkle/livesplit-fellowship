@@ -6,8 +6,8 @@ import {
   type ConfigurationApiMilestone,
   type ConfigurationApiRequirement,
 } from "@/services/api/configuration/configuration-api-schema.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
-import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
+import { getMilestoneRequirementLookup } from "@/services/fellowship/configurations/milestone-requirement-lookup.ts";
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 
 function createConfigurationApiRequirement({

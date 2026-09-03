@@ -5,8 +5,8 @@ import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 
 import { DungeonRunDAO } from "@/db/daos/dungeon-run/dungeon-run-dao.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import { type DungeonRunProcessingEvent } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-event.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 import { type DungeonRunId } from "@/validation/dungeon-run/dungeon-run-id-schema.ts";
 

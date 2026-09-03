@@ -4,7 +4,7 @@ import { describe, expect, test } from "vitest";
 
 import { ConfigurationDAO } from "@/db/daos/configuration/configuration-dao.ts";
 import { makePersistenceLayer } from "@/layers/persistence-layer.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import {
   MOCK_CONFIGURATION_LABEL,
   MOCK_DUNGEON_ID,
