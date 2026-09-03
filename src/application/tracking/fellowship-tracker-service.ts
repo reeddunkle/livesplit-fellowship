@@ -9,8 +9,14 @@ import * as Stream from "effect/Stream";
 import * as SubscriptionRef from "effect/SubscriptionRef";
 
 import { publishDungeonRunState } from "@/api/websocket/dungeon-run/publish-dungeon-run-state.ts";
+import {
+  type DungeonRunPersistence,
+  makeDungeonRunPersistence,
+} from "@/application/dungeon-run-processing/dungeon-run-persistence.ts";
 import { handleLogDungeonRunEvent } from "@/application/dungeon-run-processing/handle-log-dungeon-run-event.ts";
 import { ConfigurationDAO } from "@/db/daos/configuration/configuration-dao.ts";
+import { DungeonRunDAO } from "@/db/daos/dungeon-run/dungeon-run-dao.ts";
+import { DungeonRunObservationDAO } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao.ts";
 import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
 import {
   FellowshipTrackerAlreadyRunningError,
@@ -92,6 +98,7 @@ export class FellowshipTracker extends Context.Service<
 type ActiveTracker = {
   readonly dungeonId: DungeonId;
   readonly fiber: Fiber.Fiber<void, unknown>;
+  readonly persistence: DungeonRunPersistence | undefined;
   readonly source: FellowshipTrackerConfigurationSource;
 };
 
@@ -103,6 +110,8 @@ type StartTrackingOptions = {
 
 const make = E.gen(function* () {
   const configurationDAO = yield* ConfigurationDAO;
+  const dungeonRunDAO = yield* DungeonRunDAO;
+  const dungeonRunObservationDAO = yield* DungeonRunObservationDAO;
   const dungeonRunWebSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
   const fellowship = yield* Fellowship;
   const liveSplit = yield* LiveSplit;
@@ -145,30 +154,30 @@ const make = E.gen(function* () {
           return;
         }
 
-        yield* E.annotateCurrentSpan(
-          "fellowship.dungeonId",
-          activeTracker.value.dungeonId,
-        );
+        const tracker = activeTracker.value;
+
+        yield* E.annotateCurrentSpan("fellowship.dungeonId", tracker.dungeonId);
 
         yield* E.annotateCurrentSpan(
           "fellowship.tracker.source",
-          activeTracker.value.source._tag,
+          tracker.source._tag,
         );
 
-        yield* Fiber.interrupt(activeTracker.value.fiber);
+        yield* Fiber.interrupt(tracker.fiber);
 
-        /*
-         * Persistence will eventually handle interrupting an active persisted
-         * dungeon run here.
-         *
-         * if (activeTracker.value.source._tag === "Persisted") {
-         *   yield* interruptPersistedDungeonRun(...);
-         * }
-         */
+        if (tracker.persistence !== undefined) {
+          yield* tracker.persistence.interrupt().pipe(
+            E.catch((error) => {
+              return E.logError("Failed to interrupt persisted dungeon run.", {
+                error,
+              });
+            }),
+          );
+        }
 
         yield* E.logInfo("Stopped Fellowship tracker.", {
-          dungeonId: activeTracker.value.dungeonId,
-          source: activeTracker.value.source,
+          dungeonId: tracker.dungeonId,
+          source: tracker.source,
         });
       }),
     );
@@ -194,18 +203,19 @@ const make = E.gen(function* () {
           return yield* E.fail(new FellowshipTrackerAlreadyRunningError());
         }
 
-        /*
-         * Persistence-specific state can eventually be initialized here.
-         *
-         * const dungeonRunPersistence =
-         *   source._tag === "Persisted"
-         *     ? yield* makeDungeonRunPersistence({
-         *         configuration,
-         *         configurationDefinitionId:
-         *           source.configurationDefinitionId,
-         *       })
-         *     : undefined;
-         */
+        const dungeonRunPersistence =
+          source._tag === "Persisted"
+            ? yield* makeDungeonRunPersistence({
+                configuration,
+                configurationDefinitionId: source.configurationDefinitionId,
+              }).pipe(
+                E.provideService(DungeonRunDAO, dungeonRunDAO),
+                E.provideService(
+                  DungeonRunObservationDAO,
+                  dungeonRunObservationDAO,
+                ),
+              )
+            : undefined;
 
         const trackingEffect = processDungeonRunEventStream({
           configuration,
@@ -220,26 +230,24 @@ const make = E.gen(function* () {
               return E.void;
             }
 
-            /*
-             * const persistResultEffect =
-             *   source._tag === "Persisted"
-             *     ? persistDungeonRunEventResult({
-             *         configuration: result.configuration,
-             *         configurationDefinitionId:
-             *           source.configurationDefinitionId,
-             *         observation: result.observation,
-             *         processingEvents: result.processingEvents,
-             *         persistence: dungeonRunPersistence,
-             *       }).pipe(
-             *         E.catch((error) => {
-             *           return E.logError(
-             *             "Failed to persist dungeon run event result.",
-             *             { error },
-             *           );
-             *         }),
-             *       )
-             *     : E.void;
-             */
+            const persistResultEffect =
+              dungeonRunPersistence === undefined
+                ? E.void
+                : dungeonRunPersistence
+                    .persist({
+                      observation: result.observation,
+                      processingEvents: result.processingEvents,
+                    })
+                    .pipe(
+                      E.catch((error) => {
+                        return E.logError(
+                          "Failed to persist dungeon run event result.",
+                          {
+                            error,
+                          },
+                        );
+                      }),
+                    );
 
             const sendLiveSplitCommandsEffect = E.forEach(
               result.processingEvents,
@@ -278,7 +286,7 @@ const make = E.gen(function* () {
                 logEffects,
                 sendLiveSplitCommandsEffect,
                 publishStateEffect,
-                // persistResultEffect,
+                persistResultEffect,
               ],
               {
                 concurrency: "unbounded",
@@ -303,6 +311,7 @@ const make = E.gen(function* () {
           Option.some({
             dungeonId: configuration.dungeonId,
             fiber,
+            persistence: dungeonRunPersistence,
             source,
           }),
         );
