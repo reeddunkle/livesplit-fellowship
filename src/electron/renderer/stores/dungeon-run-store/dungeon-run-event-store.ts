@@ -11,7 +11,7 @@ import {
 import {
   type DungeonRunEventStreamEvent,
   makeDungeonRunEventStream,
-} from "@/electron/renderer/api/dungeon-run/dungeon-run-event-stream";
+} from "@/electron/renderer/api/dungeon-run/dungeon-run-event-stream.ts";
 
 export type DungeonRunEventStoreSnapshot = {
   readonly connectionState: ApiConnectionState;
@@ -59,11 +59,19 @@ export function makeDungeonRunEventStore() {
       });
     }),
     Match.when({ type: "MESSAGE_RECEIVED" }, (event) => {
-      return updateSnapshot((currentSnapshot) => {
-        return {
-          ...currentSnapshot,
-          runState: event.message.state,
-        };
+      return E.gen(function* () {
+        yield* updateSnapshot((currentSnapshot) => {
+          return {
+            ...currentSnapshot,
+            runState: event.message.state,
+          };
+        });
+
+        /*
+         * When the WebSocket protocol exposes a specific terminal event such as
+         * RUN_EXITED / RUN_COMPLETED, trigger dungeon-run history invalidation
+         * here so HTTP history can be refreshed.
+         */
       });
     }),
     Match.exhaustive,
@@ -78,7 +86,7 @@ export function makeDungeonRunEventStore() {
       Stream.runForEach(handleDungeonRunEvent),
       E.catch((error) => {
         return E.gen(function* () {
-          yield* E.logError("Run event stream failed.", {
+          yield* E.logError("Dungeon run event stream failed.", {
             error,
           });
 
