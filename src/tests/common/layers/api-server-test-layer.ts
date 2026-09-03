@@ -34,19 +34,35 @@ export type ApiServices =
   | LiveSplitApiService
   | UnitApiService;
 
+type ApiServiceTestLayer =
+  | Layer.Layer<AbilityApiService>
+  | Layer.Layer<ConfigurationApiService>
+  | Layer.Layer<DungeonApiService>
+  | Layer.Layer<DungeonRunApiService>
+  | Layer.Layer<EncounterApiService>
+  | Layer.Layer<FellowshipTracker>
+  | Layer.Layer<LiveSplitApiService>
+  | Layer.Layer<UnitApiService>;
+
 export const ApiServicesTest: Layer.Layer<ApiServices> = Layer.mergeAll(
   AbilityApiServiceMock,
   ConfigurationApiServiceMock,
   DungeonApiServiceMock,
+  DungeonRunApiServiceMock,
   EncounterApiServiceMock,
   FellowshipTrackerMock,
   LiveSplitApiServiceMock,
   UnitApiServiceMock,
-  DungeonRunApiServiceMock,
 );
 
+export function makeApiServicesTestLayer(
+  ...overrides: ReadonlyArray<ApiServiceTestLayer>
+): Layer.Layer<ApiServices> {
+  return Layer.mergeAll(ApiServicesTest, ...overrides);
+}
+
 export function makeApiServerTestLayer(
-  apiServicesLayer: Layer.Layer<ApiServices>,
+  apiServicesLayer: Layer.Layer<ApiServices> = ApiServicesTest,
 ) {
   return ApiServer.pipe(
     Layer.provideMerge(DungeonRunWebSocketBroadcasterLive),
@@ -57,4 +73,10 @@ export function makeApiServerTestLayer(
   );
 }
 
-export const ApiServerTest = makeApiServerTestLayer(ApiServicesTest);
+export function makeApiServerTestLayerWith(
+  ...overrides: ReadonlyArray<ApiServiceTestLayer>
+) {
+  return makeApiServerTestLayer(makeApiServicesTestLayer(...overrides));
+}
+
+export const ApiServerTest = makeApiServerTestLayer();
