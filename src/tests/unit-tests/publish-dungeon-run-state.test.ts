@@ -9,7 +9,7 @@ import {
   type DungeonRunTrackerState,
   initialDungeonRunTrackerState,
 } from "@/services/fellowship/dungeon-runs/track-dungeon-run.ts";
-import { compileMilestoneConfiguration } from "@/services/fellowship/milestones/compile-milestone-configuration.ts";
+import { compileConfiguration } from "@/services/fellowship/milestones/compile-configuration.ts";
 import {
   initialMilestoneProcessorState,
   type MilestoneProcessorState,
@@ -22,7 +22,7 @@ import { runTest } from "@/tests/common/run-test.ts";
 
 const DUNGEON_NAME = "Everdawn Grove";
 
-const configuration = compileMilestoneConfiguration({
+const configuration = compileConfiguration({
   dungeonId: "11",
   dungeonLevel: 1,
   milestones: [

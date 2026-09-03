@@ -4,29 +4,29 @@ import * as Option from "effect/Option";
 import {
   type CompiledFellowshipMilestoneConfiguration,
   type CompiledMilestoneDefinition,
-  type CompiledMilestoneRequirement,
+  type CompiledRequirement,
   type FellowshipMilestoneConfiguration,
-  type MilestoneRequirementReference,
-  type MilestoneRequirementReferencesByTargetId,
+  type RequirementReference,
+  type RequirementReferencesByTargetId,
   type RequirementsByEvent,
 } from "@/services/fellowship/milestones/configuration-types.ts";
-import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
+import { getRequirementLookup } from "@/services/fellowship/requirements/requirement-lookup.ts";
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 
-type CompiledMilestoneConfigurationIndexes = {
+type CompiledConfigurationIndexes = {
   readonly milestonesById: HashMap.HashMap<string, CompiledMilestoneDefinition>;
   readonly requirementsByEvent: RequirementsByEvent;
 };
 
-function compileMilestoneRequirement({
+function compileRequirement({
   configuration,
   requirement,
 }: {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly requirement: FellowshipMilestoneRequirement;
-}): CompiledMilestoneRequirement {
-  const lookup = getMilestoneRequirementLookup({
+}): CompiledRequirement {
+  const lookup = getRequirementLookup({
     dungeonId: configuration.dungeonId,
     requirement,
   });
@@ -39,9 +39,7 @@ function compileMilestoneRequirement({
   };
 }
 
-function getMilestoneRequirementIdentityKey(
-  requirement: CompiledMilestoneRequirement,
-): string {
+function getRequirementIdentityKey(requirement: CompiledRequirement): string {
   return JSON.stringify([
     requirement.type,
     requirement.targetId,
@@ -51,11 +49,9 @@ function getMilestoneRequirementIdentityKey(
 }
 
 function getMilestoneId(
-  requirements: ReadonlyArray<CompiledMilestoneRequirement>,
+  requirements: ReadonlyArray<CompiledRequirement>,
 ): string {
-  const requirementKeys = requirements
-    .map(getMilestoneRequirementIdentityKey)
-    .sort();
+  const requirementKeys = requirements.map(getRequirementIdentityKey).sort();
 
   return JSON.stringify(requirementKeys);
 }
@@ -65,7 +61,7 @@ function compileMilestones(
 ): ReadonlyArray<CompiledMilestoneDefinition> {
   return configuration.milestones.map((definition) => {
     const requirements = definition.requirements.map((requirement) => {
-      return compileMilestoneRequirement({
+      return compileRequirement({
         configuration,
         requirement,
       });
@@ -101,7 +97,7 @@ function addRequirementReference({
   requirementsByEvent,
 }: {
   readonly definition: CompiledMilestoneDefinition;
-  readonly requirement: CompiledMilestoneRequirement;
+  readonly requirement: CompiledRequirement;
   readonly requirementsByEvent: RequirementsByEvent;
 }): RequirementsByEvent {
   const referencesByTargetId = Option.getOrElse(
@@ -111,10 +107,10 @@ function addRequirementReference({
 
   const references = Option.getOrElse(
     HashMap.get(referencesByTargetId, requirement.targetId),
-    () => [] as ReadonlyArray<MilestoneRequirementReference>,
+    () => [] as ReadonlyArray<RequirementReference>,
   );
 
-  const nextReferences: ReadonlyArray<MilestoneRequirementReference> = [
+  const nextReferences: ReadonlyArray<RequirementReference> = [
     ...references,
     {
       milestoneId: definition.milestoneId,
@@ -138,8 +134,8 @@ function addRequirementReference({
 
 function createIndexes(
   milestones: ReadonlyArray<CompiledMilestoneDefinition>,
-): CompiledMilestoneConfigurationIndexes {
-  return milestones.reduce<CompiledMilestoneConfigurationIndexes>(
+): CompiledConfigurationIndexes {
+  return milestones.reduce<CompiledConfigurationIndexes>(
     (accumulator, definition) => {
       return {
         milestonesById: HashMap.set(
@@ -162,14 +158,14 @@ function createIndexes(
     {
       milestonesById: HashMap.empty<string, CompiledMilestoneDefinition>(),
       requirementsByEvent: HashMap.empty<
-        MilestoneRequirementEventType,
-        MilestoneRequirementReferencesByTargetId
+        RequirementEventType,
+        RequirementReferencesByTargetId
       >(),
     },
   );
 }
 
-export function compileMilestoneConfiguration(
+export function compileConfiguration(
   configuration: FellowshipMilestoneConfiguration,
 ): CompiledFellowshipMilestoneConfiguration {
   const milestones = compileMilestones(configuration);
