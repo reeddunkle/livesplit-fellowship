@@ -99,7 +99,7 @@ export class FellowshipTracker extends Context.Service<
 >()("app/FellowshipTracker") {}
 
 type ActiveTracker = {
-  readonly activeDungeonRunIdRef: Ref.Ref<Option.Option<DungeonRunId>>;
+  readonly dungeonRunIdRef: Ref.Ref<Option.Option<DungeonRunId>>;
   readonly dungeonId: DungeonId;
   readonly fiber: Fiber.Fiber<void, unknown>;
   readonly source: FellowshipTrackerConfigurationSource;
@@ -170,9 +170,20 @@ const make = E.gen(function* () {
         yield* Fiber.interrupt(activeTracker.value.fiber);
 
         if (activeTracker.value.source._tag === "Persisted") {
-          yield* interruptDungeonRun({
-            activeDungeonRunIdRef: activeTracker.value.activeDungeonRunIdRef,
-          }).pipe(E.provideService(DungeonRunDAO, dungeonRunDAO));
+          const dungeonRunId = yield* Ref.get(
+            activeTracker.value.dungeonRunIdRef,
+          );
+
+          if (Option.isSome(dungeonRunId)) {
+            yield* interruptDungeonRun({
+              dungeonRunId: dungeonRunId.value,
+            }).pipe(E.provideService(DungeonRunDAO, dungeonRunDAO));
+
+            yield* Ref.set(
+              activeTracker.value.dungeonRunIdRef,
+              Option.none<DungeonRunId>(),
+            );
+          }
         }
 
         yield* E.logInfo("Stopped Fellowship tracker.", {
@@ -203,9 +214,9 @@ const make = E.gen(function* () {
           return yield* E.fail(new FellowshipTrackerAlreadyRunningError());
         }
 
-        const activeDungeonRunIdRef = yield* Ref.make<
-          Option.Option<DungeonRunId>
-        >(Option.none());
+        const dungeonRunIdRef = yield* Ref.make<Option.Option<DungeonRunId>>(
+          Option.none(),
+        );
 
         const trackingEffect = processDungeonRunEventStream({
           configuration,
@@ -214,18 +225,26 @@ const make = E.gen(function* () {
           Stream.runForEach((result) => {
             const persistResult =
               source._tag === "Persisted"
-                ? persistDungeonRunResult({
-                    activeDungeonRunIdRef,
-                    configuration,
-                    configurationDefinitionId: source.configurationDefinitionId,
-                    result,
-                  }).pipe(
-                    E.provideService(DungeonRunDAO, dungeonRunDAO),
-                    E.provideService(
-                      DungeonRunObservationDAO,
-                      dungeonRunObservationDAO,
-                    ),
-                  )
+                ? E.gen(function* () {
+                    const activeDungeonRunId = yield* Ref.get(dungeonRunIdRef);
+
+                    const nextActiveDungeonRunId =
+                      yield* persistDungeonRunResult({
+                        activeDungeonRunId,
+                        configuration,
+                        configurationDefinitionId:
+                          source.configurationDefinitionId,
+                        result,
+                      }).pipe(
+                        E.provideService(DungeonRunDAO, dungeonRunDAO),
+                        E.provideService(
+                          DungeonRunObservationDAO,
+                          dungeonRunObservationDAO,
+                        ),
+                      );
+
+                    yield* Ref.set(dungeonRunIdRef, nextActiveDungeonRunId);
+                  })
                 : E.void;
 
             const handleEvents = E.forEach(
@@ -279,8 +298,8 @@ const make = E.gen(function* () {
         yield* Ref.set(
           activeTrackerRef,
           Option.some({
-            activeDungeonRunIdRef,
             dungeonId: configuration.dungeonId,
+            dungeonRunIdRef,
             fiber,
             source,
           }),
