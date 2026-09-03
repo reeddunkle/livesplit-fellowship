@@ -9,7 +9,7 @@ import {
   type MilestoneProgress,
   type RequirementProgress,
 } from "@/services/fellowship/milestones/analyze-milestone-progress.ts";
-import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
 
 export type CreateRunApiStateOptions = {

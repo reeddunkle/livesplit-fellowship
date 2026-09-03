@@ -6,7 +6,7 @@ import {
   processDungeonRunEvent,
 } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event.ts";
 import { compileMilestoneConfiguration } from "@/services/fellowship/milestones/compile-milestone-configuration.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 
 export type ProcessDungeonRunEventStreamOptions<Error> = {
@@ -16,15 +16,6 @@ export type ProcessDungeonRunEventStreamOptions<Error> = {
 
 type ProcessDungeonRunEventStreamResult = ProcessDungeonRunEventResult & {
   readonly configuration: ReturnType<typeof compileMilestoneConfiguration>;
-};
-
-type DungeonRunProcessingResult = {
-  readonly completedMilestones: ReadonlyArray<CompletedMilestone>;
-  readonly lifecycleEvents: ReadonlyArray<DungeonRunLifecycleEvent>;
-  readonly observations: ReadonlyArray<DungeonRunObservation>;
-  readonly satisfiedRequirements: ReadonlyArray<SatisfiedRequirement>;
-  readonly state: DungeonRunState;
-  readonly isStateUpdated: boolean;
 };
 
 export function processDungeonRunEventStream<Error>({

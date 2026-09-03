@@ -1,13 +1,15 @@
+import * as A from "effect/Array";
 import type * as DateTime from "effect/DateTime";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { trackDungeonRunEvent } from "@/services/fellowship/dungeon-runs/track-dungeon-run.ts";
+import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import { initialMilestoneProcessorState } from "@/services/fellowship/milestones/milestone-processor-state.ts";
-import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
 import {
   type DungeonRunObservation,
-  processMilestoneEvent,
-} from "@/services/fellowship/milestones/process-milestone-event.ts";
+  processRequirementEvent,
+  type SatisfiedMilestoneRequirement,
+} from "@/services/fellowship/milestones/process-requirement-event.ts";
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 import { doesDungeonRunMatchConfiguration } from "@/services/fellowship/utilities/does-dungeon-run-match-configuration.ts";
 import { isDungeonExitEvent } from "@/services/fellowship/utilities/is-dungeon-exit-event.ts";
@@ -18,6 +20,7 @@ import { type DungeonRunProcessingState } from "./dungeon-run-processing-state.t
 
 export const DUNGEON_RUN_PROCESSING_EVENT = {
   MILESTONE_COMPLETED: "MILESTONE_COMPLETED",
+  REQUIREMENT_SATISFIED: "REQUIREMENT_SATISFIED",
   RUN_COMPLETED: "RUN_COMPLETED",
   RUN_EXITED: "RUN_EXITED",
   RUN_STARTED: "RUN_STARTED",
@@ -27,6 +30,10 @@ export type DungeonRunProcessingEvent =
   | {
       readonly milestone: FellowshipRunMilestone;
       readonly type: typeof DUNGEON_RUN_PROCESSING_EVENT.MILESTONE_COMPLETED;
+    }
+  | {
+      readonly requirement: SatisfiedMilestoneRequirement;
+      readonly type: typeof DUNGEON_RUN_PROCESSING_EVENT.REQUIREMENT_SATISFIED;
     }
   | {
       readonly timestamp: DateTime.Utc;
@@ -48,9 +55,8 @@ export type ProcessDungeonRunEventOptions = {
 };
 
 export type ProcessDungeonRunEventResult = {
-  readonly events: ReadonlyArray<DungeonRunProcessingEvent>;
-  readonly isStateUpdated: boolean;
   readonly observation: DungeonRunObservation | undefined;
+  readonly processingEvents: ReadonlyArray<DungeonRunProcessingEvent>;
   readonly state: DungeonRunProcessingState;
 };
 
@@ -137,7 +143,7 @@ export function processDungeonRunEvent({
 
   const runStart = getDungeonRunStartForEvent({
     completedRunStart: trackerResult.completedRun?.start,
-    currentStart: state.runTracker.currentStart,
+    currentStart,
     event,
   });
 
@@ -149,9 +155,8 @@ export function processDungeonRunEvent({
     })
   ) {
     return {
-      events: [],
-      isStateUpdated: false,
       observation: undefined,
+      processingEvents: [],
       state: {
         milestoneProcessor,
         runTracker: trackerResult.state,
@@ -159,7 +164,7 @@ export function processDungeonRunEvent({
     };
   }
 
-  const milestoneResult = processMilestoneEvent({
+  const milestoneResult = processRequirementEvent({
     configuration,
     event,
     runStart,
@@ -168,7 +173,7 @@ export function processDungeonRunEvent({
 
   const timestamp = getEventTimestamp(event);
 
-  const dungeonStartEvents: ReadonlyArray<DungeonRunProcessingEvent> =
+  const runStartedEvents: ReadonlyArray<DungeonRunProcessingEvent> =
     isConfiguredDungeonStart
       ? [
           {
@@ -178,15 +183,27 @@ export function processDungeonRunEvent({
         ]
       : [];
 
-  const milestoneEvents: ReadonlyArray<DungeonRunProcessingEvent> =
-    milestoneResult.milestones.map((milestone) => {
+  const requirementSatisfiedEvents = A.map(
+    milestoneResult.satisfiedRequirements,
+    (requirement): DungeonRunProcessingEvent => {
+      return {
+        requirement,
+        type: DUNGEON_RUN_PROCESSING_EVENT.REQUIREMENT_SATISFIED,
+      };
+    },
+  );
+
+  const milestoneCompletedEvents = A.map(
+    milestoneResult.milestones,
+    (milestone): DungeonRunProcessingEvent => {
       return {
         milestone,
         type: DUNGEON_RUN_PROCESSING_EVENT.MILESTONE_COMPLETED,
       };
-    });
+    },
+  );
 
-  const dungeonCompletionEvents: ReadonlyArray<DungeonRunProcessingEvent> =
+  const runCompletedEvents: ReadonlyArray<DungeonRunProcessingEvent> =
     hasCompletedConfiguredRun
       ? [
           {
@@ -196,7 +213,7 @@ export function processDungeonRunEvent({
         ]
       : [];
 
-  const dungeonExitEvents: ReadonlyArray<DungeonRunProcessingEvent> =
+  const runExitedEvents: ReadonlyArray<DungeonRunProcessingEvent> =
     hasExitedConfiguredRun
       ? [
           {
@@ -206,21 +223,15 @@ export function processDungeonRunEvent({
         ]
       : [];
 
-  const isStateUpdated =
-    isConfiguredDungeonStart ||
-    milestoneResult.isStateUpdated ||
-    hasCompletedConfiguredRun ||
-    hasExitedConfiguredRun;
-
   return {
-    events: [
-      ...dungeonStartEvents,
-      ...milestoneEvents,
-      ...dungeonCompletionEvents,
-      ...dungeonExitEvents,
-    ],
-    isStateUpdated,
     observation: milestoneResult.observation,
+    processingEvents: [
+      ...runStartedEvents,
+      ...requirementSatisfiedEvents,
+      ...milestoneCompletedEvents,
+      ...runCompletedEvents,
+      ...runExitedEvents,
+    ],
     state: {
       milestoneProcessor: milestoneResult.state,
       runTracker: trackerResult.state,

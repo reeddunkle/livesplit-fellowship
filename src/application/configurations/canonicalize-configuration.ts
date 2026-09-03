@@ -1,11 +1,11 @@
 import * as Order from "effect/Order";
 
-import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import {
   type ConfigurationDefinitionRequirement,
   type FellowshipConfigurationDefinition,
   type FellowshipMilestoneConfiguration,
-} from "@/services/fellowship/milestones/milestone-types.ts";
+} from "@/services/fellowship/milestones/configuration-types.ts";
+import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 

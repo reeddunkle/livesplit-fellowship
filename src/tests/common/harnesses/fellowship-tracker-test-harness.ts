@@ -26,7 +26,7 @@ import {
   Fellowship,
   type FellowshipService,
 } from "@/services/fellowship/fellowship-service.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import {
   LiveSplit,
   type LiveSplitService,

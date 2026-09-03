@@ -3,15 +3,15 @@ import * as HashMap from "effect/HashMap";
 import * as Option from "effect/Option";
 
 import {
+  type CompiledFellowshipMilestoneConfiguration,
+  type CompiledMilestoneDefinition,
+  type CompiledMilestoneRequirement,
+} from "@/services/fellowship/milestones/configuration-types.ts";
+import {
   type MilestoneProcessorState,
   type RequirementObservation,
   type RequirementObservationHistory,
 } from "@/services/fellowship/milestones/milestone-processor-state.ts";
-import {
-  type CompiledFellowshipMilestoneConfiguration,
-  type CompiledMilestoneDefinition,
-  type CompiledMilestoneRequirement,
-} from "@/services/fellowship/milestones/milestone-types.ts";
 
 export type RequirementProgress = {
   readonly completedAt: DateTime.Utc | undefined;

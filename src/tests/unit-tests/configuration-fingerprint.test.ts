@@ -2,7 +2,7 @@ import * as E from "effect/Effect";
 import { describe, expect, test } from "vitest";
 
 import { createConfigurationFingerprint } from "@/application/configurations/configuration-fingerprint.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
 const firstDesecratorMilestone = {

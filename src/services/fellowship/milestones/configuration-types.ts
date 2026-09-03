@@ -1,6 +1,6 @@
 import type * as HashMap from "effect/HashMap";
 
-import { type MilestoneRequirementTargetId } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
+import { type RequirementTargetId } from "@/services/fellowship/requirements/requirement-lookup.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
 import { type FellowshipMilestoneDefinition } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
@@ -14,7 +14,7 @@ export type FellowshipMilestoneConfiguration = {
 export type ConfigurationDefinitionRequirement = {
   readonly requiredCount: number;
   readonly startOccurrence: number;
-  readonly targetId: MilestoneRequirementTargetId;
+  readonly targetId: RequirementTargetId;
   readonly type: MilestoneRequirementEventType;
 };
 
@@ -24,30 +24,30 @@ export type FellowshipConfigurationDefinition = {
   readonly requirements: ReadonlyArray<ConfigurationDefinitionRequirement>;
 };
 
-export type CompiledMilestoneRequirement = ConfigurationDefinitionRequirement;
+export type CompiledRequirement = ConfigurationDefinitionRequirement;
 
 export type CompiledMilestoneDefinition = Omit<
   FellowshipMilestoneDefinition,
   "requirements"
 > & {
   readonly milestoneId: string;
-  readonly requirements: ReadonlyArray<CompiledMilestoneRequirement>;
+  readonly requirements: ReadonlyArray<CompiledRequirement>;
 };
 
-export type MilestoneRequirementReference = {
+export type RequirementReference = {
   readonly milestoneId: string;
   readonly requiredCount: number;
   readonly startOccurrence: number;
 };
 
-export type MilestoneRequirementReferencesByTargetId = HashMap.HashMap<
-  MilestoneRequirementTargetId,
-  ReadonlyArray<MilestoneRequirementReference>
+export type RequirementReferencesByTargetId = HashMap.HashMap<
+  RequirementTargetId,
+  ReadonlyArray<RequirementReference>
 >;
 
 export type RequirementsByEvent = HashMap.HashMap<
   MilestoneRequirementEventType,
-  MilestoneRequirementReferencesByTargetId
+  RequirementReferencesByTargetId
 >;
 
 export type CompiledFellowshipMilestoneConfiguration = Omit<

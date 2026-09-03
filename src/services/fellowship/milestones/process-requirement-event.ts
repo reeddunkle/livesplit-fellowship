@@ -1,3 +1,4 @@
+import * as A from "effect/Array";
 import type * as DateTime from "effect/DateTime";
 import * as HashMap from "effect/HashMap";
 import * as Option from "effect/Option";
@@ -7,18 +8,18 @@ import {
   type MilestoneProgress,
 } from "@/services/fellowship/milestones/analyze-milestone-progress.ts";
 import {
-  type MilestoneProcessorState,
+  type CompiledFellowshipMilestoneConfiguration,
+  type RequirementReference,
+} from "@/services/fellowship/milestones/configuration-types.ts";
+import {
+  getRequirementLookupForEvent,
+  type RequirementLookup,
+} from "@/services/fellowship/requirements/requirement-lookup.ts";
+import {
   type RequirementObservationHistory,
   type RequirementObservationsByTargetId,
-} from "@/services/fellowship/milestones/milestone-processor-state.ts";
-import {
-  getMilestoneRequirementLookupForEvent,
-  type MilestoneRequirementLookup,
-} from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
-import {
-  type CompiledFellowshipMilestoneConfiguration,
-  type MilestoneRequirementReference,
-} from "@/services/fellowship/milestones/milestone-types.ts";
+  type RequirementProcessorState,
+} from "@/services/fellowship/requirements/requirement-processor-state.ts";
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
@@ -26,24 +27,25 @@ import { type MilestoneRequirementEventType } from "@/services/fellowship/valida
 import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
 
 export type DungeonRunObservation = {
-  readonly occurrence: number;
-  readonly targetId: MilestoneRequirementLookup["targetId"];
+  readonly targetId: RequirementLookup["targetId"];
   readonly timestamp: DateTime.Utc;
   readonly type: MilestoneRequirementEventType;
 };
 
-export type ProcessMilestoneEventOptions = {
+export type SatisfiedRequirement = RequirementReference;
+
+export type ProcessRequirementEventOptions = {
   readonly configuration: CompiledFellowshipMilestoneConfiguration;
   readonly event: FellowshipEvent;
   readonly runStart: DungeonStartEvent;
-  readonly state: MilestoneProcessorState;
+  readonly state: RequirementProcessorState;
 };
 
-export type ProcessMilestoneEventResult = {
-  readonly isStateUpdated: boolean;
-  readonly milestones: ReadonlyArray<FellowshipRunMilestone>;
+export type ProcessRequirementEventResult = {
+  readonly completedMilestones: ReadonlyArray<FellowshipRunMilestone>;
   readonly observation: DungeonRunObservation | undefined;
-  readonly state: MilestoneProcessorState;
+  readonly satisfiedRequirements: ReadonlyArray<SatisfiedRequirement>;
+  readonly state: RequirementProcessorState;
 };
 
 function getEventTimestamp(event: FellowshipEvent): DateTime.Utc {
@@ -55,8 +57,8 @@ function getRequirementReferences({
   lookup,
 }: {
   readonly configuration: CompiledFellowshipMilestoneConfiguration;
-  readonly lookup: MilestoneRequirementLookup;
-}): ReadonlyArray<MilestoneRequirementReference> {
+  readonly lookup: RequirementLookup;
+}): ReadonlyArray<RequirementReference> {
   return Option.flatMap(
     HashMap.get(configuration.requirementsByEvent, lookup.type),
     (referencesByTargetId) => {
@@ -66,22 +68,22 @@ function getRequirementReferences({
 }
 
 function getMaximumRequiredOccurrence(
-  references: ReadonlyArray<MilestoneRequirementReference>,
+  references: ReadonlyArray<RequirementReference>,
 ): number {
-  return references.reduce((maximumOccurrence, reference) => {
+  return A.reduce(references, 0, (maximumOccurrence, reference) => {
     const endOccurrence =
       reference.startOccurrence + reference.requiredCount - 1;
 
     return Math.max(maximumOccurrence, endOccurrence);
-  }, 0);
+  });
 }
 
 function getObservationHistory({
   lookup,
   state,
 }: {
-  readonly lookup: MilestoneRequirementLookup;
-  readonly state: MilestoneProcessorState;
+  readonly lookup: RequirementLookup;
+  readonly state: RequirementProcessorState;
 }): RequirementObservationHistory | undefined {
   return Option.flatMap(
     HashMap.get(state.requirementObservations, lookup.type),
@@ -96,10 +98,10 @@ function addRequirementObservation({
   state,
   timestamp,
 }: {
-  readonly lookup: MilestoneRequirementLookup;
-  readonly state: MilestoneProcessorState;
+  readonly lookup: RequirementLookup;
+  readonly state: RequirementProcessorState;
   readonly timestamp: DateTime.Utc;
-}): MilestoneProcessorState {
+}): RequirementProcessorState {
   const observationsByTargetId: RequirementObservationsByTargetId =
     Option.getOrElse(
       HashMap.get(state.requirementObservations, lookup.type),
@@ -139,6 +141,21 @@ function addRequirementObservation({
   };
 }
 
+function getSatisfiedRequirements({
+  occurrence,
+  references,
+}: {
+  readonly occurrence: number;
+  readonly references: ReadonlyArray<RequirementReference>;
+}): ReadonlyArray<SatisfiedRequirement> {
+  return A.filter(references, (reference) => {
+    const requiredEndOccurrence =
+      reference.startOccurrence + reference.requiredCount - 1;
+
+    return occurrence === requiredEndOccurrence;
+  });
+}
+
 function createRunMilestone({
   progress,
   runStart,
@@ -169,19 +186,25 @@ function getNewlyCompletedMilestones({
   readonly previousMilestones: ReadonlyArray<MilestoneProgress>;
   readonly runStart: DungeonStartEvent;
 }): ReadonlyArray<FellowshipRunMilestone> {
-  return nextMilestones.flatMap((nextMilestone) => {
+  return A.flatMap(nextMilestones, (nextMilestone) => {
     if (!nextMilestone.isComplete) {
       return [];
     }
 
-    const previousMilestone = previousMilestones.find((candidateMilestone) => {
-      return (
-        candidateMilestone.definition.milestoneId ===
-        nextMilestone.definition.milestoneId
-      );
-    });
+    const previousMilestone = A.findFirst(
+      previousMilestones,
+      (candidateMilestone) => {
+        return (
+          candidateMilestone.definition.milestoneId ===
+          nextMilestone.definition.milestoneId
+        );
+      },
+    );
 
-    if (previousMilestone?.isComplete === true) {
+    if (
+      Option.isSome(previousMilestone) &&
+      previousMilestone.value.isComplete
+    ) {
       return [];
     }
 
@@ -194,23 +217,23 @@ function getNewlyCompletedMilestones({
   });
 }
 
-export function processMilestoneEvent({
+export function processRequirementEvent({
   configuration,
   event,
   runStart,
   state,
-}: ProcessMilestoneEventOptions): ProcessMilestoneEventResult {
-  const initialResult: ProcessMilestoneEventResult = {
-    isStateUpdated: false,
-    milestones: [],
+}: ProcessRequirementEventOptions): ProcessRequirementEventResult {
+  const emptyResult: ProcessRequirementEventResult = {
+    completedMilestones: [],
     observation: undefined,
+    satisfiedRequirements: [],
     state,
   };
 
-  const lookup = getMilestoneRequirementLookupForEvent(event);
+  const lookup = getRequirementLookupForEvent(event);
 
   if (lookup === undefined) {
-    return initialResult;
+    return emptyResult;
   }
 
   const references = getRequirementReferences({
@@ -219,7 +242,7 @@ export function processMilestoneEvent({
   });
 
   if (references.length === 0) {
-    return initialResult;
+    return emptyResult;
   }
 
   const observationHistory = getObservationHistory({
@@ -227,18 +250,17 @@ export function processMilestoneEvent({
     state,
   });
 
-  const currentOccurrenceCount = observationHistory?.observations.length ?? 0;
+  const currentOccurrence = (observationHistory?.observations.length ?? 0) + 1;
 
   const maximumRequiredOccurrence = getMaximumRequiredOccurrence(references);
 
-  if (currentOccurrenceCount >= maximumRequiredOccurrence) {
-    return initialResult;
+  if (currentOccurrence > maximumRequiredOccurrence) {
+    return emptyResult;
   }
 
   const timestamp = getEventTimestamp(event);
 
   const observation = {
-    occurrence: currentOccurrenceCount + 1,
     targetId: lookup.targetId,
     timestamp,
     type: lookup.type,
@@ -260,16 +282,21 @@ export function processMilestoneEvent({
     state: nextState,
   });
 
-  const milestones = getNewlyCompletedMilestones({
+  const satisfiedRequirements = getSatisfiedRequirements({
+    occurrence: currentOccurrence,
+    references,
+  });
+
+  const completedMilestones = getNewlyCompletedMilestones({
     nextMilestones: nextAnalysis.milestones,
     previousMilestones: previousAnalysis.milestones,
     runStart,
   });
 
   return {
-    isStateUpdated: true,
-    milestones,
+    completedMilestones,
     observation,
+    satisfiedRequirements,
     state: nextState,
   };
 }

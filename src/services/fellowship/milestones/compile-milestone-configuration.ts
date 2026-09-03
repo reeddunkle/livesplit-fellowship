@@ -1,7 +1,6 @@
 import * as HashMap from "effect/HashMap";
 import * as Option from "effect/Option";
 
-import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import {
   type CompiledFellowshipMilestoneConfiguration,
   type CompiledMilestoneDefinition,
@@ -10,7 +9,8 @@ import {
   type MilestoneRequirementReference,
   type MilestoneRequirementReferencesByTargetId,
   type RequirementsByEvent,
-} from "@/services/fellowship/milestones/milestone-types.ts";
+} from "@/services/fellowship/milestones/configuration-types.ts";
+import { getMilestoneRequirementLookup } from "@/services/fellowship/milestones/milestone-requirement-lookup.ts";
 import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 

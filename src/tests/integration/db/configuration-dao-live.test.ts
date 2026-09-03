@@ -11,7 +11,7 @@ import {
   type PersistedConfiguration,
 } from "@/db/daos/configuration/configuration-dao.ts";
 import { makePersistenceLayer } from "@/layers/persistence-layer.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import {
   MOCK_CONFIGURATION_LABEL,
   MOCK_DUNGEON_ID,

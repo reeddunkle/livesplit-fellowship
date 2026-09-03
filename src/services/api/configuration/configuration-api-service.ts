@@ -11,7 +11,7 @@ import {
   type DeleteConfigurationsByDungeonAndLevelApiRequest,
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { createConfigurationApiResponse } from "@/services/api/configuration/create-configuration-api-response.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 import { type ConfigurationLabel } from "@/validation/configuration/configuration-label-schema.ts";
 

@@ -1,46 +1,30 @@
 import * as A from "effect/Array";
-import * as DateTime from "effect/DateTime";
 import * as E from "effect/Effect";
 import { pipe } from "effect/Function";
 import * as Match from "effect/Match";
 import * as Option from "effect/Option";
-import type * as Stream from "effect/Stream";
 
 import { DungeonRunDAO } from "@/db/daos/dungeon-run/dungeon-run-dao.ts";
-import { DungeonRunObservationDAO } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao.ts";
-import { type processDungeonRunEventStream } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event-stream.ts";
+import { type DungeonRunProcessingEvent } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-event.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 import { type DungeonRunId } from "@/validation/dungeon-run/dungeon-run-id-schema.ts";
 
-type DungeonRunProcessingResult =
-  ReturnType<typeof processDungeonRunEventStream> extends Stream.Stream<
-    infer Result,
-    unknown,
-    unknown
-  >
-    ? Result
-    : never;
-
-type PersistDungeonRunResultOptions = {
-  readonly activeDungeonRunId: Option.Option<DungeonRunId>;
+type PersistDungeonRunLifecycleEventsOptions = {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly configurationDefinitionId: ConfigurationDefinitionId;
-  readonly result: DungeonRunProcessingResult;
+  readonly dungeonRunId: Option.Option<DungeonRunId>;
+  readonly events: ReadonlyArray<DungeonRunProcessingEvent>;
 };
 
-type InterruptDungeonRunOptions = {
-  readonly dungeonRunId: DungeonRunId;
-};
-
-export const persistDungeonRunResult = E.fn(
-  "fellowship.dungeon-run.persist-result",
+export const persistDungeonRunLifecycleEvents = E.fn(
+  "fellowship.dungeon-run.persist-lifecycle-events",
 )(function* ({
-  activeDungeonRunId,
   configuration,
   configurationDefinitionId,
-  result,
-}: PersistDungeonRunResultOptions) {
+  dungeonRunId,
+  events,
+}: PersistDungeonRunLifecycleEventsOptions) {
   yield* E.annotateCurrentSpan(
     "fellowship.configurationDefinitionId",
     configurationDefinitionId,
@@ -49,10 +33,9 @@ export const persistDungeonRunResult = E.fn(
   yield* E.annotateCurrentSpan("fellowship.dungeonId", configuration.dungeonId);
 
   const dungeonRunDAO = yield* DungeonRunDAO;
-  const dungeonRunObservationDAO = yield* DungeonRunObservationDAO;
 
   const runStartedEffects = pipe(
-    result.events,
+    events,
     A.filter((event) => {
       return event.type === "RUN_STARTED";
     }),
@@ -76,45 +59,26 @@ export const persistDungeonRunResult = E.fn(
     concurrency: "unbounded",
   });
 
-  const dungeonRunId = pipe(
+  const activeDungeonRunId = pipe(
     startedDungeonRunIds,
     A.last,
     Option.orElse(() => {
-      return activeDungeonRunId;
+      return dungeonRunId;
     }),
   );
 
-  const observe = Option.match(dungeonRunId, {
-    onNone: () => {
-      return E.void;
-    },
-    onSome: (matchedDungeonRunId) => {
-      if (result.observation === undefined) {
-        return E.void;
-      }
-
-      return dungeonRunObservationDAO.observe({
-        dungeonRunId: matchedDungeonRunId,
-        observedAt: result.observation.timestamp,
-        occurrence: result.observation.occurrence,
-        targetId: result.observation.targetId,
-        type: result.observation.type,
-      });
-    },
-  });
-
   const terminalEvents = pipe(
-    result.events,
+    events,
     A.filter((event) => {
       return event.type === "RUN_COMPLETED" || event.type === "RUN_EXITED";
     }),
   );
 
-  const terminalEffects = Option.match(dungeonRunId, {
+  const terminalEffects = Option.match(activeDungeonRunId, {
     onNone: () => {
       return [];
     },
-    onSome: (matchedDungeonRunId) => {
+    onSome: (matchingDungeonRunId) => {
       return pipe(
         terminalEvents,
         A.map((event) => {
@@ -125,7 +89,7 @@ export const persistDungeonRunResult = E.fn(
               },
               (runCompleted) => {
                 return dungeonRunDAO.complete({
-                  dungeonRunId: matchedDungeonRunId,
+                  dungeonRunId: matchingDungeonRunId,
                   endedAt: runCompleted.timestamp,
                 });
               },
@@ -136,7 +100,7 @@ export const persistDungeonRunResult = E.fn(
               },
               (runExited) => {
                 return dungeonRunDAO.exit({
-                  dungeonRunId: matchedDungeonRunId,
+                  dungeonRunId: matchingDungeonRunId,
                   endedAt: runExited.timestamp,
                 });
               },
@@ -148,24 +112,12 @@ export const persistDungeonRunResult = E.fn(
     },
   });
 
-  yield* E.all([observe, ...terminalEffects], {
+  yield* E.all(terminalEffects, {
     concurrency: "unbounded",
     discard: true,
   });
 
-  return terminalEvents.length > 0 ? Option.none<DungeonRunId>() : dungeonRunId;
+  return terminalEvents.length > 0
+    ? Option.none<DungeonRunId>()
+    : activeDungeonRunId;
 });
-
-export const interruptDungeonRun = E.fn("fellowship.dungeon-run.interrupt")(
-  function* ({ dungeonRunId }: InterruptDungeonRunOptions) {
-    yield* E.annotateCurrentSpan("fellowship.dungeonRunId", dungeonRunId);
-
-    const dungeonRunDAO = yield* DungeonRunDAO;
-    const endedAt = yield* DateTime.now;
-
-    yield* dungeonRunDAO.interrupt({
-      dungeonRunId,
-      endedAt,
-    });
-  },
-);

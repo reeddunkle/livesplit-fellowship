@@ -22,7 +22,7 @@ import {
 import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import { processDungeonRunEventStream } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event-stream.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
@@ -30,10 +30,13 @@ import { type ConfigurationDefinitionId } from "@/validation/configuration/confi
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 import { type DungeonRunId } from "@/validation/dungeon-run/dungeon-run-id-schema.ts";
 
+import { persistDungeonRunLifecycleEvents } from "./persist-dungeon-run-lifecycle-events.ts";
+import { persistDungeonRunObservation } from "./persist-dungeon-run-observation.ts";
 import {
   interruptDungeonRun,
   persistDungeonRunResult,
 } from "./persist-dungeon-run-result.ts";
+import { publishDungeonRunRequirementSatisfied } from "./publish-dungeon-run-requirement-satisfied.ts";
 
 type FellowshipTrackerConfigurationSource =
   | {

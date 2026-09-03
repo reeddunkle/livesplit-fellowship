@@ -223,31 +223,26 @@ export const createTables = E.gen(function* () {
   `;
 
   yield* sql`
-  CREATE TABLE dungeon_run (
-    id TEXT PRIMARY KEY NOT NULL,
-    configuration_definition_id TEXT NOT NULL,
-    dungeon_id TEXT NOT NULL,
-    dungeon_level INTEGER NOT NULL
-      CHECK (dungeon_level >= 1),
-    status TEXT NOT NULL
-      CHECK (status IN ('ACTIVE', 'COMPLETED', 'INTERRUPTED', 'EXITED')),
-    started_at INTEGER NOT NULL,
-    ended_at INTEGER,
-    created_at INTEGER NOT NULL,
-    updated_at INTEGER NOT NULL,
+    CREATE TABLE dungeon_run (
+      id TEXT PRIMARY KEY NOT NULL,
+      configuration_definition_id TEXT NOT NULL,
+      dungeon_id TEXT NOT NULL,
+      dungeon_level INTEGER NOT NULL
+        CHECK (dungeon_level >= 1),
+      status TEXT NOT NULL
+        CHECK (status IN ('ACTIVE', 'COMPLETED', 'INTERRUPTED', 'EXITED')),
+      started_at INTEGER,
+      ended_at INTEGER,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
 
-    CHECK (
-      (status = 'ACTIVE' AND ended_at IS NULL) OR
-      (status IN ('COMPLETED', 'INTERRUPTED', 'EXITED') AND ended_at IS NOT NULL)
-    ),
+      FOREIGN KEY (configuration_definition_id)
+        REFERENCES configuration_definition(id),
 
-    FOREIGN KEY (configuration_definition_id)
-      REFERENCES configuration_definition(id),
-
-    FOREIGN KEY (dungeon_id)
-      REFERENCES dungeon(id)
-  ) STRICT
-`;
+      FOREIGN KEY (dungeon_id)
+        REFERENCES dungeon(id)
+    ) STRICT
+  `;
 
   yield* sql`
     CREATE INDEX dungeon_run_configuration_definition_id_started_at_index

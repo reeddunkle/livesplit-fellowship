@@ -2,7 +2,7 @@ import { type DungeonRunApiMessage } from "@/api/websocket/dungeon-run/dungeon-r
 import { createRunApiState } from "@/api/websocket/dungeon-run/dungeon-run-api-state.ts";
 import { type WebSocketBroadcasterService } from "@/services/api/websocket-broadcaster-service.ts";
 import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
-import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/milestone-types.ts";
+import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/milestones/configuration-types.ts";
 
 type CreateDungeonRunApiMessageOptions = {
   readonly configuration: CompiledFellowshipMilestoneConfiguration;
