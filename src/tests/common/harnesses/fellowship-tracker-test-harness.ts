@@ -141,6 +141,19 @@ export function makeFellowshipTrackerTestHarness(
       complete: () => {
         return E.void;
       },
+      create: ({ dungeonId, dungeonLevel }) => {
+        return E.succeed({
+          configurationDefinitionId,
+          createdAt: MOCK_CREATED_AT,
+          dungeonId,
+          dungeonLevel,
+          endedAt: null,
+          id: MOCK_DUNGEON_RUN_ID,
+          startedAt: null,
+          status: "ACTIVE",
+          updatedAt: MOCK_UPDATED_AT,
+        } satisfies DungeonRunModel);
+      },
       exit: () => {
         return E.void;
       },
@@ -150,18 +163,8 @@ export function makeFellowshipTrackerTestHarness(
       interrupt: () => {
         return E.void;
       },
-      start: ({ dungeonId, dungeonLevel, startedAt }) => {
-        return E.succeed({
-          configurationDefinitionId,
-          createdAt: MOCK_CREATED_AT,
-          dungeonId,
-          dungeonLevel,
-          endedAt: null,
-          id: MOCK_DUNGEON_RUN_ID,
-          startedAt,
-          status: "ACTIVE",
-          updatedAt: MOCK_UPDATED_AT,
-        } satisfies DungeonRunModel);
+      start: () => {
+        return E.void;
       },
     } satisfies DungeonRunDAOShape;
 
