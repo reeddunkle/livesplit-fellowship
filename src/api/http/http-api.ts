@@ -8,9 +8,12 @@ import { LiveSplitApi } from "@/api/http/groups/live-split/live-split-api.ts";
 import { TrackingApi } from "@/api/http/groups/tracking/tracking-api.ts";
 import { UnitsApi } from "@/api/http/groups/units/units-api.ts";
 
+import { DungeonRunsApi } from "./groups/dungeon-runs/dungeon-runs-api.ts";
+
 export const AppHttpApi = HttpApi.make("app").add(
   AbilitiesApi,
   ConfigurationsApi,
+  DungeonRunsApi,
   DungeonsApi,
   EncountersApi,
   LiveSplitApi,

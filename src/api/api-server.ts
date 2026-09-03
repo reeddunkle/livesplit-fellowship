@@ -15,6 +15,8 @@ import { LiveSplitRoutes } from "@/api/websocket/live-split/live-split-route.ts"
 import { TrackingRoutes } from "@/api/websocket/tracking/tracking-route.ts";
 import { env } from "@/env.ts";
 
+import { DungeonRunsApiLive } from "./http/groups/dungeon-runs/dungeon-runs-api-live.ts";
+
 const CorsLive = HttpRouter.cors({
   allowedOrigins: [
     `http://${env.electronRenderer.host}:${env.electronRenderer.port}`,
@@ -24,6 +26,7 @@ const CorsLive = HttpRouter.cors({
 const HttpApiRoutes = HttpApiBuilder.layer(AppHttpApi).pipe(
   Layer.provide(AbilitiesApiLive),
   Layer.provide(ConfigurationsApiLive),
+  Layer.provide(DungeonRunsApiLive),
   Layer.provide(DungeonsApiLive),
   Layer.provide(EncountersApiLive),
   Layer.provide(LiveSplitApiLive),

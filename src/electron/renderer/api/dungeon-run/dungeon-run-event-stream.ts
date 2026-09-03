@@ -14,7 +14,7 @@ import {
 import { getApiWebSocketUrl } from "@/electron/renderer/api/api-url.ts";
 import { DungeonRunEventMessageDecodeError } from "@/errors/dungeon-run-event-stream-error.ts";
 
-import { API_CONNECTION_STATE, type ApiConnectionState } from "./common.ts";
+import { API_CONNECTION_STATE, type ApiConnectionState } from "../common.ts";
 
 export type DungeonRunEventStreamEvent =
   | {

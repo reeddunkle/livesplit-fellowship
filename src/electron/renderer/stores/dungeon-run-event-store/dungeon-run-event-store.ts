@@ -11,7 +11,7 @@ import {
 import {
   type DungeonRunEventStreamEvent,
   makeDungeonRunEventStream,
-} from "@/electron/renderer/api/dungeon-run-event-stream.ts";
+} from "@/electron/renderer/api/dungeon-run/dungeon-run-event-stream";
 
 export type DungeonRunEventStoreSnapshot = {
   readonly connectionState: ApiConnectionState;
