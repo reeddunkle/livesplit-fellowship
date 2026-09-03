@@ -1,3 +1,5 @@
+import * as A from "effect/Array";
+import { pipe } from "effect/Function";
 import * as Order from "effect/Order";
 
 import {
@@ -5,9 +7,9 @@ import {
   type FellowshipConfigurationDefinition,
   type FellowshipMilestoneConfiguration,
 } from "@/services/fellowship/configurations/configuration-types.ts";
-import { getMilestoneRequirementLookup } from "@/services/fellowship/configurations/milestone-requirement-lookup.ts";
+import { getRequirementLookup } from "@/services/fellowship/requirements/requirement-lookup.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
-import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
+import { type FellowshipRequirement } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
 
 type CanonicalMilestone = {
   readonly requirements: ReadonlyArray<ConfigurationDefinitionRequirement>;
@@ -60,9 +62,9 @@ function canonicalizeRequirement({
   requirement,
 }: {
   readonly configuration: FellowshipMilestoneConfiguration;
-  readonly requirement: FellowshipMilestoneRequirement;
+  readonly requirement: FellowshipRequirement;
 }): ConfigurationDefinitionRequirement {
-  const lookup = getMilestoneRequirementLookup({
+  const lookup = getRequirementLookup({
     dungeonId: configuration.dungeonId,
     requirement,
   });
@@ -81,9 +83,9 @@ function canonicalizeConfiguration(
   return canonicalizeNormalizedConfiguration({
     dungeonId: configuration.dungeonId,
     dungeonLevel: configuration.dungeonLevel,
-    milestones: configuration.milestones.map((milestone) => {
+    milestones: A.map(configuration.milestones, (milestone) => {
       return {
-        requirements: milestone.requirements.map((requirement) => {
+        requirements: A.map(milestone.requirements, (requirement) => {
           return canonicalizeRequirement({
             configuration,
             requirement,
@@ -102,8 +104,10 @@ function canonicalizeConfigurationDefinition(
     ConfigurationDefinitionRequirement
   >();
 
-  configuration.milestones.forEach((milestone) => {
-    milestone.requirements.forEach((requirement) => {
+  pipe(
+    configuration.milestones,
+    A.flatMap((milestone) => milestone.requirements),
+    A.forEach((requirement) => {
       const canonicalRequirement = canonicalizeRequirement({
         configuration,
         requirement,
@@ -113,8 +117,8 @@ function canonicalizeConfigurationDefinition(
         getRequirementIdentityKey(canonicalRequirement),
         canonicalRequirement,
       );
-    });
-  });
+    }),
+  );
 
   return canonicalizeNormalizedConfigurationDefinition({
     dungeonId: configuration.dungeonId,
@@ -126,17 +130,20 @@ function canonicalizeConfigurationDefinition(
 function canonicalizeNormalizedConfiguration(
   configuration: CanonicalConfigurationInput,
 ): CanonicalConfiguration {
-  const milestones = configuration.milestones.map((milestone) => {
-    const requirements = [...milestone.requirements].sort(
-      ConfigurationDefinitionRequirementOrder,
-    );
+  const milestones = pipe(
+    configuration.milestones,
+    A.map((milestone) => {
+      const requirements = A.sort(
+        milestone.requirements,
+        ConfigurationDefinitionRequirementOrder,
+      );
 
-    return {
-      requirements,
-    } satisfies CanonicalMilestone;
-  });
-
-  milestones.sort(CanonicalMilestoneOrder);
+      return {
+        requirements,
+      } satisfies CanonicalMilestone;
+    }),
+    A.sort(CanonicalMilestoneOrder),
+  );
 
   return {
     dungeonId: configuration.dungeonId,
@@ -148,7 +155,8 @@ function canonicalizeNormalizedConfiguration(
 function canonicalizeNormalizedConfigurationDefinition(
   definition: CanonicalConfigurationDefinitionInput,
 ): FellowshipConfigurationDefinition {
-  const requirements = [...definition.requirements].sort(
+  const requirements = A.sort(
+    definition.requirements,
     ConfigurationDefinitionRequirementOrder,
   );
 
