@@ -1,6 +1,5 @@
 import * as DateTime from "effect/DateTime";
 import * as E from "effect/Effect";
-import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as HttpServer from "effect/unstable/http/HttpServer";
 import { describe, expect, test } from "vitest";
@@ -10,16 +9,8 @@ import {
   getAbilityBase,
 } from "@/electron/renderer/api/ability-client.ts";
 import { type AbilityApiAbility } from "@/services/api/ability/ability-api-schema.ts";
-import { type AbilityApiService } from "@/services/api/ability/ability-api-service.ts";
-import { makeApiServerTestLayer } from "@/tests/common/layers/api-server-test-layer.ts";
+import { makeApiServerTestLayerWith } from "@/tests/common/layers/api-server-test-layer.ts";
 import { makeAbilityApiServiceMock } from "@/tests/common/mocks/ability-api-service-mock.ts";
-import { ConfigurationApiServiceMock } from "@/tests/common/mocks/configuration-api-service-mock.ts";
-import { DungeonApiServiceMock } from "@/tests/common/mocks/dungeon-api-service-mock.ts";
-import { DungeonRunApiServiceMock } from "@/tests/common/mocks/dungeon-run-api-service-mock.ts";
-import { EncounterApiServiceMock } from "@/tests/common/mocks/encounter-api-service-mock.ts";
-import { FellowshipTrackerMock } from "@/tests/common/mocks/fellowship-tracker-service-mock.ts";
-import { LiveSplitApiServiceMock } from "@/tests/common/mocks/live-split-api-service-mock.ts";
-import { UnitApiServiceMock } from "@/tests/common/mocks/unit-api-service-mock.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
 const ABILITY_ID = "634";
@@ -36,23 +27,6 @@ const ability = {
   unitId: UNIT_ID,
   updatedAt: MOCK_UPDATED_AT,
 } satisfies AbilityApiAbility;
-
-function makeAbilityApiServerTestLayer(
-  abilityApiServiceLayer: Layer.Layer<AbilityApiService>,
-) {
-  const apiServicesLayer = Layer.mergeAll(
-    abilityApiServiceLayer,
-    ConfigurationApiServiceMock,
-    DungeonApiServiceMock,
-    DungeonRunApiServiceMock,
-    EncounterApiServiceMock,
-    FellowshipTrackerMock,
-    LiveSplitApiServiceMock,
-    UnitApiServiceMock,
-  );
-
-  return makeApiServerTestLayer(apiServicesLayer);
-}
 
 function getHttpUrl(address: HttpServer.Address): string {
   if (address._tag === "UnixAddress") {
@@ -83,7 +57,7 @@ describe("ability client", () => {
         const abilities = yield* getAbilities();
 
         expect(abilities).toEqual([ability]);
-      }).pipe(E.provide(makeAbilityApiServerTestLayer(abilityApiServiceMock))),
+      }).pipe(E.provide(makeApiServerTestLayerWith(abilityApiServiceMock))),
     );
 
     await runTest(program);
@@ -112,7 +86,7 @@ describe("ability client", () => {
         });
 
         expect(result).toEqual(ability);
-      }).pipe(E.provide(makeAbilityApiServerTestLayer(abilityApiServiceMock))),
+      }).pipe(E.provide(makeApiServerTestLayerWith(abilityApiServiceMock))),
     );
 
     await runTest(program);
@@ -138,7 +112,7 @@ describe("ability client", () => {
         );
 
         expect(wasNotFound).toBe(true);
-      }).pipe(E.provide(makeAbilityApiServerTestLayer(abilityApiServiceMock))),
+      }).pipe(E.provide(makeApiServerTestLayerWith(abilityApiServiceMock))),
     );
 
     await runTest(program);

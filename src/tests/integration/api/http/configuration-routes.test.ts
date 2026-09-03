@@ -1,5 +1,4 @@
 import * as E from "effect/Effect";
-import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 import * as HttpServer from "effect/unstable/http/HttpServer";
@@ -13,7 +12,6 @@ import {
   ConfigurationApiConfigurationListSchema,
   ConfigurationApiConfigurationSchema,
 } from "@/services/api/configuration/configuration-api-schema.ts";
-import { type ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
 import {
   MOCK_CONFIGURATION,
   MOCK_CONFIGURATION_FINGERPRINT,
@@ -23,34 +21,10 @@ import {
   MOCK_UNKNOWN_CONFIGURATION_ID,
   MOCK_UPDATED_CONFIGURATION_LABEL,
 } from "@/tests/common/fixtures/configuration-fixtures.ts";
-import { makeApiServerTestLayer } from "@/tests/common/layers/api-server-test-layer.ts";
-import { AbilityApiServiceMock } from "@/tests/common/mocks/ability-api-service-mock.ts";
+import { makeApiServerTestLayerWith } from "@/tests/common/layers/api-server-test-layer.ts";
 import { makeConfigurationApiServiceMock } from "@/tests/common/mocks/configuration-api-service-mock.ts";
-import { DungeonApiServiceMock } from "@/tests/common/mocks/dungeon-api-service-mock.ts";
-import { DungeonRunApiServiceMock } from "@/tests/common/mocks/dungeon-run-api-service-mock.ts";
-import { EncounterApiServiceMock } from "@/tests/common/mocks/encounter-api-service-mock.ts";
-import { FellowshipTrackerMock } from "@/tests/common/mocks/fellowship-tracker-service-mock.ts";
-import { LiveSplitApiServiceMock } from "@/tests/common/mocks/live-split-api-service-mock.ts";
-import { UnitApiServiceMock } from "@/tests/common/mocks/unit-api-service-mock.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 import { parseJson } from "@/util/parse-json.ts";
-
-function makeConfigurationApiServerTestLayer(
-  configurationApiServiceLayer: Layer.Layer<ConfigurationApiService>,
-) {
-  const apiServicesLayer = Layer.mergeAll(
-    AbilityApiServiceMock,
-    configurationApiServiceLayer,
-    DungeonApiServiceMock,
-    DungeonRunApiServiceMock,
-    EncounterApiServiceMock,
-    FellowshipTrackerMock,
-    LiveSplitApiServiceMock,
-    UnitApiServiceMock,
-  );
-
-  return makeApiServerTestLayer(apiServicesLayer);
-}
 
 function parseResponseJson(response: Response): E.Effect<unknown, Error> {
   return E.gen(function* () {
@@ -129,9 +103,7 @@ describe("configuration routes", () => {
         expect(response.status).toBe(200);
         expect(body).toEqual([MOCK_CONFIGURATION]);
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -175,9 +147,7 @@ describe("configuration routes", () => {
         expect(response.status).toBe(200);
         expect(body).toEqual(MOCK_CONFIGURATION);
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -207,9 +177,7 @@ describe("configuration routes", () => {
         expect(response.status).toBe(404);
         expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -262,9 +230,7 @@ describe("configuration routes", () => {
         expect(body).toEqual(MOCK_CONFIGURATION);
         expect(body.fingerprint).toBe(MOCK_CONFIGURATION_FINGERPRINT);
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -322,9 +288,7 @@ describe("configuration routes", () => {
         expect(body.fingerprint).toBe(MOCK_CONFIGURATION_FINGERPRINT);
         expect(body.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -359,9 +323,7 @@ describe("configuration routes", () => {
         expect(response.status).toBe(400);
         expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -424,9 +386,7 @@ describe("configuration routes", () => {
         expect(body.id).toBe(MOCK_CONFIGURATION_ID);
         expect(body.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -465,9 +425,7 @@ describe("configuration routes", () => {
         expect(response.status).toBe(400);
         expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -509,9 +467,7 @@ describe("configuration routes", () => {
         expect(deletedConfigurationId).toBe(MOCK_CONFIGURATION_ID);
         expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -531,9 +487,7 @@ describe("configuration routes", () => {
         expect(response.status).toBe(400);
         expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -561,9 +515,7 @@ describe("configuration routes", () => {
 
         expect(response.status).toBe(404);
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -600,9 +552,7 @@ describe("configuration routes", () => {
         expect(response.status).toBe(500);
         expect(yield* E.promise(() => response.text())).toBe("");
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 

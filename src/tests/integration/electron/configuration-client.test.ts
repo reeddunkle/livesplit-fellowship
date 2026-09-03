@@ -13,7 +13,6 @@ import {
   updateConfigurationBase,
 } from "@/electron/renderer/api/configuration-client.ts";
 import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
-import { type ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
 import {
   MOCK_CONFIGURATION,
   MOCK_CONFIGURATION_FINGERPRINT,
@@ -23,33 +22,9 @@ import {
   MOCK_UNKNOWN_CONFIGURATION_ID,
   MOCK_UPDATED_CONFIGURATION_LABEL,
 } from "@/tests/common/fixtures/configuration-fixtures.ts";
-import { makeApiServerTestLayer } from "@/tests/common/layers/api-server-test-layer.ts";
-import { AbilityApiServiceMock } from "@/tests/common/mocks/ability-api-service-mock.ts";
+import { makeApiServerTestLayerWith } from "@/tests/common/layers/api-server-test-layer.ts";
 import { makeConfigurationApiServiceMock } from "@/tests/common/mocks/configuration-api-service-mock.ts";
-import { DungeonApiServiceMock } from "@/tests/common/mocks/dungeon-api-service-mock.ts";
-import { DungeonRunApiServiceMock } from "@/tests/common/mocks/dungeon-run-api-service-mock.ts";
-import { EncounterApiServiceMock } from "@/tests/common/mocks/encounter-api-service-mock.ts";
-import { FellowshipTrackerMock } from "@/tests/common/mocks/fellowship-tracker-service-mock.ts";
-import { LiveSplitApiServiceMock } from "@/tests/common/mocks/live-split-api-service-mock.ts";
-import { UnitApiServiceMock } from "@/tests/common/mocks/unit-api-service-mock.ts";
 import { runTest } from "@/tests/common/run-test.ts";
-
-function makeConfigurationApiServerTestLayer(
-  configurationApiServiceLayer: Layer.Layer<ConfigurationApiService>,
-) {
-  const apiServicesLayer = Layer.mergeAll(
-    AbilityApiServiceMock,
-    configurationApiServiceLayer,
-    DungeonApiServiceMock,
-    DungeonRunApiServiceMock,
-    EncounterApiServiceMock,
-    FellowshipTrackerMock,
-    LiveSplitApiServiceMock,
-    UnitApiServiceMock,
-  );
-
-  return makeApiServerTestLayer(apiServicesLayer);
-}
 
 function getHttpUrl(address: HttpServer.Address): string {
   if (address._tag === "UnixAddress") {
@@ -81,9 +56,7 @@ describe("configuration client", () => {
 
         expect(configurations).toEqual([MOCK_CONFIGURATION]);
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -114,9 +87,7 @@ describe("configuration client", () => {
 
         expect(result).toEqual(MOCK_CONFIGURATION);
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -143,9 +114,7 @@ describe("configuration client", () => {
           expect(result.failure._tag).toBe("NotFound");
         }
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -182,9 +151,7 @@ describe("configuration client", () => {
         expect(result).toEqual(MOCK_CONFIGURATION);
         expect(result.fingerprint).toBe(MOCK_CONFIGURATION_FINGERPRINT);
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -226,9 +193,7 @@ describe("configuration client", () => {
         expect(result.fingerprint).toBe(MOCK_CONFIGURATION_FINGERPRINT);
         expect(result.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -272,9 +237,7 @@ describe("configuration client", () => {
         expect(result.id).toBe(MOCK_CONFIGURATION_ID);
         expect(result.label).toBe(MOCK_UPDATED_CONFIGURATION_LABEL);
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 
@@ -305,9 +268,7 @@ describe("configuration client", () => {
 
         expect(deletedConfigurationId).toBe(MOCK_CONFIGURATION_ID);
       }).pipe(
-        E.provide(
-          makeConfigurationApiServerTestLayer(configurationApiServiceTest),
-        ),
+        E.provide(makeApiServerTestLayerWith(configurationApiServiceTest)),
       ),
     );
 

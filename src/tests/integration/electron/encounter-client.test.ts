@@ -10,16 +10,8 @@ import {
   getEncountersBase,
 } from "@/electron/renderer/api/encounter-client.ts";
 import { type EncounterApiEncounter } from "@/services/api/encounter/encounter-api-schema.ts";
-import { type EncounterApiService } from "@/services/api/encounter/encounter-api-service.ts";
-import { makeApiServerTestLayer } from "@/tests/common/layers/api-server-test-layer.ts";
-import { AbilityApiServiceMock } from "@/tests/common/mocks/ability-api-service-mock.ts";
-import { ConfigurationApiServiceMock } from "@/tests/common/mocks/configuration-api-service-mock.ts";
-import { DungeonApiServiceMock } from "@/tests/common/mocks/dungeon-api-service-mock.ts";
-import { DungeonRunApiServiceMock } from "@/tests/common/mocks/dungeon-run-api-service-mock.ts";
+import { makeApiServerTestLayerWith } from "@/tests/common/layers/api-server-test-layer.ts";
 import { makeEncounterApiServiceMock } from "@/tests/common/mocks/encounter-api-service-mock.ts";
-import { FellowshipTrackerMock } from "@/tests/common/mocks/fellowship-tracker-service-mock.ts";
-import { LiveSplitApiServiceMock } from "@/tests/common/mocks/live-split-api-service-mock.ts";
-import { UnitApiServiceMock } from "@/tests/common/mocks/unit-api-service-mock.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
 const DUNGEON_ID = "24";
@@ -36,23 +28,6 @@ const encounter = {
   name: "Vexira",
   updatedAt: MOCK_UPDATED_AT,
 } satisfies EncounterApiEncounter;
-
-function makeEncounterApiServerTestLayer(
-  encounterApiServiceLayer: Layer.Layer<EncounterApiService>,
-) {
-  const apiServicesLayer = Layer.mergeAll(
-    AbilityApiServiceMock,
-    ConfigurationApiServiceMock,
-    DungeonApiServiceMock,
-    DungeonRunApiServiceMock,
-    encounterApiServiceLayer,
-    FellowshipTrackerMock,
-    LiveSplitApiServiceMock,
-    UnitApiServiceMock,
-  );
-
-  return makeApiServerTestLayer(apiServicesLayer);
-}
 
 function getHttpUrl(address: HttpServer.Address): string {
   if (address._tag === "UnixAddress") {
@@ -83,9 +58,7 @@ describe("encounter client", () => {
         const encounters = yield* getEncounters();
 
         expect(encounters).toEqual([encounter]);
-      }).pipe(
-        E.provide(makeEncounterApiServerTestLayer(encounterApiServiceMock)),
-      ),
+      }).pipe(E.provide(makeApiServerTestLayerWith(encounterApiServiceMock))),
     );
 
     await runTest(program);
@@ -115,9 +88,7 @@ describe("encounter client", () => {
         });
 
         expect(result).toEqual(encounter);
-      }).pipe(
-        E.provide(makeEncounterApiServerTestLayer(encounterApiServiceMock)),
-      ),
+      }).pipe(E.provide(makeApiServerTestLayerWith(encounterApiServiceMock))),
     );
 
     await runTest(program);
@@ -144,9 +115,7 @@ describe("encounter client", () => {
         );
 
         expect(wasNotFound).toBe(true);
-      }).pipe(
-        E.provide(makeEncounterApiServerTestLayer(encounterApiServiceMock)),
-      ),
+      }).pipe(E.provide(makeApiServerTestLayerWith(encounterApiServiceMock))),
     );
 
     await runTest(program);
