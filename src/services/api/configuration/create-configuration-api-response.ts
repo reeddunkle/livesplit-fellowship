@@ -7,17 +7,17 @@ import {
   type ConfigurationApiRequirement,
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
-import { getMilestoneRequirementLookup } from "@/services/fellowship/configurations/milestone-requirement-lookup.ts";
-import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
+import { getRequirementLookup } from "@/services/fellowship/requirements/requirement-lookup.ts";
+import { type FellowshipRequirement } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
 
 function createConfigurationApiRequirement({
   dungeonId,
   requirement,
 }: {
   readonly dungeonId: string;
-  readonly requirement: FellowshipMilestoneRequirement;
+  readonly requirement: FellowshipRequirement;
 }): ConfigurationApiRequirement {
-  const lookup = getMilestoneRequirementLookup({
+  const lookup = getRequirementLookup({
     dungeonId,
     requirement,
   });
@@ -63,7 +63,7 @@ export function createConfigurationApiResponse({
     fingerprint,
     id,
     label,
-    milestones: configuration.milestones.map((milestone) => {
+    milestones: A.map(configuration.milestones, (milestone) => {
       return createConfigurationApiMilestone({
         dungeonId: configuration.dungeonId,
         milestone,
