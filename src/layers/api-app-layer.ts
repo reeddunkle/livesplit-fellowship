@@ -5,6 +5,7 @@ import { makeAppLive } from "@/layers/app-layer.ts";
 import { AbilityApiServiceLive } from "@/services/api/ability/ability-api-service.ts";
 import { ConfigurationApiServiceLive } from "@/services/api/configuration/configuration-api-service.ts";
 import { DungeonApiServiceLive } from "@/services/api/dungeon/dungeon-api-service.ts";
+import { DungeonRunApiServiceLive } from "@/services/api/dungeon-run/dungeon-run-api-service.ts";
 import { EncounterApiServiceLive } from "@/services/api/encounter/encounter-api-service.ts";
 import { LiveSplitApiServiceLive } from "@/services/api/live-split/live-split-api-service.ts";
 import { NodeApiHttpServerLive } from "@/services/api/node-api-http-server.ts";
@@ -23,6 +24,7 @@ export function makeApiAppLive(options: MakeApiAppLiveOptions) {
     EncounterApiServiceLive,
     LiveSplitApiServiceLive,
     UnitApiServiceLive,
+    DungeonRunApiServiceLive,
   ).pipe(Layer.provide(AppLive));
 
   const ApiServerDependencies = Layer.mergeAll(
