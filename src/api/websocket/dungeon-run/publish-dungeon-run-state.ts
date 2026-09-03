@@ -1,22 +1,20 @@
+import * as E from "effect/Effect";
+
 import { type DungeonRunApiMessage } from "@/api/websocket/dungeon-run/dungeon-run-api-message-schema.ts";
 import { createRunApiState } from "@/api/websocket/dungeon-run/dungeon-run-api-state.ts";
-import { type WebSocketBroadcasterService } from "@/services/api/websocket-broadcaster-service.ts";
-import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
+import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
+import { type CompiledConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 
-type CreateDungeonRunApiMessageOptions = {
-  readonly configuration: CompiledFellowshipMilestoneConfiguration;
+type PublishDungeonRunStateOptions = {
+  readonly configuration: CompiledConfiguration;
   readonly state: DungeonRunProcessingState;
-};
-
-type PublishDungeonRunStateApiOptions = CreateDungeonRunApiMessageOptions & {
-  readonly webSocketBroadcaster: WebSocketBroadcasterService;
 };
 
 function createDungeonRunApiMessage({
   configuration,
   state,
-}: CreateDungeonRunApiMessageOptions): DungeonRunApiMessage {
+}: PublishDungeonRunStateOptions): DungeonRunApiMessage {
   return {
     state: createRunApiState({
       configuration,
@@ -26,15 +24,15 @@ function createDungeonRunApiMessage({
   };
 }
 
-export function publishDungeonRunState({
-  configuration,
-  state,
-  webSocketBroadcaster,
-}: PublishDungeonRunStateApiOptions) {
+export const publishDungeonRunState = E.fn(
+  "fellowship.dungeon-run.publish-state",
+)(function* ({ configuration, state }: PublishDungeonRunStateOptions) {
+  const webSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
+
   const message = createDungeonRunApiMessage({
     configuration,
     state,
   });
 
-  return webSocketBroadcaster.publish(JSON.stringify(message));
-}
+  yield* webSocketBroadcaster.publish(JSON.stringify(message));
+});

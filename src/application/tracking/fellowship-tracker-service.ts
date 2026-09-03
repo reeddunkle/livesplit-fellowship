@@ -1,9 +1,7 @@
-import * as A from "effect/Array";
 import * as Context from "effect/Context";
 import * as E from "effect/Effect";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
-import * as Match from "effect/Match";
 import * as Option from "effect/Option";
 import * as Ref from "effect/Ref";
 import * as Semaphore from "effect/Semaphore";
@@ -11,7 +9,6 @@ import * as Stream from "effect/Stream";
 import * as SubscriptionRef from "effect/SubscriptionRef";
 
 import { publishDungeonRunState } from "@/api/websocket/dungeon-run/publish-dungeon-run-state.ts";
-import { handleLiveSplitDungeonRunEvent } from "@/application/dungeon-run-processing/handle-live-split-dungeon-run-event.ts";
 import { handleLogDungeonRunEvent } from "@/application/dungeon-run-processing/handle-log-dungeon-run-event.ts";
 import { ConfigurationDAO } from "@/db/daos/configuration/configuration-dao.ts";
 import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
@@ -20,14 +17,7 @@ import {
   FellowshipTrackerConfigurationNotFoundError,
 } from "@/errors/fellowship-tracker-error.ts";
 import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
-import {
-  type CompiledConfiguration,
-  type FellowshipMilestoneConfiguration,
-} from "@/services/fellowship/configurations/configuration-types.ts";
-import {
-  DUNGEON_RUN_PROCESSING_EVENT,
-  type DungeonRunProcessingEvent,
-} from "@/services/fellowship/dungeon-runs/process-dungeon-run-event.ts";
+import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import { processDungeonRunEventStream } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event-stream.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
@@ -35,8 +25,6 @@ import { type FellowshipEvent } from "@/services/fellowship/validation/fellowshi
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
 import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
-
-import { publishDungeonRunRequirementSatisfied } from "./publish-dungeon-run-requirement-satisfied.ts";
 
 type FellowshipTrackerConfigurationSource =
   | {
@@ -115,9 +103,9 @@ type StartTrackingOptions = {
 
 const make = E.gen(function* () {
   const configurationDAO = yield* ConfigurationDAO;
+  const dungeonRunWebSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
   const fellowship = yield* Fellowship;
   const liveSplit = yield* LiveSplit;
-  const runWebSocketBroadcaster = yield* DungeonRunWebSocketBroadcaster;
   const scope = yield* E.scope;
 
   const semaphore = yield* Semaphore.make(1);
@@ -146,60 +134,6 @@ const make = E.gen(function* () {
     });
   };
 
-  const publishProcessingEvent = ({
-    configuration,
-    processingEvent,
-  }: {
-    readonly configuration: CompiledConfiguration;
-    readonly processingEvent: DungeonRunProcessingEvent;
-  }) => {
-    return Match.value(processingEvent).pipe(
-      Match.when(
-        {
-          type: DUNGEON_RUN_PROCESSING_EVENT.REQUIREMENT_SATISFIED,
-        },
-        (requirementSatisfiedEvent) => {
-          return publishDungeonRunRequirementSatisfied({
-            configuration,
-            requirement: requirementSatisfiedEvent.requirement,
-            webSocketBroadcaster: runWebSocketBroadcaster,
-          });
-        },
-      ),
-      Match.orElse(() => {
-        return E.void;
-      }),
-    );
-  };
-
-  const handleProcessingEvent = ({
-    configuration,
-    processingEvent,
-  }: {
-    readonly configuration: CompiledConfiguration;
-    readonly processingEvent: DungeonRunProcessingEvent;
-  }) => {
-    return E.all(
-      [
-        handleLiveSplitDungeonRunEvent({
-          event: processingEvent,
-          liveSplitClient: liveSplit,
-        }),
-        handleLogDungeonRunEvent({
-          event: processingEvent,
-        }),
-        publishProcessingEvent({
-          configuration,
-          processingEvent,
-        }),
-      ],
-      {
-        concurrency: "unbounded",
-        discard: true,
-      },
-    );
-  };
-
   const stop: FellowshipTrackerServiceShape["stop"] = E.fn(
     "fellowship.tracker.stop",
   )(function* () {
@@ -224,20 +158,11 @@ const make = E.gen(function* () {
         yield* Fiber.interrupt(activeTracker.value.fiber);
 
         /*
-         * Persistence will eventually slot in here as well.
-         *
-         * If the persisted dungeon run is still active when tracking is
-         * manually stopped, the persistence abstraction should mark that run
-         * as interrupted.
-         *
-         * I would avoid putting a DungeonRunId Ref back into ActiveTracker.
-         * Whatever abstraction we introduce for persistence should own its
-         * lazily-created dungeon run identity.
-         *
-         * Example:
+         * Persistence will eventually handle interrupting an active persisted
+         * dungeon run here.
          *
          * if (activeTracker.value.source._tag === "Persisted") {
-         *   yield* interruptPersistedDungeonRun(...)
+         *   yield* interruptPersistedDungeonRun(...);
          * }
          */
 
@@ -270,13 +195,7 @@ const make = E.gen(function* () {
         }
 
         /*
-         * Persistence setup will eventually happen once per tracker here.
-         *
-         * I expect this to create some persistence-scoped state that can lazily
-         * create a dungeon_run when the first observation needs to be
-         * persisted.
-         *
-         * For example:
+         * Persistence-specific state can eventually be initialized here.
          *
          * const dungeonRunPersistence =
          *   source._tag === "Persisted"
@@ -301,54 +220,8 @@ const make = E.gen(function* () {
               return E.void;
             }
 
-            const liveSplitEvents = A.map(
-              result.processingEvents,
-              handleLiveSplitDungeonRunEvent,
-            );
-
             /*
-             * Each processing event is handled in order.
-             *
-             * This is important for LiveSplit. A single Fellowship event could
-             * theoretically produce multiple processing events, and commands
-             * like reset/start/split/pause should not race each other.
-             */
-            const handleProcessingEvents = E.forEach(
-              result.processingEvents,
-              (processingEvent) => {
-                return handleProcessingEvent({
-                  configuration: result.configuration,
-                  processingEvent,
-                });
-              },
-              {
-                discard: true,
-              },
-            );
-
-            const publishState = publishDungeonRunState({
-              configuration: result.configuration,
-              state: result.state,
-              webSocketBroadcaster: runWebSocketBroadcaster,
-            });
-
-            /*
-             * Persistence will slot in alongside the live handlers rather than
-             * gating them.
-             *
-             * The helper should own:
-             *
-             * - lazily creating the dungeon_run when an observation first
-             *   requires persistence
-             * - persisting result.observation when present
-             * - interpreting lifecycle processing events for persisted run
-             *   status
-             * - retaining whatever dungeon run identity is needed across
-             *   stream elements
-             *
-             * Suggested name:
-             *
-             * const persistResult =
+             * const persistResultEffect =
              *   source._tag === "Persisted"
              *     ? persistDungeonRunEventResult({
              *         configuration: result.configuration,
@@ -368,11 +241,44 @@ const make = E.gen(function* () {
              *     : E.void;
              */
 
+            const sendLiveSplitCommandsEffect = E.forEach(
+              result.processingEvents,
+              (processingEvent) => {
+                return liveSplit.handleRunEvent(processingEvent);
+              },
+              {
+                discard: true,
+              },
+            );
+
+            const logEffects = E.forEach(
+              result.processingEvents,
+              (processingEvent) => {
+                return handleLogDungeonRunEvent({
+                  processingEvent,
+                });
+              },
+              {
+                discard: true,
+              },
+            );
+
+            const publishStateEffect = publishDungeonRunState({
+              configuration: result.configuration,
+              state: result.state,
+            }).pipe(
+              E.provideService(
+                DungeonRunWebSocketBroadcaster,
+                dungeonRunWebSocketBroadcaster,
+              ),
+            );
+
             return E.all(
               [
-                handleProcessingEvents,
-                publishState,
-                // persistResult,
+                logEffects,
+                sendLiveSplitCommandsEffect,
+                publishStateEffect,
+                // persistResultEffect,
               ],
               {
                 concurrency: "unbounded",
