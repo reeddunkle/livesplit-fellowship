@@ -15,6 +15,7 @@ import { makeApiServerTestLayer } from "@/tests/common/layers/api-server-test-la
 import { AbilityApiServiceMock } from "@/tests/common/mocks/ability-api-service-mock.ts";
 import { ConfigurationApiServiceMock } from "@/tests/common/mocks/configuration-api-service-mock.ts";
 import { DungeonApiServiceMock } from "@/tests/common/mocks/dungeon-api-service-mock.ts";
+import { DungeonRunApiServiceMock } from "@/tests/common/mocks/dungeon-run-api-service-mock.ts";
 import { makeEncounterApiServiceMock } from "@/tests/common/mocks/encounter-api-service-mock.ts";
 import { FellowshipTrackerMock } from "@/tests/common/mocks/fellowship-tracker-service-mock.ts";
 import { LiveSplitApiServiceMock } from "@/tests/common/mocks/live-split-api-service-mock.ts";
@@ -43,6 +44,7 @@ function makeEncounterApiServerTestLayer(
     AbilityApiServiceMock,
     ConfigurationApiServiceMock,
     DungeonApiServiceMock,
+    DungeonRunApiServiceMock,
     encounterApiServiceLayer,
     FellowshipTrackerMock,
     LiveSplitApiServiceMock,

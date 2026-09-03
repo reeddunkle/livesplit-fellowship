@@ -6,6 +6,7 @@ import { type FellowshipTracker } from "@/application/tracking/fellowship-tracke
 import { type AbilityApiService } from "@/services/api/ability/ability-api-service.ts";
 import { type ConfigurationApiService } from "@/services/api/configuration/configuration-api-service.ts";
 import { type DungeonApiService } from "@/services/api/dungeon/dungeon-api-service.ts";
+import { type DungeonRunApiService } from "@/services/api/dungeon-run/dungeon-run-api-service.ts";
 import { type EncounterApiService } from "@/services/api/encounter/encounter-api-service.ts";
 import { type LiveSplitApiService } from "@/services/api/live-split/live-split-api-service.ts";
 import { type UnitApiService } from "@/services/api/unit/unit-api-service.ts";
@@ -17,6 +18,7 @@ import {
 import { AbilityApiServiceMock } from "@/tests/common/mocks/ability-api-service-mock.ts";
 import { ConfigurationApiServiceMock } from "@/tests/common/mocks/configuration-api-service-mock.ts";
 import { DungeonApiServiceMock } from "@/tests/common/mocks/dungeon-api-service-mock.ts";
+import { DungeonRunApiServiceMock } from "@/tests/common/mocks/dungeon-run-api-service-mock.ts";
 import { EncounterApiServiceMock } from "@/tests/common/mocks/encounter-api-service-mock.ts";
 import { FellowshipTrackerMock } from "@/tests/common/mocks/fellowship-tracker-service-mock.ts";
 import { LiveSplitApiServiceMock } from "@/tests/common/mocks/live-split-api-service-mock.ts";
@@ -26,6 +28,7 @@ export type ApiServices =
   | AbilityApiService
   | ConfigurationApiService
   | DungeonApiService
+  | DungeonRunApiService
   | EncounterApiService
   | FellowshipTracker
   | LiveSplitApiService
@@ -39,6 +42,7 @@ export const ApiServicesTest: Layer.Layer<ApiServices> = Layer.mergeAll(
   FellowshipTrackerMock,
   LiveSplitApiServiceMock,
   UnitApiServiceMock,
+  DungeonRunApiServiceMock,
 );
 
 export function makeApiServerTestLayer(

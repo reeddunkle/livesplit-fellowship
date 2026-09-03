@@ -17,7 +17,7 @@ import { API_CONNECTION_STATE } from "@/electron/renderer/api/common.ts";
 import {
   type DungeonRunEventStreamEvent,
   makeDungeonRunEventStreamForUrl,
-} from "@/electron/renderer/api/dungeon-run-event-stream.ts";
+} from "@/electron/renderer/api/dungeon-run/dungeon-run-event-stream.ts";
 import { DUNGEON_RUN_EVENT_MESSAGE_DECODE_ERROR } from "@/errors/dungeon-run-event-stream-error.ts";
 import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import { ApiServerTest } from "@/tests/common/layers/api-server-test-layer.ts";
