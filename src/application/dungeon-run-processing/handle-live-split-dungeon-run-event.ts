@@ -1,35 +1,72 @@
 import * as E from "effect/Effect";
 import * as Match from "effect/Match";
+import * as Option from "effect/Option";
 
 import {
   DUNGEON_RUN_PROCESSING_EVENT,
   type DungeonRunProcessingEvent,
 } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event.ts";
-import { LiveSplitClientService } from "@/services/live-split/core/live-split-client-service.ts";
+import { LiveSplitConnectionManager } from "@/services/live-split/core/live-split-connection-manager-service.ts";
+
+type HandleLiveSplitDungeonRunEventOptions = {
+  readonly processingEvent: DungeonRunProcessingEvent;
+};
 
 export const handleLiveSplitDungeonRunEvent = E.fn(
-  "handleLiveSplitDungeonRunEvent",
-)(function* (processingEvent: DungeonRunProcessingEvent) {
-  const liveSplitClient = yield* LiveSplitClientService;
+  "live-split.handle-dungeon-run-event",
+)(function* ({ processingEvent }: HandleLiveSplitDungeonRunEventOptions) {
+  const connectionManager = yield* LiveSplitConnectionManager;
 
-  return Match.value(processingEvent).pipe(
-    Match.when({ type: DUNGEON_RUN_PROCESSING_EVENT.RUN_STARTED }, () => {
-      return E.gen(function* () {
-        yield* liveSplitClient.reset();
-        yield* liveSplitClient.startTimer();
-      });
-    }),
-    Match.when({ type: DUNGEON_RUN_PROCESSING_EVENT.RUN_COMPLETED }, () => {
-      return E.void;
-    }),
-    Match.when({ type: DUNGEON_RUN_PROCESSING_EVENT.RUN_EXITED }, () => {
-      return liveSplitClient.pause();
-    }),
+  const client = yield* connectionManager.client;
+
+  if (Option.isNone(client)) {
+    return;
+  }
+
+  yield* Match.value(processingEvent).pipe(
     Match.when(
-      { type: DUNGEON_RUN_PROCESSING_EVENT.MILESTONE_COMPLETED },
+      {
+        type: DUNGEON_RUN_PROCESSING_EVENT.RUN_STARTED,
+      },
       () => {
-        return liveSplitClient.split();
+        return E.gen(function* () {
+          yield* client.value.reset();
+          yield* client.value.startTimer();
+        });
       },
     ),
+    Match.when(
+      {
+        type: DUNGEON_RUN_PROCESSING_EVENT.REQUIREMENT_SATISFIED,
+      },
+      () => {
+        return E.void;
+      },
+    ),
+    Match.when(
+      {
+        type: DUNGEON_RUN_PROCESSING_EVENT.MILESTONE_COMPLETED,
+      },
+      () => {
+        return client.value.split();
+      },
+    ),
+    Match.when(
+      {
+        type: DUNGEON_RUN_PROCESSING_EVENT.RUN_COMPLETED,
+      },
+      () => {
+        return client.value.pause();
+      },
+    ),
+    Match.when(
+      {
+        type: DUNGEON_RUN_PROCESSING_EVENT.RUN_EXITED,
+      },
+      () => {
+        return client.value.pause();
+      },
+    ),
+    Match.exhaustive,
   );
 });

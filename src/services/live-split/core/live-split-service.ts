@@ -1,26 +1,22 @@
 import * as Context from "effect/Context";
 import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
-import * as Option from "effect/Option";
 import type * as Stream from "effect/Stream";
 
 import { handleLiveSplitDungeonRunEvent } from "@/application/dungeon-run-processing/handle-live-split-dungeon-run-event.ts";
 import { type LiveSplitConnectionError } from "@/errors/live-split-client-error.ts";
+import { type DungeonRunProcessingEvent } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event.ts";
 import {
   LiveSplitConnectionManager,
   type LiveSplitConnectionStatus,
 } from "@/services/live-split/core/live-split-connection-manager-service.ts";
-
-type LiveSplitRunEvent = Parameters<
-  typeof handleLiveSplitDungeonRunEvent
->[0]["event"];
 
 export interface LiveSplitService {
   readonly connect: () => E.Effect<void, LiveSplitConnectionError>;
 
   readonly disconnect: () => E.Effect<void>;
 
-  readonly handleRunEvent: (event: LiveSplitRunEvent) => E.Effect<void>;
+  readonly handleRunEvent: (event: DungeonRunProcessingEvent) => E.Effect<void>;
 
   readonly status: E.Effect<LiveSplitConnectionStatus>;
 
@@ -34,29 +30,23 @@ export class LiveSplit extends Context.Service<LiveSplit, LiveSplitService>()(
 const make = E.gen(function* () {
   const connectionManager = yield* LiveSplitConnectionManager;
 
-  const handleRunEvent: LiveSplitService["handleRunEvent"] = (event) => {
-    return E.gen(function* () {
-      const client = yield* connectionManager.client;
-
-      if (Option.isNone(client)) {
-        return;
-      }
-
-      yield* handleLiveSplitDungeonRunEvent({
-        event,
-        liveSplitClient: client.value,
-      }).pipe(
-        E.catch((error) => {
-          return E.gen(function* () {
-            yield* E.logError("LiveSplit failed to handle run event.", {
-              error,
-            });
-
-            yield* connectionManager.disconnect();
+  const handleRunEvent: LiveSplitService["handleRunEvent"] = (
+    processingEvent,
+  ) => {
+    return handleLiveSplitDungeonRunEvent({
+      processingEvent,
+    }).pipe(
+      E.provideService(LiveSplitConnectionManager, connectionManager),
+      E.catch((error) => {
+        return E.gen(function* () {
+          yield* E.logError("LiveSplit failed to handle dungeon run event.", {
+            error,
           });
-        }),
-      );
-    });
+
+          yield* connectionManager.disconnect();
+        });
+      }),
+    );
   };
 
   return {
