@@ -1,7 +1,7 @@
 import * as A from "effect/Array";
 import type * as DateTime from "effect/DateTime";
 
-import { type CompiledFellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
+import { type CompiledConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { trackDungeonRunEvent } from "@/services/fellowship/dungeon-runs/track-dungeon-run.ts";
 import {
@@ -49,7 +49,7 @@ export type DungeonRunProcessingEvent =
     };
 
 export type ProcessDungeonRunEventOptions = {
-  readonly configuration: CompiledFellowshipMilestoneConfiguration;
+  readonly configuration: CompiledConfiguration;
   readonly event: FellowshipEvent;
   readonly state: DungeonRunProcessingState;
 };
@@ -82,7 +82,7 @@ function doesDungeonRunStartMatchConfiguration({
   configuration,
   runStart,
 }: {
-  readonly configuration: CompiledFellowshipMilestoneConfiguration;
+  readonly configuration: CompiledConfiguration;
   readonly runStart: DungeonStartEvent;
 }): boolean {
   return doesDungeonRunMatchConfiguration({

@@ -8,7 +8,7 @@ import {
   type MilestoneProgress,
 } from "@/services/fellowship/configurations/analyze-milestone-progress.ts";
 import {
-  type CompiledFellowshipMilestoneConfiguration,
+  type CompiledConfiguration,
   type RequirementReference,
 } from "@/services/fellowship/configurations/configuration-types.ts";
 import {
@@ -23,19 +23,19 @@ import {
 import { type FellowshipRunMilestone } from "@/services/fellowship/types.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
 
 export type DungeonRunObservation = {
   readonly targetId: RequirementLookup["targetId"];
   readonly timestamp: DateTime.Utc;
-  readonly type: MilestoneRequirementEventType;
+  readonly type: RequirementEventType;
 };
 
 export type SatisfiedRequirement = RequirementReference;
 
 export type ProcessRequirementEventOptions = {
-  readonly configuration: CompiledFellowshipMilestoneConfiguration;
+  readonly configuration: CompiledConfiguration;
   readonly event: FellowshipEvent;
   readonly runStart: DungeonStartEvent;
   readonly state: RequirementProcessorState;
@@ -56,7 +56,7 @@ function getRequirementReferences({
   configuration,
   lookup,
 }: {
-  readonly configuration: CompiledFellowshipMilestoneConfiguration;
+  readonly configuration: CompiledConfiguration;
   readonly lookup: RequirementLookup;
 }): ReadonlyArray<RequirementReference> {
   return Option.flatMap(
