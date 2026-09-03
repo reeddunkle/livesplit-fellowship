@@ -3,18 +3,18 @@ import {
   initialDungeonRunTrackerState,
 } from "@/services/fellowship/dungeon-runs/track-dungeon-run.ts";
 import {
-  initialMilestoneProcessorState,
-  type MilestoneProcessorState,
-} from "@/services/fellowship/milestones/milestone-processor-state.ts";
+  initialRequirementProcessorState,
+  type RequirementProcessorState,
+} from "@/services/fellowship/requirements/requirement-processor-state.ts";
 
 export type DungeonRunProcessingState = {
-  readonly milestoneProcessor: MilestoneProcessorState;
+  readonly requirementProcessor: RequirementProcessorState;
   readonly runTracker: DungeonRunTrackerState;
 };
 
 export function createInitialDungeonRunState(): DungeonRunProcessingState {
   return {
-    milestoneProcessor: initialMilestoneProcessorState,
+    requirementProcessor: initialRequirementProcessorState,
     runTracker: initialDungeonRunTrackerState,
   };
 }

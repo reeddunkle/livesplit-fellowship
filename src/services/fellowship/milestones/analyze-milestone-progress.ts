@@ -5,19 +5,19 @@ import * as Option from "effect/Option";
 import {
   type CompiledFellowshipMilestoneConfiguration,
   type CompiledMilestoneDefinition,
-  type CompiledMilestoneRequirement,
+  type CompiledRequirement,
 } from "@/services/fellowship/milestones/configuration-types.ts";
 import {
-  type MilestoneProcessorState,
   type RequirementObservation,
   type RequirementObservationHistory,
-} from "@/services/fellowship/milestones/milestone-processor-state.ts";
+  type RequirementProcessorState,
+} from "@/services/fellowship/requirements/requirement-processor-state.ts";
 
 export type RequirementProgress = {
   readonly completedAt: DateTime.Utc | undefined;
   readonly isComplete: boolean;
   readonly observations: ReadonlyArray<RequirementObservation>;
-  readonly requirement: CompiledMilestoneRequirement;
+  readonly requirement: CompiledRequirement;
 };
 
 export type MilestoneProgress = {
@@ -35,8 +35,8 @@ function getRequirementObservationHistory({
   requirement,
   state,
 }: {
-  readonly requirement: CompiledMilestoneRequirement;
-  readonly state: MilestoneProcessorState;
+  readonly requirement: CompiledRequirement;
+  readonly state: RequirementProcessorState;
 }): RequirementObservationHistory | undefined {
   return Option.flatMap(
     HashMap.get(state.requirementObservations, requirement.type),
@@ -50,8 +50,8 @@ function analyzeRequirementProgress({
   requirement,
   state,
 }: {
-  readonly requirement: CompiledMilestoneRequirement;
-  readonly state: MilestoneProcessorState;
+  readonly requirement: CompiledRequirement;
+  readonly state: RequirementProcessorState;
 }): RequirementProgress {
   const observationHistory = getRequirementObservationHistory({
     requirement,
@@ -79,7 +79,9 @@ function getMilestoneCompletedAt(
 ): DateTime.Utc | undefined {
   if (
     requirements.length === 0 ||
-    requirements.some((requirement) => !requirement.isComplete)
+    requirements.some((requirement) => {
+      return !requirement.isComplete;
+    })
   ) {
     return undefined;
   }
@@ -110,7 +112,7 @@ function analyzeMilestoneDefinition({
   state,
 }: {
   readonly definition: CompiledMilestoneDefinition;
-  readonly state: MilestoneProcessorState;
+  readonly state: RequirementProcessorState;
 }): MilestoneProgress {
   const requirements = definition.requirements.map((requirement) => {
     return analyzeRequirementProgress({
@@ -134,7 +136,7 @@ export function analyzeMilestoneProgress({
   state,
 }: {
   readonly configuration: CompiledFellowshipMilestoneConfiguration;
-  readonly state: MilestoneProcessorState;
+  readonly state: RequirementProcessorState;
 }): RunAnalysis {
   const milestones = configuration.milestones.flatMap((milestone) => {
     const definition = Option.getOrUndefined(
