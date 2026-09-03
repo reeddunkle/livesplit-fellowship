@@ -4,19 +4,20 @@ import * as HashMap from "effect/HashMap";
 import { describe, expect, test } from "vitest";
 
 import { publishDungeonRunState } from "@/api/websocket/dungeon-run/publish-dungeon-run-state.ts";
+import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
 import { compileConfiguration } from "@/services/fellowship/configurations/compile-configuration.ts";
-import {
-  initialMilestoneProcessorState,
-  type MilestoneProcessorState,
-  type RequirementObservationsByTargetId,
-} from "@/services/fellowship/configurations/milestone-processor-state.ts";
 import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import {
   type DungeonRunTrackerState,
   initialDungeonRunTrackerState,
 } from "@/services/fellowship/dungeon-runs/track-dungeon-run.ts";
+import {
+  initialRequirementProcessorState,
+  type RequirementObservationsByTargetId,
+  type RequirementProcessorState,
+} from "@/services/fellowship/requirements/requirement-processor-state.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 import { makeWebSocketBroadcasterTestHarness } from "@/tests/common/harnesses/websocket-broadcaster-test-harness.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
@@ -65,14 +66,14 @@ function createDungeonStartEvent(
 }
 
 function createRunProcessingState({
-  milestoneProcessor = initialMilestoneProcessorState,
+  requirementProcessor = initialRequirementProcessorState,
   runTracker = initialDungeonRunTrackerState,
 }: {
-  readonly milestoneProcessor?: MilestoneProcessorState;
+  readonly requirementProcessor?: RequirementProcessorState;
   readonly runTracker?: DungeonRunTrackerState;
 } = {}): DungeonRunProcessingState {
   return {
-    milestoneProcessor,
+    requirementProcessor,
     runTracker,
   };
 }
@@ -93,8 +94,12 @@ describe("publishDungeonRunState", () => {
       yield* publishDungeonRunState({
         configuration,
         state,
-        webSocketBroadcaster: webSocketBroadcasterHarness.webSocketBroadcaster,
-      });
+      }).pipe(
+        E.provideService(
+          DungeonRunWebSocketBroadcaster,
+          webSocketBroadcasterHarness.webSocketBroadcaster,
+        ),
+      );
 
       const messages = yield* webSocketBroadcasterHarness.getParsedMessages();
 
@@ -151,7 +156,7 @@ describe("publishDungeonRunState", () => {
 
       const requirementObservations = HashMap.set(
         HashMap.empty<
-          MilestoneRequirementEventType,
+          RequirementEventType,
           RequirementObservationsByTargetId
         >(),
         "UNIT_DEATH",
@@ -159,7 +164,7 @@ describe("publishDungeonRunState", () => {
       );
 
       const state = createRunProcessingState({
-        milestoneProcessor: {
+        requirementProcessor: {
           requirementObservations,
         },
         runTracker: {
@@ -171,8 +176,12 @@ describe("publishDungeonRunState", () => {
       yield* publishDungeonRunState({
         configuration,
         state,
-        webSocketBroadcaster: webSocketBroadcasterHarness.webSocketBroadcaster,
-      });
+      }).pipe(
+        E.provideService(
+          DungeonRunWebSocketBroadcaster,
+          webSocketBroadcasterHarness.webSocketBroadcaster,
+        ),
+      );
 
       const messages = yield* webSocketBroadcasterHarness.getParsedMessages();
 
@@ -220,8 +229,12 @@ describe("publishDungeonRunState", () => {
       yield* publishDungeonRunState({
         configuration,
         state: createRunProcessingState(),
-        webSocketBroadcaster: webSocketBroadcasterHarness.webSocketBroadcaster,
-      });
+      }).pipe(
+        E.provideService(
+          DungeonRunWebSocketBroadcaster,
+          webSocketBroadcasterHarness.webSocketBroadcaster,
+        ),
+      );
 
       const messages = yield* webSocketBroadcasterHarness.getParsedMessages();
 
