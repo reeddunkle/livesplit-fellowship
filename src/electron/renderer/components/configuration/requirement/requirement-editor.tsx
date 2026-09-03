@@ -12,7 +12,7 @@ import {
   NativeSelectOption,
 } from "@/electron/renderer/components/ui/native-select.tsx";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 
 import { useConfigurationEditor } from "../configuration-editor-provider.tsx";
 import { type ConfigurationFormApi } from "../configuration-form.ts";
@@ -21,7 +21,7 @@ import { RequirementTargetField } from "./requirement-target-field.tsx";
 
 type RequirementEditorProps = {
   readonly autoFocus?: boolean;
-  readonly eventTypes: ReadonlyArray<MilestoneRequirementEventType>;
+  readonly eventTypes: ReadonlyArray<RequirementEventType>;
   readonly form: ConfigurationFormApi;
   readonly milestoneIndex: number;
   readonly onRemove: () => void;
@@ -114,7 +114,7 @@ export function RequirementEditor({
                     onBlur={field.handleBlur}
                     onChange={(event) => {
                       const eventType = event.target
-                        .value as MilestoneRequirementEventType;
+                        .value as RequirementEventType;
 
                       const requirementValues =
                         getRequirementValuesForEventType({

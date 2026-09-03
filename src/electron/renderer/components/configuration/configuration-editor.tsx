@@ -25,7 +25,7 @@ import {
   useSelectedConfiguration,
   useSelectedConfigurationId,
 } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 import { ConfigurationEditorProvider } from "./configuration-editor-provider.tsx";
@@ -48,7 +48,7 @@ const CONFIGURATION_FORM_DOM_ID = "configuration-form";
 type ConfigurationEditorProps = {
   readonly defaultValue: ConfigurationEditorValue;
   readonly dungeonOptions: ReadonlyArray<DungeonOption>;
-  readonly eventTypes: ReadonlyArray<MilestoneRequirementEventType>;
+  readonly eventTypes: ReadonlyArray<RequirementEventType>;
   readonly getSaveState: (
     value: DecodedConfigurationEditorValue,
   ) => ConfigurationSaveState;

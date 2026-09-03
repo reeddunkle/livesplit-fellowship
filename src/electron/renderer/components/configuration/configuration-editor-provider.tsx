@@ -11,7 +11,7 @@ import {
 } from "react";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 
 import { type ConfigurationFormApi } from "./configuration-form.ts";
 import { type ConfigurationEditorValue } from "./configuration-form-schema.ts";
@@ -31,7 +31,7 @@ export type FocusedRequirement = {
 };
 
 export type FocusedRequirementMetadata = {
-  readonly eventType: MilestoneRequirementEventType;
+  readonly eventType: RequirementEventType;
   readonly targetId: string;
 };
 
@@ -64,7 +64,7 @@ type GetUnitDeathSuggestionOptions = {
 };
 
 type GetRequirementValuesForEventTypeOptions = {
-  readonly eventType: MilestoneRequirementEventType;
+  readonly eventType: RequirementEventType;
   readonly location: RequirementLocation;
 };
 

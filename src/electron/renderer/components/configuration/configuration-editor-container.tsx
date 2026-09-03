@@ -14,7 +14,7 @@ import {
 } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { useFellowshipDataStore } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 
 const eventTypes = [
   FELLOWSHIP_EVENT.ABILITY_ACTIVATED,
@@ -23,7 +23,7 @@ const eventTypes = [
   FELLOWSHIP_EVENT.ENCOUNTER_START,
   FELLOWSHIP_EVENT.ENCOUNTER_END,
   FELLOWSHIP_EVENT.UNIT_DEATH,
-] satisfies ReadonlyArray<MilestoneRequirementEventType>;
+] satisfies ReadonlyArray<RequirementEventType>;
 
 export function ConfigurationEditorContainer() {
   const configurations = useConfigurations();

@@ -5,7 +5,7 @@ import {
   DungeonIdSchema,
   DungeonLevelSchema,
 } from "@/services/fellowship/validation/fellowship-common.ts";
-import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { RequirementEventTypeSchema } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 import {
   IntegerFromStringSchema,
   NonEmptyStringSchema,
@@ -26,7 +26,7 @@ const RequirementEditorSchema = Schema.Struct({
   requiredCount: PositiveIntegerFromStringSchema,
   startOccurrence: PositiveIntegerFromStringSchema,
   targetId: NonEmptyStringSchema,
-  type: MilestoneRequirementEventTypeSchema,
+  type: RequirementEventTypeSchema,
 });
 
 const MilestoneEditorSchema = Schema.Struct({

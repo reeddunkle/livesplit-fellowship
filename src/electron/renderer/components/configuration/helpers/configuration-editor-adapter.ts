@@ -6,7 +6,7 @@ import {
   type SaveConfigurationApiRequest,
 } from "@/services/api/configuration/configuration-api-schema.ts";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
-import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+import { type FellowshipRequirement } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
 
 import {
   type ConfigurationEditorValue,
@@ -44,7 +44,7 @@ export function createConfigurationEditorValue(
 
 function createMilestoneRequirement(
   requirement: DecodedConfigurationEditorValue["milestones"][number]["requirements"][number],
-): FellowshipMilestoneRequirement {
+): FellowshipRequirement {
   const occurrence = {
     requiredCount: requirement.requiredCount,
     startOccurrence: requirement.startOccurrence,

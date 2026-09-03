@@ -10,7 +10,7 @@ import {
 import { Input } from "@/electron/renderer/components/ui/input.tsx";
 import { useFellowshipDataStore } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 
 import { useConfigurationEditor } from "../configuration-editor-provider.tsx";
 import { type ConfigurationFormApi } from "../configuration-form.ts";
@@ -18,7 +18,7 @@ import { type RequirementLocation } from "../helpers/configuration-editor-metada
 import { CUSTOM_TARGET, TargetSelect } from "./target-select.tsx";
 
 type RequirementTargetFieldProps = {
-  readonly eventType: MilestoneRequirementEventType;
+  readonly eventType: RequirementEventType;
   readonly form: ConfigurationFormApi;
   readonly location: RequirementLocation;
   readonly requirementPath: `milestones[${number}].requirements[${number}]`;

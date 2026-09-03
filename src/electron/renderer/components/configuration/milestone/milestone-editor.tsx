@@ -16,7 +16,7 @@ import {
 } from "@/electron/renderer/components/ui/field.tsx";
 import { Input } from "@/electron/renderer/components/ui/input.tsx";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 
 import { useConfigurationEditor } from "../configuration-editor-provider.tsx";
 import {
@@ -26,7 +26,7 @@ import {
 import { RequirementEditor } from "../requirement/requirement-editor.tsx";
 
 type MilestoneEditorProps = {
-  readonly eventTypes: ReadonlyArray<MilestoneRequirementEventType>;
+  readonly eventTypes: ReadonlyArray<RequirementEventType>;
   readonly form: ConfigurationFormApi;
   readonly milestoneIndex: number;
   readonly onRemove: () => void;
