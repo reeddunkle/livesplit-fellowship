@@ -15,61 +15,60 @@ const RequirementOccurrenceFields = {
   startOccurrence: PositiveIntegerSchema,
 };
 
-const AbilityActivatedMilestoneRequirementSchema = Schema.Struct({
+const AbilityActivatedRequirementSchema = Schema.Struct({
   abilityId: NonEmptyStringSchema,
   ...RequirementOccurrenceFields,
   type: Schema.Literal(FELLOWSHIP_EVENT.ABILITY_ACTIVATED),
 });
 
-const DungeonStartMilestoneRequirementSchema = Schema.Struct({
+const DungeonStartRequirementSchema = Schema.Struct({
   ...RequirementOccurrenceFields,
   type: Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_START),
 });
 
-const DungeonEndMilestoneRequirementSchema = Schema.Struct({
+const DungeonEndRequirementSchema = Schema.Struct({
   ...RequirementOccurrenceFields,
   type: Schema.Literal(FELLOWSHIP_EVENT.DUNGEON_END),
 });
 
-const EncounterStartMilestoneRequirementSchema = Schema.Struct({
+const EncounterStartRequirementSchema = Schema.Struct({
   encounterId: NonEmptyStringSchema,
   ...RequirementOccurrenceFields,
   type: Schema.Literal(FELLOWSHIP_EVENT.ENCOUNTER_START),
 });
 
-const EncounterEndMilestoneRequirementSchema = Schema.Struct({
+const EncounterEndRequirementSchema = Schema.Struct({
   encounterId: NonEmptyStringSchema,
   ...RequirementOccurrenceFields,
   type: Schema.Literal(FELLOWSHIP_EVENT.ENCOUNTER_END),
 });
 
-const UnitDeathMilestoneRequirementSchema = Schema.Struct({
+const UnitDeathRequirementSchema = Schema.Struct({
   ...RequirementOccurrenceFields,
   type: Schema.Literal(FELLOWSHIP_EVENT.UNIT_DEATH),
   unitTypeId: NonEmptyStringSchema,
 });
 
-const FellowshipMilestoneRequirementSchema = Schema.Union([
-  AbilityActivatedMilestoneRequirementSchema,
-  DungeonEndMilestoneRequirementSchema,
-  DungeonStartMilestoneRequirementSchema,
-  EncounterEndMilestoneRequirementSchema,
-  EncounterStartMilestoneRequirementSchema,
-  UnitDeathMilestoneRequirementSchema,
+const FellowshipRequirementSchema = Schema.Union([
+  AbilityActivatedRequirementSchema,
+  DungeonEndRequirementSchema,
+  DungeonStartRequirementSchema,
+  EncounterEndRequirementSchema,
+  EncounterStartRequirementSchema,
+  UnitDeathRequirementSchema,
 ]);
 
-export type FellowshipMilestoneRequirement =
-  typeof FellowshipMilestoneRequirementSchema.Type;
+export type FellowshipRequirement = typeof FellowshipRequirementSchema.Type;
 
 const FellowshipMilestoneDefinitionSchema = Schema.Struct({
   label: NonEmptyStringSchema,
-  requirements: Schema.NonEmptyArray(FellowshipMilestoneRequirementSchema),
+  requirements: Schema.NonEmptyArray(FellowshipRequirementSchema),
 });
 
 export type FellowshipMilestoneDefinition =
   typeof FellowshipMilestoneDefinitionSchema.Type;
 
-export const FellowshipMilestoneConfigurationFileSchema = Schema.Struct({
+export const FellowshipConfigurationFileSchema = Schema.Struct({
   dungeonId: DungeonIdSchema,
   dungeonLevel: DungeonLevelSchema,
   milestones: Schema.Array(FellowshipMilestoneDefinitionSchema),

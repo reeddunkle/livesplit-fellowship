@@ -1,5 +1,5 @@
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
-import { type FellowshipMilestoneDefinition } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+import { type FellowshipMilestoneDefinition } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
 
 import { createXMLElement, renderXMLDocument, type XMLElement } from "./xml.ts";
 

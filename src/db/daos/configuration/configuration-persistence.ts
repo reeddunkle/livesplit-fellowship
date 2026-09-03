@@ -14,7 +14,7 @@ import { RequirementModel } from "@/db/models/requirement-model.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import { getMilestoneRequirementLookup } from "@/services/fellowship/configurations/milestone-requirement-lookup.ts";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
-import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 import { isNonEmptyArray } from "@/util/is-non-empty-array.ts";
 import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";

@@ -2,7 +2,7 @@ import type * as HashMap from "effect/HashMap";
 
 import { type RequirementTargetId } from "@/services/fellowship/requirements/requirement-lookup.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
-import { type FellowshipMilestoneDefinition } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+import { type FellowshipMilestoneDefinition } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
 import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 
 export type FellowshipMilestoneConfiguration = {

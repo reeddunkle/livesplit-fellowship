@@ -7,7 +7,7 @@ import {
 } from "@/services/fellowship/configurations/configuration-types.ts";
 import { getMilestoneRequirementLookup } from "@/services/fellowship/configurations/milestone-requirement-lookup.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
-import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
 
 type CanonicalMilestone = {
   readonly requirements: ReadonlyArray<ConfigurationDefinitionRequirement>;

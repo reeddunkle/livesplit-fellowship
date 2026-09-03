@@ -3,7 +3,7 @@ import * as FileSystem from "effect/FileSystem";
 import * as Schema from "effect/Schema";
 
 import { MilestoneConfigurationJsonError } from "@/errors/milestone-configuration-file-error.ts";
-import { FellowshipMilestoneConfigurationFileSchema } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+import { FellowshipConfigurationFileSchema } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
 import { parseJson } from "@/util/parse-json.ts";
 
 type LoadMilestoneConfigurationOptions = {
@@ -27,7 +27,7 @@ export const loadMilestoneConfiguration = E.fn(
   });
 
   const configuration = yield* Schema.decodeUnknownEffect(
-    FellowshipMilestoneConfigurationFileSchema,
+    FellowshipConfigurationFileSchema,
   )(json);
 
   yield* E.annotateCurrentSpan(

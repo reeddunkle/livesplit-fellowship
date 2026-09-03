@@ -3,7 +3,7 @@ import * as FileSystem from "effect/FileSystem";
 import * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 
-import { FellowshipMilestoneConfigurationFileSchema } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+import { FellowshipConfigurationFileSchema } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
 import { NonEmptyStringSchema } from "@/validation/common-schemas.ts";
 
 const GENERATED_SCHEMA_DIRECTORY = "./generated/schemas";
@@ -35,7 +35,7 @@ export const runBuildMilestoneConfigurationJsonSchemaCommand = E.fn(
   );
 
   const standardSchema = Schema.toStandardJSONSchemaV1(
-    FellowshipMilestoneConfigurationFileSchema,
+    FellowshipConfigurationFileSchema,
   );
 
   const jsonSchema = standardSchema["~standard"].jsonSchema.input({

@@ -4,7 +4,7 @@ import {
   DungeonIdSchema,
   DungeonLevelSchema,
 } from "@/services/fellowship/validation/fellowship-common.ts";
-import { FellowshipMilestoneConfigurationFileSchema } from "@/services/fellowship/validation/milestone-configuration-file-schema.ts";
+import { FellowshipConfigurationFileSchema } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
 import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
 import {
   NonEmptyStringSchema,
@@ -15,7 +15,7 @@ import { ConfigurationIdSchema } from "@/validation/configuration/configuration-
 import { ConfigurationLabelSchema } from "@/validation/configuration/configuration-label-schema.ts";
 
 export const SaveConfigurationApiRequestSchema = Schema.Struct({
-  configuration: FellowshipMilestoneConfigurationFileSchema,
+  configuration: FellowshipConfigurationFileSchema,
   label: ConfigurationLabelSchema,
 });
 
