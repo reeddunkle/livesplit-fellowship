@@ -1,6 +1,7 @@
 import * as A from "effect/Array";
 import * as E from "effect/Effect";
 import * as Match from "effect/Match";
+import * as Order from "effect/Order";
 
 import {
   createConfigurationDefinitionFingerprint,
@@ -12,10 +13,10 @@ import { MilestoneModel } from "@/db/models/milestone-model.ts";
 import { MilestoneRequirementModel } from "@/db/models/milestone-requirement-model.ts";
 import { RequirementModel } from "@/db/models/requirement-model.ts";
 import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
-import { getMilestoneRequirementLookup } from "@/services/fellowship/configurations/milestone-requirement-lookup.ts";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
-import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { getRequirementLookup } from "@/services/fellowship/requirements/requirement-lookup.ts";
+import { type FellowshipRequirement } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
+import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 import { isNonEmptyArray } from "@/util/is-non-empty-array.ts";
 import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 import { type ConfigurationLabel } from "@/validation/configuration/configuration-label-schema.ts";
@@ -33,8 +34,22 @@ type RequirementIdentity = {
   readonly requiredCount: number;
   readonly startOccurrence: number;
   readonly targetId: string;
-  readonly type: MilestoneRequirementEventType;
+  readonly type: RequirementEventType;
 };
+
+type RequirementIdentityKey = readonly [
+  type: RequirementIdentity["type"],
+  targetId: RequirementIdentity["targetId"],
+  startOccurrence: RequirementIdentity["startOccurrence"],
+  requiredCount: RequirementIdentity["requiredCount"],
+];
+
+const RequirementIdentityKeyOrder = Order.Tuple([
+  Order.String,
+  Order.String,
+  Order.Number,
+  Order.Number,
+]);
 
 export type ConfigurationPersistenceRecords = {
   readonly configuration: ConfigurationInsert;
@@ -57,19 +72,36 @@ export type CreatePersistedConfigurationOptions = {
   readonly requirements: ReadonlyArray<RequirementModel>;
 };
 
-function getRequirementIdentityKey(requirement: RequirementIdentity): string {
-  return JSON.stringify([
+function getRequirementIdentityKey(
+  requirement: RequirementIdentity,
+): RequirementIdentityKey {
+  return [
     requirement.type,
     requirement.targetId,
     requirement.startOccurrence,
     requirement.requiredCount,
-  ]);
+  ];
+}
+
+function getRequirementIdentityMapKey(
+  requirement: RequirementIdentity,
+): string {
+  return [
+    requirement.type,
+    encodeURIComponent(requirement.targetId),
+    requirement.startOccurrence,
+    requirement.requiredCount,
+  ].join("|");
 }
 
 export function getMilestoneRequirementsIdentityKey(
   requirements: ReadonlyArray<RequirementIdentity>,
 ): string {
-  return JSON.stringify(requirements.map(getRequirementIdentityKey).sort());
+  const identityKeys = A.map(requirements, getRequirementIdentityKey);
+
+  const sortedIdentityKeys = A.sort(identityKeys, RequirementIdentityKeyOrder);
+
+  return JSON.stringify(sortedIdentityKeys);
 }
 
 function createRequirementIdentity({
@@ -77,9 +109,9 @@ function createRequirementIdentity({
   requirement,
 }: {
   readonly configuration: FellowshipMilestoneConfiguration;
-  readonly requirement: FellowshipMilestoneRequirement;
+  readonly requirement: FellowshipRequirement;
 }): RequirementIdentity {
-  const lookup = getMilestoneRequirementLookup({
+  const lookup = getRequirementLookup({
     dungeonId: configuration.dungeonId,
     requirement,
   });
@@ -99,7 +131,7 @@ function createRequirementInsert({
 }: {
   readonly configuration: FellowshipMilestoneConfiguration;
   readonly configurationDefinitionId: ConfigurationDefinitionId;
-  readonly requirement: FellowshipMilestoneRequirement;
+  readonly requirement: FellowshipRequirement;
 }): RequirementInsert {
   const identity = createRequirementIdentity({
     configuration,
@@ -112,9 +144,9 @@ function createRequirementInsert({
   });
 }
 
-function createMilestoneRequirement(
+function createRequirement(
   requirement: RequirementModel,
-): FellowshipMilestoneRequirement {
+): FellowshipRequirement {
   const common = {
     requiredCount: requirement.requiredCount,
     startOccurrence: requirement.startOccurrence,
@@ -181,22 +213,26 @@ export function createConfigurationPersistenceRecords({
       label,
     });
 
-    const requirementsByIdentity = new Map<string, RequirementInsert>();
+    const allRequirements = A.flatMap(configuration.milestones, (milestone) => {
+      return milestone.requirements;
+    });
 
-    configuration.milestones.forEach((milestone) => {
-      milestone.requirements.forEach((requirement) => {
+    const requirementsByIdentity = A.reduce(
+      allRequirements,
+      new Map<string, RequirementInsert>(),
+      (accumulator, requirement) => {
         const identity = createRequirementIdentity({
           configuration,
           requirement,
         });
 
-        const identityKey = getRequirementIdentityKey(identity);
+        const identityKey = getRequirementIdentityMapKey(identity);
 
-        if (requirementsByIdentity.has(identityKey)) {
-          return;
+        if (accumulator.has(identityKey)) {
+          return accumulator;
         }
 
-        requirementsByIdentity.set(
+        accumulator.set(
           identityKey,
           createRequirementInsert({
             configuration,
@@ -204,45 +240,66 @@ export function createConfigurationPersistenceRecords({
             requirement,
           }),
         );
-      });
-    });
 
-    const requirements = Array.from(requirementsByIdentity.values());
-    const milestones: Array<MilestoneInsert> = [];
-    const milestoneRequirements: Array<MilestoneRequirementInsert> = [];
+        return accumulator;
+      },
+    );
 
-    configuration.milestones.forEach((milestone) => {
-      const milestoneRecord = MilestoneModel.insert.make({
-        configurationId: configurationRecord.id,
-        label: milestone.label,
-      });
+    const requirements = A.fromIterable(requirementsByIdentity.values());
 
-      milestones.push(milestoneRecord);
-
-      milestone.requirements.forEach((requirement) => {
-        const identity = createRequirementIdentity({
-          configuration,
-          requirement,
+    const milestonePersistenceRecords = A.map(
+      configuration.milestones,
+      (milestone) => {
+        const milestoneRecord = MilestoneModel.insert.make({
+          configurationId: configurationRecord.id,
+          label: milestone.label,
         });
 
-        const requirementRecord = requirementsByIdentity.get(
-          getRequirementIdentityKey(identity),
+        const milestoneRequirementRecords = A.map(
+          milestone.requirements,
+          (requirement) => {
+            const identity = createRequirementIdentity({
+              configuration,
+              requirement,
+            });
+
+            const requirementRecord = requirementsByIdentity.get(
+              getRequirementIdentityMapKey(identity),
+            );
+
+            if (requirementRecord === undefined) {
+              throw new Error(
+                `Could not resolve requirement for milestone "${milestone.label}".`,
+              );
+            }
+
+            return MilestoneRequirementModel.insert.make({
+              milestoneId: milestoneRecord.id,
+              requirementId: requirementRecord.id,
+            });
+          },
         );
 
-        if (requirementRecord === undefined) {
-          throw new Error(
-            `Could not resolve requirement for milestone "${milestone.label}".`,
-          );
-        }
+        return {
+          milestoneRecord,
+          milestoneRequirementRecords,
+        };
+      },
+    );
 
-        milestoneRequirements.push(
-          MilestoneRequirementModel.insert.make({
-            milestoneId: milestoneRecord.id,
-            requirementId: requirementRecord.id,
-          }),
-        );
-      });
-    });
+    const milestones = A.map(
+      milestonePersistenceRecords,
+      ({ milestoneRecord }) => {
+        return milestoneRecord;
+      },
+    );
+
+    const milestoneRequirements = A.flatMap(
+      milestonePersistenceRecords,
+      ({ milestoneRequirementRecords }) => {
+        return milestoneRequirementRecords;
+      },
+    );
 
     return {
       configuration: configurationRecord,
@@ -262,19 +319,20 @@ export function createPersistedConfiguration({
   requirements,
 }: CreatePersistedConfigurationOptions): PersistedConfiguration {
   const configurationMilestones = A.map(milestones, (milestone) => {
-    const requirementIds = milestoneRequirements
-      .filter((milestoneRequirement) => {
+    const requirementIds = A.map(
+      A.filter(milestoneRequirements, (milestoneRequirement) => {
         return milestoneRequirement.milestoneId === milestone.id;
-      })
-      .map((milestoneRequirement) => {
+      }),
+      (milestoneRequirement) => {
         return milestoneRequirement.requirementId;
-      });
+      },
+    );
 
-    const milestoneRequirementModels = requirements.filter((requirement) => {
+    const requirementModels = A.filter(requirements, (requirement) => {
       return requirementIds.includes(requirement.id);
     });
 
-    if (!isNonEmptyArray(milestoneRequirementModels)) {
+    if (!isNonEmptyArray(requirementModels)) {
       throw new Error(
         `Persisted milestone "${milestone.id}" has no requirements.`,
       );
@@ -282,10 +340,7 @@ export function createPersistedConfiguration({
 
     return {
       label: milestone.label,
-      requirements: A.map(
-        milestoneRequirementModels,
-        createMilestoneRequirement,
-      ),
+      requirements: A.map(requirementModels, createRequirement),
     };
   });
 

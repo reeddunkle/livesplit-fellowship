@@ -1,6 +1,6 @@
 import * as Model from "effect/unstable/schema/Model";
 
-import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { RequirementEventTypeSchema } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
@@ -17,6 +17,6 @@ export class RequirementModel extends Model.Class<RequirementModel>(
   requiredCount: PositiveIntegerSchema,
   startOccurrence: PositiveIntegerSchema,
   targetId: NonEmptyStringSchema,
-  type: MilestoneRequirementEventTypeSchema,
+  type: RequirementEventTypeSchema,
   updatedAt: Model.DateTimeUpdateFromNumber,
 }) {}
