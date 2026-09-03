@@ -236,6 +236,12 @@ export const createTables = E.gen(function* () {
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL,
 
+      CHECK (
+        started_at IS NULL OR
+        ended_at IS NULL OR
+        ended_at >= started_at
+      )
+
       FOREIGN KEY (configuration_definition_id)
         REFERENCES configuration_definition(id),
 

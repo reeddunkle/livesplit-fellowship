@@ -16,7 +16,7 @@ export class DungeonRunModel extends Model.Class<DungeonRunModel>(
   dungeonLevel: PositiveIntegerSchema,
   endedAt: Schema.NullOr(Schema.DateTimeUtcFromMillis),
   id: Model.UuidV7Insert(DungeonRunIdSchema),
-  startedAt: Schema.DateTimeUtcFromMillis,
+  startedAt: Schema.NullOr(Schema.DateTimeUtcFromMillis),
   status: DungeonRunStatusSchema,
   updatedAt: Model.DateTimeUpdateFromNumber,
 }) {}

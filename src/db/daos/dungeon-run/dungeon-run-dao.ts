@@ -11,11 +11,15 @@ type GetDungeonRunByIdOptions = {
   readonly id: DungeonRunId;
 };
 
-type StartDungeonRunOptions = {
+type CreateDungeonRunOptions = {
   readonly configurationDefinitionId: ConfigurationDefinitionId;
   readonly dungeonId: DungeonRunModel["dungeonId"];
   readonly dungeonLevel: DungeonRunModel["dungeonLevel"];
-  readonly startedAt: DungeonRunModel["startedAt"];
+};
+
+type StartDungeonRunOptions = {
+  readonly dungeonRunId: DungeonRunId;
+  readonly startedAt: NonNullable<DungeonRunModel["startedAt"]>;
 };
 
 type CompleteDungeonRunOptions = {
@@ -38,6 +42,10 @@ export type DungeonRunDAOShape = {
     options: CompleteDungeonRunOptions,
   ) => E.Effect<void, DungeonRunDAOError>;
 
+  readonly create: (
+    options: CreateDungeonRunOptions,
+  ) => E.Effect<DungeonRunModel, DungeonRunDAOError>;
+
   readonly exit: (
     options: ExitDungeonRunOptions,
   ) => E.Effect<void, DungeonRunDAOError>;
@@ -52,7 +60,7 @@ export type DungeonRunDAOShape = {
 
   readonly start: (
     options: StartDungeonRunOptions,
-  ) => E.Effect<DungeonRunModel, DungeonRunDAOError>;
+  ) => E.Effect<void, DungeonRunDAOError>;
 };
 
 export class DungeonRunDAO extends Context.Service<

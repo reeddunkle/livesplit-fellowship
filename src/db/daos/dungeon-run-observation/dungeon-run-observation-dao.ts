@@ -9,7 +9,6 @@ import { type DungeonRunId } from "@/validation/dungeon-run/dungeon-run-id-schem
 type ObserveDungeonRunOptions = {
   readonly dungeonRunId: DungeonRunId;
   readonly observedAt: DungeonRunObservationModel["observedAt"];
-  readonly occurrence: DungeonRunObservationModel["occurrence"];
   readonly targetId: DungeonRunObservationModel["targetId"];
   readonly type: DungeonRunObservationModel["type"];
 };
@@ -20,7 +19,7 @@ type GetDungeonRunObservationsOptions = {
 
 export type DungeonRunObservationHistory = {
   readonly elapsedMilliseconds: number;
-  readonly occurrence: DungeonRunObservationModel["occurrence"];
+  readonly occurrence: number;
   readonly targetId: DungeonRunObservationModel["targetId"];
   readonly type: DungeonRunObservationModel["type"];
 };

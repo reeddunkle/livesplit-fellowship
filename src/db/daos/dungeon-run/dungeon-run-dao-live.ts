@@ -11,6 +11,7 @@ import {
 } from "@/db/daos/dungeon-run/dungeon-run-dao.ts";
 import { DungeonRunModel } from "@/db/models/dungeon-run-model.ts";
 import { DungeonRunDAOError } from "@/errors/dungeon-run-dao-error.ts";
+import { type DungeonRunId } from "@/validation/dungeon-run/dungeon-run-id-schema.ts";
 
 function mapDungeonRunDAOError(cause: unknown): DungeonRunDAOError {
   if (cause instanceof DungeonRunDAOError) {
@@ -31,6 +32,17 @@ function decodeDungeonRunRows(
   return Schema.decodeUnknownEffect(Schema.Array(DungeonRunModel))(rows).pipe(
     E.mapError(mapDungeonRunDAOError),
   );
+}
+
+function makeRunNotFoundOrInactiveError(
+  dungeonRunId: DungeonRunId,
+): DungeonRunDAOError {
+  return new DungeonRunDAOError({
+    details: {
+      _tag: "RunNotFoundOrInactive",
+      dungeonRunId,
+    },
+  });
 }
 
 const make = E.gen(function* () {
@@ -63,11 +75,10 @@ const make = E.gen(function* () {
     }).pipe(E.mapError(mapDungeonRunDAOError));
   };
 
-  const start: DungeonRunDAOShape["start"] = ({
+  const create: DungeonRunDAOShape["create"] = ({
     configurationDefinitionId,
     dungeonId,
     dungeonLevel,
-    startedAt,
   }) => {
     return E.gen(function* () {
       const dungeonRun = DungeonRunModel.insert.make({
@@ -75,7 +86,7 @@ const make = E.gen(function* () {
         dungeonId,
         dungeonLevel,
         endedAt: null,
-        startedAt,
+        startedAt: null,
         status: "ACTIVE",
       });
 
@@ -136,15 +147,41 @@ const make = E.gen(function* () {
     }).pipe(E.mapError(mapDungeonRunDAOError));
   };
 
+  const start: DungeonRunDAOShape["start"] = ({ dungeonRunId, startedAt }) => {
+    return E.gen(function* () {
+      const encodedStartedAt = yield* Schema.encodeEffect(
+        Schema.DateTimeUtcFromMillis,
+      )(startedAt).pipe(E.mapError(mapDungeonRunDAOError));
+
+      const updatedAt = yield* DateTime.now;
+
+      const encodedUpdatedAt = yield* Schema.encodeEffect(
+        Schema.DateTimeUtcFromMillis,
+      )(updatedAt).pipe(E.mapError(mapDungeonRunDAOError));
+
+      const rows = yield* sql`
+        UPDATE dungeon_run
+        SET
+          started_at = ${encodedStartedAt},
+          updated_at = ${encodedUpdatedAt}
+        WHERE id = ${dungeonRunId}
+          AND status = 'ACTIVE'
+        RETURNING id
+      `;
+
+      if (rows[0] === undefined) {
+        return yield* E.fail(makeRunNotFoundOrInactiveError(dungeonRunId));
+      }
+    }).pipe(E.mapError(mapDungeonRunDAOError));
+  };
+
   const finishRun = ({
     dungeonRunId,
     endedAt,
     status,
   }: {
-    readonly dungeonRunId: Parameters<
-      DungeonRunDAOShape["complete"]
-    >[0]["dungeonRunId"];
-    readonly endedAt: Parameters<DungeonRunDAOShape["complete"]>[0]["endedAt"];
+    readonly dungeonRunId: DungeonRunId;
+    readonly endedAt: NonNullable<DungeonRunModel["endedAt"]>;
     readonly status: "COMPLETED" | "EXITED" | "INTERRUPTED";
   }): E.Effect<void, DungeonRunDAOError> => {
     return E.gen(function* () {
@@ -170,14 +207,7 @@ const make = E.gen(function* () {
       `;
 
       if (rows[0] === undefined) {
-        return yield* E.fail(
-          new DungeonRunDAOError({
-            details: {
-              _tag: "RunNotFoundOrInactive",
-              dungeonRunId,
-            },
-          }),
-        );
+        return yield* E.fail(makeRunNotFoundOrInactiveError(dungeonRunId));
       }
     }).pipe(E.mapError(mapDungeonRunDAOError));
   };
@@ -214,6 +244,7 @@ const make = E.gen(function* () {
 
   return {
     complete,
+    create,
     exit,
     getById,
     interrupt,

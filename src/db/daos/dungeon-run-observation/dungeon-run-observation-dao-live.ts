@@ -10,7 +10,7 @@ import {
 } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao.ts";
 import { DungeonRunObservationModel } from "@/db/models/dungeon-run-observation-model.ts";
 import { DungeonRunObservationDAOError } from "@/errors/dungeon-run-observation-dao-error.ts";
-import { MilestoneRequirementEventTypeSchema } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { RequirementEventTypeSchema } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
@@ -20,7 +20,7 @@ const DungeonRunObservationHistorySchema = Schema.Struct({
   elapsedMilliseconds: Schema.Number,
   occurrence: PositiveIntegerSchema,
   targetId: NonEmptyStringSchema,
-  type: MilestoneRequirementEventTypeSchema,
+  type: RequirementEventTypeSchema,
 });
 
 function mapDungeonRunObservationDAOError(
@@ -68,15 +68,15 @@ const make = E.gen(function* () {
       return E.gen(function* () {
         const rows = yield* sql`
           SELECT
+            id,
             dungeon_run_id,
             type,
             target_id,
-            occurrence,
             observed_at,
             created_at
           FROM dungeon_run_observation
           WHERE dungeon_run_id = ${dungeonRunId}
-          ORDER BY observed_at, type, target_id, occurrence
+          ORDER BY observed_at, id
         `;
 
         return yield* decodeDungeonRunObservationRows(rows);
@@ -87,21 +87,40 @@ const make = E.gen(function* () {
     ({ configurationDefinitionId }) => {
       return E.gen(function* () {
         const rows = yield* sql`
+          WITH observations AS (
+            SELECT
+              dungeon_run_observation.id,
+              dungeon_run_observation.dungeon_run_id,
+              dungeon_run_observation.type,
+              dungeon_run_observation.target_id,
+              dungeon_run_observation.observed_at,
+              dungeon_run.started_at,
+              ROW_NUMBER() OVER (
+                PARTITION BY
+                  dungeon_run_observation.dungeon_run_id,
+                  dungeon_run_observation.type,
+                  dungeon_run_observation.target_id
+                ORDER BY
+                  dungeon_run_observation.observed_at,
+                  dungeon_run_observation.id
+              ) AS occurrence
+            FROM dungeon_run_observation
+            INNER JOIN dungeon_run
+              ON dungeon_run.id = dungeon_run_observation.dungeon_run_id
+            WHERE dungeon_run.configuration_definition_id =
+              ${configurationDefinitionId}
+              AND dungeon_run.started_at IS NOT NULL
+          )
           SELECT
-            dungeon_run_observation.type,
-            dungeon_run_observation.target_id,
-            dungeon_run_observation.occurrence,
-            dungeon_run_observation.observed_at - dungeon_run.started_at
-              AS elapsed_milliseconds
-          FROM dungeon_run_observation
-          INNER JOIN dungeon_run
-            ON dungeon_run.id = dungeon_run_observation.dungeon_run_id
-          WHERE dungeon_run.configuration_definition_id =
-            ${configurationDefinitionId}
+            type,
+            target_id,
+            occurrence,
+            observed_at - started_at AS elapsed_milliseconds
+          FROM observations
           ORDER BY
-            dungeon_run_observation.type,
-            dungeon_run_observation.target_id,
-            dungeon_run_observation.occurrence,
+            type,
+            target_id,
+            occurrence,
             elapsed_milliseconds
         `;
 
@@ -112,7 +131,6 @@ const make = E.gen(function* () {
   const observe: DungeonRunObservationDAOShape["observe"] = ({
     dungeonRunId,
     observedAt,
-    occurrence,
     targetId,
     type,
   }) => {
@@ -120,7 +138,6 @@ const make = E.gen(function* () {
       const observation = DungeonRunObservationModel.insert.make({
         dungeonRunId,
         observedAt,
-        occurrence,
         targetId,
         type,
       });
@@ -131,64 +148,35 @@ const make = E.gen(function* () {
 
       const rows = yield* sql`
         INSERT INTO dungeon_run_observation (
+          id,
           dungeon_run_id,
           type,
           target_id,
-          occurrence,
           observed_at,
           created_at
         )
         SELECT
+          ${insert.id},
           ${insert.dungeonRunId},
           ${insert.type},
           ${insert.targetId},
-          ${insert.occurrence},
           ${insert.observedAt},
           ${insert.createdAt}
         FROM dungeon_run
         WHERE id = ${insert.dungeonRunId}
           AND status = 'ACTIVE'
-        ON CONFLICT (
-          dungeon_run_id,
-          type,
-          target_id,
-          occurrence
-        ) DO NOTHING
-        RETURNING dungeon_run_id
+        RETURNING id
       `;
 
       if (rows[0] !== undefined) {
         return;
       }
 
-      const runRows = yield* sql`
-        SELECT status
-        FROM dungeon_run
-        WHERE id = ${dungeonRunId}
-        LIMIT 1
-      `;
-
-      const run = runRows[0];
-
-      if (run === undefined || run.status !== "ACTIVE") {
-        return yield* E.fail(
-          new DungeonRunObservationDAOError({
-            details: {
-              _tag: "RunNotFoundOrInactive",
-              dungeonRunId,
-            },
-          }),
-        );
-      }
-
       return yield* E.fail(
         new DungeonRunObservationDAOError({
           details: {
-            _tag: "DuplicateObservation",
+            _tag: "RunNotFoundOrInactive",
             dungeonRunId,
-            occurrence,
-            targetId,
-            type,
           },
         }),
       );
