@@ -8,7 +8,10 @@ import {
   LiveSplitSendCommand,
 } from "@/services/live-split/core/live-split-command.ts";
 import { makeAppTestHarness } from "@/tests/common/harnesses/app-test-harness.ts";
-import { dungeonStartCommands } from "@/tests/common/live-split-test-commands.ts";
+import {
+  dungeonEndCommands,
+  dungeonStartCommands,
+} from "@/tests/common/live-split-test-commands.ts";
 import { runTest } from "@/tests/common/run-test.ts";
 
 import { configuration } from "./configuration.ts";
@@ -41,6 +44,7 @@ describe("FellowshipTracker LiveSplit", () => {
         const expectedCommands = [
           ...dungeonStartCommands,
           ...configuredMilestoneCommands,
+          ...dungeonEndCommands,
         ];
 
         expect(commands).toEqual(expectedCommands);

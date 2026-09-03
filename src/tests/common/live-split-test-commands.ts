@@ -7,3 +7,5 @@ export const dungeonStartCommands = [
   appendEOL(LiveSplitSendCommand.reset),
   appendEOL(LiveSplitSendCommand.startTimer),
 ];
+
+export const dungeonEndCommands = [appendEOL(LiveSplitSendCommand.pause)];
