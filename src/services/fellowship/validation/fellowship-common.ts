@@ -1,4 +1,3 @@
-// import { SchemaGetter } from "effect";
 import * as Schema from "effect/Schema";
 
 import {
@@ -27,18 +26,6 @@ export const DungeonLevelSchema = PositiveIntegerSchema;
 export const DungeonNameSchema = Schema.String;
 export const EncounterIdSchema = Schema.String;
 export const TimestampSchema = Schema.DateTimeUtc;
-
-// const EternalDungeonLevelFromLogSchema =
-//   AbsoluteDungeonLevelFromLogSchema.pipe(
-//     Schema.decodeTo(DungeonLevelSchema, {
-//       decode: SchemaGetter.transform((absoluteDungeonLevel) => {
-//         return absoluteDungeonLevel - ETERNAL_DUNGEON_LEVEL_OFFSET;
-//       }),
-//       encode: SchemaGetter.transform((dungeonLevel) => {
-//         return dungeonLevel + ETERNAL_DUNGEON_LEVEL_OFFSET;
-//       }),
-//     }),
-//   );
 
 export function getDungeonLevelFromAbsoluteDungeonLevel(
   absoluteDungeonLevel: number,
