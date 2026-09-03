@@ -3,7 +3,7 @@ import * as HashMap from "effect/HashMap";
 import * as Option from "effect/Option";
 
 import {
-  type CompiledFellowshipMilestoneConfiguration,
+  type CompiledConfiguration,
   type CompiledMilestoneDefinition,
   type CompiledRequirement,
 } from "@/services/fellowship/configurations/configuration-types.ts";
@@ -135,7 +135,7 @@ export function analyzeMilestoneProgress({
   configuration,
   state,
 }: {
-  readonly configuration: CompiledFellowshipMilestoneConfiguration;
+  readonly configuration: CompiledConfiguration;
   readonly state: RequirementProcessorState;
 }): RunAnalysis {
   const milestones = configuration.milestones.flatMap((milestone) => {
