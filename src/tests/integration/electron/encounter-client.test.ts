@@ -1,6 +1,5 @@
 import * as DateTime from "effect/DateTime";
 import * as E from "effect/Effect";
-import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as HttpServer from "effect/unstable/http/HttpServer";
 import { describe, expect, test } from "vitest";

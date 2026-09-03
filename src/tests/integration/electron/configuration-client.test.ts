@@ -1,5 +1,4 @@
 import * as E from "effect/Effect";
-import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Result from "effect/Result";
 import * as HttpServer from "effect/unstable/http/HttpServer";
