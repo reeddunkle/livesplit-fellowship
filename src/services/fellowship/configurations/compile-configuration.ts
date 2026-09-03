@@ -11,7 +11,7 @@ import {
   type RequirementsByEvent,
 } from "@/services/fellowship/configurations/configuration-types.ts";
 import { getRequirementLookup } from "@/services/fellowship/requirements/requirement-lookup.ts";
-import { type FellowshipMilestoneRequirement } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
+import { type FellowshipRequirement } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
 import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 
 type CompiledConfigurationIndexes = {
@@ -24,7 +24,7 @@ function compileRequirement({
   requirement,
 }: {
   readonly configuration: FellowshipMilestoneConfiguration;
-  readonly requirement: FellowshipMilestoneRequirement;
+  readonly requirement: FellowshipRequirement;
 }): CompiledRequirement {
   const lookup = getRequirementLookup({
     dungeonId: configuration.dungeonId,

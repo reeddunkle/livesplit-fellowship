@@ -3,7 +3,7 @@ import type * as HashMap from "effect/HashMap";
 import { type RequirementTargetId } from "@/services/fellowship/requirements/requirement-lookup.ts";
 import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
 import { type FellowshipMilestoneDefinition } from "@/services/fellowship/validation/fellowship-configuration-file-schema.ts";
-import { type MilestoneRequirementEventType } from "@/services/fellowship/validation/milestone-requirement-event-type-schema.ts";
+import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
 
 export type FellowshipMilestoneConfiguration = {
   readonly dungeonId: DungeonId;
@@ -15,7 +15,7 @@ export type ConfigurationDefinitionRequirement = {
   readonly requiredCount: number;
   readonly startOccurrence: number;
   readonly targetId: RequirementTargetId;
-  readonly type: MilestoneRequirementEventType;
+  readonly type: RequirementEventType;
 };
 
 export type FellowshipConfigurationDefinition = {
@@ -46,7 +46,7 @@ export type RequirementReferencesByTargetId = HashMap.HashMap<
 >;
 
 export type RequirementsByEvent = HashMap.HashMap<
-  MilestoneRequirementEventType,
+  RequirementEventType,
   RequirementReferencesByTargetId
 >;
 
