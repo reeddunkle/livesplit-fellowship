@@ -223,31 +223,31 @@ export const createTables = E.gen(function* () {
   `;
 
   yield* sql`
-    CREATE TABLE dungeon_run (
-      id TEXT PRIMARY KEY NOT NULL,
-      configuration_definition_id TEXT NOT NULL,
-      dungeon_id TEXT NOT NULL,
-      dungeon_level INTEGER NOT NULL
-        CHECK (dungeon_level >= 1),
-      status TEXT NOT NULL
-        CHECK (status IN ('ACTIVE', 'COMPLETED', 'INTERRUPTED', 'EXITED')),
-      started_at INTEGER NOT NULL,
-      ended_at INTEGER,
-      created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL,
+  CREATE TABLE dungeon_run (
+    id TEXT PRIMARY KEY NOT NULL,
+    configuration_definition_id TEXT NOT NULL,
+    dungeon_id TEXT NOT NULL,
+    dungeon_level INTEGER NOT NULL
+      CHECK (dungeon_level >= 1),
+    status TEXT NOT NULL
+      CHECK (status IN ('ACTIVE', 'COMPLETED', 'INTERRUPTED', 'EXITED')),
+    started_at INTEGER NOT NULL,
+    ended_at INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
 
-      CHECK (
-        (status = 'ACTIVE' AND ended_at IS NULL) OR
-        (status IN ('COMPLETED', 'INTERRUPTED', 'EXITED') AND ended_at IS NOT NULL)
-      ),
+    CHECK (
+      (status = 'ACTIVE' AND ended_at IS NULL) OR
+      (status IN ('COMPLETED', 'INTERRUPTED', 'EXITED') AND ended_at IS NOT NULL)
+    ),
 
-      FOREIGN KEY (configuration_definition_id)
-        REFERENCES configuration_definition(id),
+    FOREIGN KEY (configuration_definition_id)
+      REFERENCES configuration_definition(id),
 
-      FOREIGN KEY (dungeon_id)
-        REFERENCES dungeon(id)
-    ) STRICT
-  `;
+    FOREIGN KEY (dungeon_id)
+      REFERENCES dungeon(id)
+  ) STRICT
+`;
 
   yield* sql`
     CREATE INDEX dungeon_run_configuration_definition_id_started_at_index
@@ -261,20 +261,12 @@ export const createTables = E.gen(function* () {
 
   yield* sql`
     CREATE TABLE dungeon_run_observation (
+      id TEXT PRIMARY KEY NOT NULL,
       dungeon_run_id TEXT NOT NULL,
       type TEXT NOT NULL,
       target_id TEXT NOT NULL,
-      occurrence INTEGER NOT NULL
-        CHECK (occurrence >= 1),
       observed_at INTEGER NOT NULL,
       created_at INTEGER NOT NULL,
-
-      PRIMARY KEY (
-        dungeon_run_id,
-        type,
-        target_id,
-        occurrence
-      ),
 
       FOREIGN KEY (dungeon_run_id)
         REFERENCES dungeon_run(id)
@@ -283,7 +275,20 @@ export const createTables = E.gen(function* () {
   `;
 
   yield* sql`
-    CREATE INDEX dungeon_run_observation_type_target_occurrence_observed_at_index
-      ON dungeon_run_observation(type, target_id, occurrence, observed_at)
+    CREATE INDEX dungeon_run_observation_dungeon_run_id_observed_at_index
+      ON dungeon_run_observation(
+        dungeon_run_id,
+        observed_at
+      )
+  `;
+
+  yield* sql`
+    CREATE INDEX dungeon_run_observation_dungeon_run_id_type_target_id_observed_at_index
+      ON dungeon_run_observation(
+        dungeon_run_id,
+        type,
+        target_id,
+        observed_at
+      )
   `;
 });

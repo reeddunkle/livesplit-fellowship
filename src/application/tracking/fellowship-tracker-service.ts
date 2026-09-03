@@ -340,10 +340,10 @@ const make = E.gen(function* () {
 
             return E.all(
               [
-                persistence,
-                publishSatisfiedRequirements,
                 handleCompletedMilestones,
+                publishSatisfiedRequirements,
                 publishState,
+                persistence,
               ],
               {
                 concurrency: "unbounded",
