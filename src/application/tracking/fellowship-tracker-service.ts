@@ -244,7 +244,16 @@ const make = E.gen(function* () {
                       );
 
                     yield* Ref.set(dungeonRunIdRef, nextActiveDungeonRunId);
-                  })
+                  }).pipe(
+                    E.catch((error) => {
+                      return E.logError(
+                        "Failed to persist dungeon run result.",
+                        {
+                          error,
+                        },
+                      );
+                    }),
+                  )
                 : E.void;
 
             const handleEvents = E.forEach(
@@ -274,14 +283,10 @@ const make = E.gen(function* () {
                 })
               : E.void;
 
-            return persistResult.pipe(
-              E.andThen(
-                E.all([handleEvents, publishState], {
-                  concurrency: "unbounded",
-                  discard: true,
-                }),
-              ),
-            );
+            return E.all([persistResult, handleEvents, publishState], {
+              concurrency: "unbounded",
+              discard: true,
+            });
           }),
           E.tapCause((cause) => {
             return E.logError("Fellowship tracker failed.", {
