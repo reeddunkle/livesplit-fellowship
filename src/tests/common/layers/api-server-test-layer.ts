@@ -55,7 +55,7 @@ export const ApiServicesTest: Layer.Layer<ApiServices> = Layer.mergeAll(
   UnitApiServiceMock,
 );
 
-export function makeApiServicesTestLayer(
+function makeApiServicesTestLayer(
   ...overrides: ReadonlyArray<ApiServiceTestLayer>
 ): Layer.Layer<ApiServices> {
   return Layer.mergeAll(ApiServicesTest, ...overrides);

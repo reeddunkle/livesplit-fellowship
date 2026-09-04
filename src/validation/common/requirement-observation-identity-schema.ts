@@ -6,7 +6,7 @@ import {
   PositiveIntegerSchema,
 } from "@/validation/common-schemas.ts";
 
-export const RequirementObservationIdentitySchema = Schema.Tuple([
+const RequirementObservationIdentitySchema = Schema.Tuple([
   RequirementEventTypeSchema,
   NonEmptyStringSchema,
 ]);
@@ -14,7 +14,7 @@ export const RequirementObservationIdentitySchema = Schema.Tuple([
 export type RequirementObservationIdentity =
   typeof RequirementObservationIdentitySchema.Type;
 
-export const RequirementObservationOccurrenceIdentitySchema = Schema.Tuple([
+const RequirementObservationOccurrenceIdentitySchema = Schema.Tuple([
   RequirementEventTypeSchema,
   NonEmptyStringSchema,
   PositiveIntegerSchema,

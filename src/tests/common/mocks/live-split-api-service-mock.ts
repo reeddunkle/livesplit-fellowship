@@ -15,7 +15,7 @@ const DEFAULT_STATUS = createLiveSplitApiResponse({
   _tag: "Disconnected",
 });
 
-export function makeLiveSplitApiServiceMock({
+function makeLiveSplitApiServiceMock({
   connect = () => {
     return E.succeed(DEFAULT_STATUS);
   },

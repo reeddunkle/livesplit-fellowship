@@ -7,7 +7,7 @@ import {
 } from "@/validation/common-schemas.ts";
 import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id-schema.ts";
 
-export const DungeonRunApiObservationStatisticsSchema = Schema.Struct({
+const DungeonRunApiObservationStatisticsSchema = Schema.Struct({
   bestElapsedMilliseconds: Schema.Number,
   meanElapsedMilliseconds: Schema.Number,
   medianElapsedMilliseconds: Schema.Number,
@@ -16,9 +16,6 @@ export const DungeonRunApiObservationStatisticsSchema = Schema.Struct({
   targetId: NonEmptyStringSchema,
   type: RequirementEventTypeSchema,
 });
-
-export type DungeonRunApiObservationStatistics =
-  typeof DungeonRunApiObservationStatisticsSchema.Type;
 
 export const DungeonRunApiHistorySchema = Schema.Struct({
   configurationId: ConfigurationIdSchema,
