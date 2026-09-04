@@ -17,13 +17,13 @@ export type RequirementObservationsByTargetId = HashMap.HashMap<
   RequirementObservationHistory
 >;
 
-export type RequirementObservationsByEvent = HashMap.HashMap<
+export type RequirementObservationsByEventType = HashMap.HashMap<
   RequirementEventType,
   RequirementObservationsByTargetId
 >;
 
 export type RequirementProcessorState = {
-  readonly requirementObservations: RequirementObservationsByEvent;
+  readonly requirementObservations: RequirementObservationsByEventType;
 };
 
 export const initialRequirementProcessorState: RequirementProcessorState = {

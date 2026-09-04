@@ -1,3 +1,5 @@
+import type * as DateTime from "effect/DateTime";
+
 import {
   type DungeonRunTrackerState,
   initialDungeonRunTrackerState,
@@ -7,13 +9,36 @@ import {
   type RequirementProcessorState,
 } from "@/services/fellowship/requirements/requirement-processor-state.ts";
 
+export type DungeonRunProcessingRunState =
+  | {
+      readonly startedAt: DateTime.Utc;
+      readonly status: "ACTIVE";
+    }
+  | {
+      readonly endedAt: DateTime.Utc;
+      readonly startedAt: DateTime.Utc;
+      readonly status: "COMPLETED";
+    }
+  | {
+      readonly endedAt: DateTime.Utc;
+      readonly startedAt: DateTime.Utc;
+      readonly status: "EXITED";
+    }
+  | {
+      readonly endedAt: DateTime.Utc;
+      readonly startedAt: DateTime.Utc;
+      readonly status: "INTERRUPTED";
+    };
+
 export type DungeonRunProcessingState = {
+  readonly dungeonRun: DungeonRunProcessingRunState | undefined;
   readonly requirementProcessor: RequirementProcessorState;
   readonly runTracker: DungeonRunTrackerState;
 };
 
 export function createInitialDungeonRunState(): DungeonRunProcessingState {
   return {
+    dungeonRun: undefined,
     requirementProcessor: initialRequirementProcessorState,
     runTracker: initialDungeonRunTrackerState,
   };

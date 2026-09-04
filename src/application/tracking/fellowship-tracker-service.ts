@@ -272,7 +272,6 @@ const make = E.gen(function* () {
             );
 
             const publishStateEffect = publishDungeonRunState({
-              configuration: result.configuration,
               state: result.state,
             }).pipe(
               E.provideService(

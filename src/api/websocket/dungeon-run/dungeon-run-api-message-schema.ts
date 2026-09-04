@@ -5,36 +5,25 @@ import {
   NonEmptyStringSchema,
   PositiveIntegerSchema,
 } from "@/validation/common-schemas.ts";
+import { DungeonRunStatusSchema } from "@/validation/dungeon-run/dungeon-run-status-schema.ts";
 
 const TimestampMillisecondsSchema = PositiveIntegerSchema;
 
-const DungeonRunRequirementObservationApiSchema = Schema.Struct({
-  timestampMilliseconds: TimestampMillisecondsSchema,
-});
-
-const DungeonRunRequirementApiSchema = Schema.Struct({
-  observations: Schema.Array(DungeonRunRequirementObservationApiSchema),
-  requiredCount: PositiveIntegerSchema,
-  startOccurrence: PositiveIntegerSchema,
+const DungeonRunObservationApiSchema = Schema.Struct({
   targetId: NonEmptyStringSchema,
+  timestampMilliseconds: TimestampMillisecondsSchema,
   type: RequirementEventTypeSchema,
 });
 
-const DungeonRunMilestoneApiSchema = Schema.Struct({
-  completedAtMilliseconds: Schema.NullOr(TimestampMillisecondsSchema),
-  elapsedMilliseconds: Schema.NullOr(TimestampMillisecondsSchema),
-  label: NonEmptyStringSchema,
-  milestoneId: NonEmptyStringSchema,
-  requirements: Schema.Array(DungeonRunRequirementApiSchema),
-});
-
 const DungeonRunApiSchema = Schema.Struct({
-  startedAtMilliseconds: TimestampMillisecondsSchema,
+  endedAtMilliseconds: Schema.NullOr(TimestampMillisecondsSchema),
+  startedAtMilliseconds: Schema.NullOr(TimestampMillisecondsSchema),
+  status: DungeonRunStatusSchema,
 });
 
 const DungeonRunStateApiSchema = Schema.Struct({
   dungeonRun: Schema.NullOr(DungeonRunApiSchema),
-  milestones: Schema.Array(DungeonRunMilestoneApiSchema),
+  observations: Schema.Array(DungeonRunObservationApiSchema),
 });
 
 export const DungeonRunApiMessageSchema = Schema.Struct({
@@ -42,10 +31,8 @@ export const DungeonRunApiMessageSchema = Schema.Struct({
   version: Schema.Literal(1),
 });
 
-export type DungeonRunMilestoneApi = typeof DungeonRunMilestoneApiSchema.Type;
-
-export type DungeonRunRequirementApi =
-  typeof DungeonRunRequirementApiSchema.Type;
+export type DungeonRunObservationApi =
+  typeof DungeonRunObservationApiSchema.Type;
 
 export type DungeonRunStateApi = typeof DungeonRunStateApiSchema.Type;
 

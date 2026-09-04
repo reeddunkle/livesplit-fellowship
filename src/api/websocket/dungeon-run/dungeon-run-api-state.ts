@@ -1,87 +1,51 @@
+import * as A from "effect/Array";
+
 import {
-  type DungeonRunMilestoneApi,
-  type DungeonRunRequirementApi,
+  type DungeonRunObservationApi,
   type DungeonRunStateApi,
 } from "@/api/websocket/dungeon-run/dungeon-run-api-message-schema.ts";
-import {
-  analyzeMilestoneProgress,
-  type MilestoneProgress,
-  type RequirementProgress,
-} from "@/services/fellowship/configurations/analyze-milestone-progress.ts";
-import { type CompiledConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import { type DungeonRunProcessingState } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
-import { getElapsedMilliseconds } from "@/util/get-elapsed-milliseconds.ts";
 
-export type CreateRunApiStateOptions = {
-  readonly configuration: CompiledConfiguration;
+export type CreateDungeonRunApiStateOptions = {
   readonly state: DungeonRunProcessingState;
 };
 
-function createRunApiRequirement(
-  progress: RequirementProgress,
-): DungeonRunRequirementApi {
-  return {
-    observations: progress.observations.map((observation) => {
-      return {
-        timestampMilliseconds: observation.timestamp.epochMilliseconds,
-      };
-    }),
-    requiredCount: progress.requirement.requiredCount,
-    startOccurrence: progress.requirement.startOccurrence,
-    targetId: progress.requirement.targetId,
-    type: progress.requirement.type,
-  };
+function createDungeonRunApiObservations(
+  state: DungeonRunProcessingState,
+): ReadonlyArray<DungeonRunObservationApi> {
+  return A.flatMap(
+    A.fromIterable(state.requirementProcessor.requirementObservations),
+    ([type, observationsByTargetId]) => {
+      return A.flatMap(
+        A.fromIterable(observationsByTargetId),
+        ([targetId, observationHistory]) => {
+          return A.map(observationHistory.observations, (observation) => {
+            return {
+              targetId,
+              timestampMilliseconds: observation.timestamp.epochMilliseconds,
+              type,
+            };
+          });
+        },
+      );
+    },
+  );
 }
 
-function createRunApiMilestone({
-  progress,
-  runStart,
-}: {
-  readonly progress: MilestoneProgress;
-  readonly runStart: DungeonRunProcessingState["runTracker"]["currentStart"];
-}): DungeonRunMilestoneApi {
-  const completedAtMilliseconds =
-    progress.completedAt?.epochMilliseconds ?? null;
-
-  const elapsedMilliseconds =
-    progress.completedAt === undefined || runStart === undefined
-      ? null
-      : getElapsedMilliseconds(runStart.startedAt, progress.completedAt);
-
-  return {
-    completedAtMilliseconds,
-    elapsedMilliseconds,
-    label: progress.definition.label,
-    milestoneId: progress.definition.milestoneId,
-    requirements: progress.requirements.map(createRunApiRequirement),
-  };
-}
-
-export function createRunApiState({
-  configuration,
+export function createDungeonRunApiState({
   state,
-}: CreateRunApiStateOptions): DungeonRunStateApi {
-  const analysis = analyzeMilestoneProgress({
-    configuration,
-    state: state.requirementProcessor,
-  });
-
+}: CreateDungeonRunApiStateOptions): DungeonRunStateApi {
   const runStart = state.runTracker.currentStart;
-
-  const milestones = analysis.milestones.map((progress) => {
-    return createRunApiMilestone({
-      progress,
-      runStart,
-    });
-  });
 
   return {
     dungeonRun:
       runStart === undefined
         ? null
         : {
+            endedAtMilliseconds: null,
             startedAtMilliseconds: runStart.startedAt.epochMilliseconds,
+            status: "ACTIVE",
           },
-    milestones,
+    observations: createDungeonRunApiObservations(state),
   };
 }

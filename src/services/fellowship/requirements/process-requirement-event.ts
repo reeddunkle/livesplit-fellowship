@@ -67,17 +67,6 @@ function getRequirementReferences({
   ).pipe(Option.getOrElse(() => []));
 }
 
-function getMaximumRequiredOccurrence(
-  references: ReadonlyArray<RequirementReference>,
-): number {
-  return A.reduce(references, 0, (maximumOccurrence, reference) => {
-    const endOccurrence =
-      reference.startOccurrence + reference.requiredCount - 1;
-
-    return Math.max(maximumOccurrence, endOccurrence);
-  });
-}
-
 function getObservationHistory({
   lookup,
   state,
@@ -118,12 +107,9 @@ function addRequirementObservation({
   );
 
   const nextObservationHistory = {
-    observations: [
-      ...observationHistory.observations,
-      {
-        timestamp,
-      },
-    ],
+    observations: A.append(observationHistory.observations, {
+      timestamp,
+    }),
   } satisfies RequirementObservationHistory;
 
   const nextObservationsByTargetId = HashMap.set(
@@ -251,12 +237,6 @@ export function processRequirementEvent({
   });
 
   const currentOccurrence = (observationHistory?.observations.length ?? 0) + 1;
-
-  const maximumRequiredOccurrence = getMaximumRequiredOccurrence(references);
-
-  if (currentOccurrence > maximumRequiredOccurrence) {
-    return emptyResult;
-  }
 
   const timestamp = getEventTimestamp(event);
 

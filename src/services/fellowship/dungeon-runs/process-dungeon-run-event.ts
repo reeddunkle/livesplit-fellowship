@@ -3,9 +3,14 @@ import type * as DateTime from "effect/DateTime";
 
 import { type CompiledConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
+import {
+  type DungeonRunProcessingRunState,
+  type DungeonRunProcessingState,
+} from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import { trackDungeonRunEvent } from "@/services/fellowship/dungeon-runs/track-dungeon-run.ts";
 import {
   type DungeonRunObservation,
+  type ProcessRequirementEventResult,
   processRequirementEvent,
   type SatisfiedRequirement,
 } from "@/services/fellowship/requirements/process-requirement-event.ts";
@@ -15,8 +20,6 @@ import { doesDungeonRunMatchConfiguration } from "@/services/fellowship/utilitie
 import { isDungeonExitEvent } from "@/services/fellowship/utilities/is-dungeon-exit-event.ts";
 import { type DungeonStartEvent } from "@/services/fellowship/validation/events/dungeon-start.ts";
 import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
-
-import { type DungeonRunProcessingState } from "./dungeon-run-processing-state.ts";
 
 export const DUNGEON_RUN_PROCESSING_EVENT = {
   MILESTONE_COMPLETED: "MILESTONE_COMPLETED",
@@ -60,24 +63,6 @@ export type ProcessDungeonRunEventResult = {
   readonly state: DungeonRunProcessingState;
 };
 
-type GetDungeonRunStartForEventOptions = {
-  readonly completedRunStart: DungeonStartEvent | undefined;
-  readonly currentStart: DungeonStartEvent | undefined;
-  readonly event: FellowshipEvent;
-};
-
-function getDungeonRunStartForEvent({
-  completedRunStart,
-  currentStart,
-  event,
-}: GetDungeonRunStartForEventOptions): DungeonStartEvent | undefined {
-  if (event.type === FELLOWSHIP_EVENT.DUNGEON_START) {
-    return event;
-  }
-
-  return completedRunStart ?? currentStart;
-}
-
 function doesDungeonRunStartMatchConfiguration({
   configuration,
   runStart,
@@ -97,6 +82,47 @@ function getEventTimestamp(event: FellowshipEvent): DateTime.Utc {
   return event.type === FELLOWSHIP_EVENT.DUNGEON_START
     ? event.startedAt
     : event.timestamp;
+}
+
+function getNextDungeonRunState({
+  currentRunStart,
+  hasCompletedConfiguredRun,
+  hasExitedConfiguredRun,
+  isConfiguredDungeonStart,
+  state,
+  timestamp,
+}: {
+  readonly currentRunStart: DungeonStartEvent | undefined;
+  readonly hasCompletedConfiguredRun: boolean;
+  readonly hasExitedConfiguredRun: boolean;
+  readonly isConfiguredDungeonStart: boolean;
+  readonly state: DungeonRunProcessingState;
+  readonly timestamp: DateTime.Utc;
+}): DungeonRunProcessingRunState | undefined {
+  if (isConfiguredDungeonStart) {
+    return {
+      startedAt: timestamp,
+      status: "ACTIVE",
+    };
+  }
+
+  if (hasCompletedConfiguredRun && currentRunStart !== undefined) {
+    return {
+      endedAt: timestamp,
+      startedAt: currentRunStart.startedAt,
+      status: "COMPLETED",
+    };
+  }
+
+  if (hasExitedConfiguredRun && currentRunStart !== undefined) {
+    return {
+      endedAt: timestamp,
+      startedAt: currentRunStart.startedAt,
+      status: "EXITED",
+    };
+  }
+
+  return state.dungeonRun;
 }
 
 export function processDungeonRunEvent({
@@ -137,41 +163,36 @@ export function processDungeonRunEvent({
   const hasCompletedConfiguredRun =
     wasConfiguredRunActive && trackerResult.completedRun !== undefined;
 
+  const timestamp = getEventTimestamp(event);
+
   const requirementProcessor = isConfiguredDungeonStart
     ? initialRequirementProcessorState
     : state.requirementProcessor;
 
-  const runStart = getDungeonRunStartForEvent({
-    completedRunStart: trackerResult.completedRun?.start,
-    currentStart: currentRunStart,
-    event,
-  });
+  const runStart = isConfiguredDungeonStart
+    ? event
+    : (trackerResult.completedRun?.start ?? currentRunStart);
 
-  if (
-    runStart === undefined ||
-    !doesDungeonRunStartMatchConfiguration({
+  const canProcessRequirement =
+    runStart !== undefined &&
+    doesDungeonRunStartMatchConfiguration({
       configuration,
       runStart,
-    })
-  ) {
-    return {
-      observation: undefined,
-      processingEvents: [],
-      state: {
-        requirementProcessor,
-        runTracker: trackerResult.state,
-      },
-    };
-  }
+    });
 
-  const requirementResult = processRequirementEvent({
-    configuration,
-    event,
-    runStart,
-    state: requirementProcessor,
-  });
-
-  const timestamp = getEventTimestamp(event);
+  const requirementResult: ProcessRequirementEventResult = canProcessRequirement
+    ? processRequirementEvent({
+        configuration,
+        event,
+        runStart,
+        state: requirementProcessor,
+      })
+    : {
+        completedMilestones: [],
+        observation: undefined,
+        satisfiedRequirements: [],
+        state: requirementProcessor,
+      };
 
   const runStartedProcessingEvents: ReadonlyArray<DungeonRunProcessingEvent> =
     isConfiguredDungeonStart
@@ -223,6 +244,15 @@ export function processDungeonRunEvent({
         ]
       : [];
 
+  const dungeonRun = getNextDungeonRunState({
+    currentRunStart,
+    hasCompletedConfiguredRun,
+    hasExitedConfiguredRun,
+    isConfiguredDungeonStart,
+    state,
+    timestamp,
+  });
+
   return {
     observation: requirementResult.observation,
     processingEvents: [
@@ -233,6 +263,7 @@ export function processDungeonRunEvent({
       ...runExitedProcessingEvents,
     ],
     state: {
+      dungeonRun,
       requirementProcessor: requirementResult.state,
       runTracker: trackerResult.state,
     },
