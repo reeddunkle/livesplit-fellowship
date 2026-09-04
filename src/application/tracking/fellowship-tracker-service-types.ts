@@ -49,7 +49,7 @@ type ReplayFellowshipTrackerLogOptions = {
   readonly logFilePath: string;
 };
 
-type FellowshipTrackerStartError =
+export type FellowshipTrackerStartError =
   | ConfigurationDAOError
   | FellowshipTrackerAlreadyRunningError
   | FellowshipTrackerConfigurationNotFoundError;
