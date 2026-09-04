@@ -18,7 +18,7 @@ import { type DungeonRunObservation } from "@/services/fellowship/requirements/p
 import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
 import { type DungeonRunId } from "@/validation/dungeon-run/dungeon-run-id-schema.ts";
 
-export type DungeonRunPersistenceError =
+type DungeonRunPersistenceError =
   | DungeonRunDAOError
   | DungeonRunObservationDAOError;
 

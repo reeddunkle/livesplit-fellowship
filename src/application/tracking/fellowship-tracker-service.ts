@@ -10,110 +10,35 @@ import * as Stream from "effect/Stream";
 import * as SubscriptionRef from "effect/SubscriptionRef";
 
 import { publishDungeonRunState } from "@/api/websocket/dungeon-run/publish-dungeon-run-state.ts";
-import {
-  type DungeonRunPersistence,
-  makeDungeonRunPersistence,
-} from "@/application/dungeon-run-processing/dungeon-run-persistence.ts";
+import { makeDungeonRunPersistence } from "@/application/dungeon-run-processing/dungeon-run-persistence.ts";
 import { handleLogDungeonRunEvent } from "@/application/dungeon-run-processing/handle-log-dungeon-run-event.ts";
 import { ConfigurationDAO } from "@/db/daos/configuration/configuration-dao.ts";
 import { DungeonRunDAO } from "@/db/daos/dungeon-run/dungeon-run-dao.ts";
 import { DungeonRunObservationDAO } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao.ts";
-import { type ConfigurationDAOError } from "@/errors/configuration-dao-error.ts";
 import {
   FellowshipTrackerAlreadyRunningError,
   FellowshipTrackerConfigurationNotFoundError,
 } from "@/errors/fellowship-tracker-error.ts";
 import { DungeonRunWebSocketBroadcaster } from "@/services/api/websocket-broadcaster-service.ts";
-import { type FellowshipMilestoneConfiguration } from "@/services/fellowship/configurations/configuration-types.ts";
 import {
   createInitialDungeonRunState,
-  type DungeonRunProcessingState,
   interruptDungeonRunProcessingState,
 } from "@/services/fellowship/dungeon-runs/dungeon-run-processing-state.ts";
 import { processDungeonRunEventStream } from "@/services/fellowship/dungeon-runs/process-dungeon-run-event-stream.ts";
 import { Fellowship } from "@/services/fellowship/fellowship-service.ts";
-import { type DungeonId } from "@/services/fellowship/validation/fellowship-common.ts";
-import { type FellowshipEvent } from "@/services/fellowship/validation/fellowship-event-schema.ts";
 import { LiveSplit } from "@/services/live-split/core/live-split-service.ts";
-import { type ConfigurationDefinitionId } from "@/validation/configuration/configuration-definition-id-schema.ts";
-import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
-type FellowshipTrackerConfigurationSource =
-  | {
-      readonly _tag: "Persisted";
-      readonly configurationDefinitionId: ConfigurationDefinitionId;
-      readonly configurationId: ConfigurationId;
-    }
-  | {
-      readonly _tag: "External";
-    };
-
-export type FellowshipTrackerStatus =
-  | {
-      readonly _tag: "Idle";
-    }
-  | {
-      readonly _tag: "Tracking";
-      readonly dungeonId: DungeonId;
-      readonly source: FellowshipTrackerConfigurationSource;
-    };
-
-type StartFellowshipTrackerOptions = {
-  readonly configurationId: ConfigurationId;
-};
-
-type StartFellowshipTrackerConfigurationOptions = {
-  readonly configuration: FellowshipMilestoneConfiguration;
-};
-
-type ReplayFellowshipTrackerLogOptions = {
-  readonly configuration: FellowshipMilestoneConfiguration;
-  readonly logFilePath: string;
-};
-
-export type FellowshipTrackerStartError =
-  | ConfigurationDAOError
-  | FellowshipTrackerAlreadyRunningError
-  | FellowshipTrackerConfigurationNotFoundError;
-
-export type FellowshipTrackerServiceShape = {
-  readonly replayLog: (
-    options: ReplayFellowshipTrackerLogOptions,
-  ) => E.Effect<void, unknown>;
-
-  readonly start: (
-    options: StartFellowshipTrackerOptions,
-  ) => E.Effect<void, FellowshipTrackerStartError>;
-
-  readonly startConfiguration: (
-    options: StartFellowshipTrackerConfigurationOptions,
-  ) => E.Effect<void, FellowshipTrackerAlreadyRunningError>;
-
-  readonly status: E.Effect<FellowshipTrackerStatus>;
-
-  readonly statusChanges: Stream.Stream<FellowshipTrackerStatus>;
-
-  readonly stop: () => E.Effect<void>;
-};
+import {
+  type ActiveTracker,
+  type FellowshipTrackerServiceShape,
+  type FellowshipTrackerStatus,
+  type StartTrackingOptions,
+} from "./fellowship-tracker-service-types.ts";
 
 export class FellowshipTracker extends Context.Service<
   FellowshipTracker,
   FellowshipTrackerServiceShape
 >()("app/FellowshipTracker") {}
-
-type ActiveTracker = {
-  readonly dungeonId: DungeonId;
-  readonly fiber: Fiber.Fiber<void, unknown>;
-  readonly persistence: DungeonRunPersistence | undefined;
-  readonly stateRef: Ref.Ref<DungeonRunProcessingState>;
-  readonly source: FellowshipTrackerConfigurationSource;
-};
-
-type StartTrackingOptions = {
-  readonly configuration: FellowshipMilestoneConfiguration;
-  readonly events: Stream.Stream<FellowshipEvent, unknown>;
-  readonly source: FellowshipTrackerConfigurationSource;
-};
 
 const make = E.gen(function* () {
   const configurationDAO = yield* ConfigurationDAO;

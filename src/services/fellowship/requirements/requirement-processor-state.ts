@@ -17,7 +17,7 @@ export type RequirementObservationsByTargetId = HashMap.HashMap<
   RequirementObservationHistory
 >;
 
-export type RequirementObservationsByEventType = HashMap.HashMap<
+type RequirementObservationsByEventType = HashMap.HashMap<
   RequirementEventType,
   RequirementObservationsByTargetId
 >;

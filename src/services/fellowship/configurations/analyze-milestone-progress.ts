@@ -13,7 +13,7 @@ import {
   type RequirementProcessorState,
 } from "@/services/fellowship/requirements/requirement-processor-state.ts";
 
-export type RequirementProgress = {
+type RequirementProgress = {
   readonly completedAt: DateTime.Utc | undefined;
   readonly isComplete: boolean;
   readonly observations: ReadonlyArray<RequirementObservation>;
