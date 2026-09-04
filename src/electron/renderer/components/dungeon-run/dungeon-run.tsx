@@ -1,6 +1,7 @@
 import * as A from "effect/Array";
 import { pipe } from "effect/Function";
 import * as Order from "effect/Order";
+import { SquareIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
@@ -11,18 +12,24 @@ import {
   type DungeonRunComparison,
   getComparisonElapsedMilliseconds,
 } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
+import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import { Label } from "@/electron/renderer/components/ui/label.tsx";
 import {
   RadioGroup,
   RadioGroupItem,
 } from "@/electron/renderer/components/ui/radio-group.tsx";
+import { Separator } from "@/electron/renderer/components/ui/separator";
 import { useSelectedConfigurationId } from "@/electron/renderer/stores/configurations-store/configurations-store";
 import {
   type DungeonRunObservationInterpretation,
   useDungeonRunInterpretationState,
   useDungeonRunServerState,
 } from "@/electron/renderer/stores/dungeon-run-store/dungeon-run-provider";
-import { useTrackingServerState } from "@/electron/renderer/stores/tracking-store/tracking-store";
+import {
+  useTrackingActionState,
+  useTrackingActions,
+  useTrackingServerState,
+} from "@/electron/renderer/stores/tracking-store/tracking-store";
 import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
 
 const UndefinedLastNumberOrder = Order.make<number | undefined>(
@@ -93,6 +100,8 @@ export function DungeonRun({ configurations }: DungeonRunProps) {
   const selectedConfigurationId = useSelectedConfigurationId();
 
   const { trackingStatus } = useTrackingServerState();
+  const { stop } = useTrackingActions();
+  const { isPending } = useTrackingActionState();
   const { dungeonRun, history } = useDungeonRunServerState();
   const { observations } = useDungeonRunInterpretationState();
 
@@ -271,6 +280,18 @@ export function DungeonRun({ configurations }: DungeonRunProps) {
           );
         })}
       </div>
+      <Separator />
+      <Button
+        className="min-w-32"
+        disabled={!isTracking || isPending}
+        onClick={stop}
+        size="xl"
+        type="button"
+        variant="destructive"
+      >
+        <SquareIcon className="fill-current" />
+        Stop
+      </Button>
     </section>
   );
 }
