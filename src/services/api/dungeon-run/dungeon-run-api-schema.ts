@@ -17,6 +17,9 @@ const DungeonRunApiObservationStatisticsSchema = Schema.Struct({
   type: RequirementEventTypeSchema,
 });
 
+export type DungeonRunApiObservationStatistics =
+  typeof DungeonRunApiObservationStatisticsSchema.Type;
+
 export const DungeonRunApiHistorySchema = Schema.Struct({
   configurationId: ConfigurationIdSchema,
   observations: Schema.Array(DungeonRunApiObservationStatisticsSchema),
