@@ -1,4 +1,5 @@
 import path from "node:path";
+import * as A from "effect/Array";
 import * as E from "effect/Effect";
 import * as Schema from "effect/Schema";
 import { describe, expect, test } from "vitest";
@@ -49,153 +50,126 @@ describe("FellowshipTracker dungeon run WebSocket messages", () => {
           state: {
             dungeonRun: {
               startedAtMilliseconds: expect.any(Number),
+              status: "ACTIVE",
             },
           },
           version: 1,
         });
 
-        const finalMessage = messages.at(-1);
+        const finalMessage = A.last(messages);
 
-        expect(finalMessage).toBeDefined();
+        expect(finalMessage._tag).toBe("Some");
 
-        if (finalMessage === undefined) {
+        if (finalMessage._tag === "None") {
           return;
         }
 
         const decodedFinalMessage = Schema.decodeUnknownSync(
           DungeonRunApiMessageSchema,
-        )(finalMessage);
+        )(finalMessage.value);
 
-        const desecrator1 = decodedFinalMessage.state.milestones.find(
-          (milestone) => {
-            return milestone.label === "Desecrator 1 Killed";
-          },
-        );
+        expect(decodedFinalMessage.state.dungeonRun).toMatchObject({
+          endedAtMilliseconds: expect.any(Number),
+          startedAtMilliseconds: expect.any(Number),
+        });
 
-        expect(desecrator1).toBeDefined();
+        const unitDeath42Observations =
+          decodedFinalMessage.state.observations.filter((observation) => {
+            return (
+              observation.type === "UNIT_DEATH" && observation.targetId === "42"
+            );
+          });
 
-        expect(desecrator1?.requirements).toEqual([
-          expect.objectContaining({
-            observations: [
-              expect.objectContaining({
-                timestampMilliseconds: expect.any(Number),
-              }),
-            ],
-            requiredCount: 1,
-            startOccurrence: 1,
+        expect(unitDeath42Observations).toHaveLength(2);
+
+        expect(unitDeath42Observations).toEqual([
+          {
             targetId: "42",
+            timestampMilliseconds: expect.any(Number),
             type: "UNIT_DEATH",
-          }),
+          },
+          {
+            targetId: "42",
+            timestampMilliseconds: expect.any(Number),
+            type: "UNIT_DEATH",
+          },
         ]);
 
-        const desecrator2 = decodedFinalMessage.state.milestones.find(
-          (milestone) => {
-            return milestone.label === "Desecrator 2 Killed";
-          },
-        );
+        const unitDeath41Observations =
+          decodedFinalMessage.state.observations.filter((observation) => {
+            return (
+              observation.type === "UNIT_DEATH" && observation.targetId === "41"
+            );
+          });
 
-        expect(desecrator2).toBeDefined();
+        expect(unitDeath41Observations).toHaveLength(2);
 
-        expect(desecrator2?.requirements).toEqual([
-          expect.objectContaining({
-            observations: [
-              expect.objectContaining({
-                timestampMilliseconds: expect.any(Number),
-              }),
-            ],
-            requiredCount: 1,
-            startOccurrence: 2,
-            targetId: "42",
-            type: "UNIT_DEATH",
-          }),
-        ]);
-
-        const butcher2 = decodedFinalMessage.state.milestones.find(
-          (milestone) => {
-            return milestone.label === "Butcher 2 Killed";
-          },
-        );
-
-        expect(butcher2).toBeDefined();
-
-        expect(butcher2?.requirements).toEqual([
-          expect.objectContaining({
-            observations: [
-              expect.objectContaining({
-                timestampMilliseconds: expect.any(Number),
-              }),
-            ],
-            requiredCount: 1,
-            startOccurrence: 2,
+        expect(unitDeath41Observations).toEqual([
+          {
             targetId: "41",
+            timestampMilliseconds: expect.any(Number),
             type: "UNIT_DEATH",
-          }),
+          },
+          {
+            targetId: "41",
+            timestampMilliseconds: expect.any(Number),
+            type: "UNIT_DEATH",
+          },
         ]);
 
-        const shadowlord2 = decodedFinalMessage.state.milestones.find(
-          (milestone) => {
-            return milestone.label === "Shadowlord 2 Killed";
-          },
-        );
+        const unitDeath274Observations =
+          decodedFinalMessage.state.observations.filter((observation) => {
+            return (
+              observation.type === "UNIT_DEATH" &&
+              observation.targetId === "274"
+            );
+          });
 
-        expect(shadowlord2).toBeDefined();
+        expect(unitDeath274Observations).toHaveLength(2);
 
-        expect(shadowlord2?.requirements).toEqual([
-          expect.objectContaining({
-            observations: [
-              expect.objectContaining({
-                timestampMilliseconds: expect.any(Number),
-              }),
-            ],
-            requiredCount: 1,
-            startOccurrence: 2,
+        expect(unitDeath274Observations).toEqual([
+          {
             targetId: "274",
+            timestampMilliseconds: expect.any(Number),
             type: "UNIT_DEATH",
-          }),
+          },
+          {
+            targetId: "274",
+            timestampMilliseconds: expect.any(Number),
+            type: "UNIT_DEATH",
+          },
         ]);
 
-        const bossPull = decodedFinalMessage.state.milestones.find(
-          (milestone) => {
-            return milestone.label === "Boss Pull";
-          },
-        );
+        const bossPullObservations =
+          decodedFinalMessage.state.observations.filter((observation) => {
+            return (
+              observation.type === "ENCOUNTER_START" &&
+              observation.targetId === "30"
+            );
+          });
 
-        expect(bossPull).toBeDefined();
-
-        expect(bossPull?.requirements).toEqual([
-          expect.objectContaining({
-            observations: [
-              expect.objectContaining({
-                timestampMilliseconds: expect.any(Number),
-              }),
-            ],
-            requiredCount: 1,
-            startOccurrence: 1,
+        expect(bossPullObservations).toEqual([
+          {
             targetId: "30",
+            timestampMilliseconds: expect.any(Number),
             type: "ENCOUNTER_START",
-          }),
+          },
         ]);
 
-        const bossKill = decodedFinalMessage.state.milestones.find(
-          (milestone) => {
-            return milestone.label === "Boss Kill";
-          },
-        );
+        const bossKillObservations =
+          decodedFinalMessage.state.observations.filter((observation) => {
+            return (
+              observation.type === "ENCOUNTER_END" &&
+              observation.targetId === "30"
+            );
+          });
 
-        expect(bossKill).toBeDefined();
-
-        expect(bossKill?.requirements).toEqual([
-          expect.objectContaining({
-            observations: [
-              expect.objectContaining({
-                timestampMilliseconds: expect.any(Number),
-              }),
-            ],
-            requiredCount: 1,
-            startOccurrence: 1,
+        expect(bossKillObservations).toEqual([
+          {
             targetId: "30",
+            timestampMilliseconds: expect.any(Number),
             type: "ENCOUNTER_END",
-          }),
+          },
         ]);
       }),
     );

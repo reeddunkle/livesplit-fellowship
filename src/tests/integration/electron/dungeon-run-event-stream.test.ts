@@ -30,23 +30,15 @@ const NORMAL_CLOSE_ROUTE = "/normal-close";
 const message = {
   state: {
     dungeonRun: {
+      endedAtMilliseconds: null,
       startedAtMilliseconds: 1_000,
+      status: "ACTIVE",
     },
-    milestones: [
+    observations: [
       {
-        completedAtMilliseconds: null,
-        elapsedMilliseconds: null,
-        label: "Desecrator 2 Killed",
-        milestoneId: "desecrator:killed:2",
-        requirements: [
-          {
-            observations: [],
-            requiredCount: 1,
-            startOccurrence: 1,
-            targetId: "42",
-            type: "UNIT_DEATH",
-          },
-        ],
+        targetId: "42",
+        timestampMilliseconds: 1_500,
+        type: "UNIT_DEATH",
       },
     ],
   },
