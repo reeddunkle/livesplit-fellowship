@@ -35,17 +35,20 @@ function createDungeonRunApiObservations(
 export function createDungeonRunApiState({
   state,
 }: CreateDungeonRunApiStateOptions): DungeonRunStateApi {
-  const runStart = state.runTracker.currentStart;
+  const dungeonRun =
+    state.dungeonRun === undefined
+      ? null
+      : {
+          endedAtMilliseconds:
+            "endedAt" in state.dungeonRun
+              ? state.dungeonRun.endedAt.epochMilliseconds
+              : null,
+          startedAtMilliseconds: state.dungeonRun.startedAt.epochMilliseconds,
+          status: state.dungeonRun.status,
+        };
 
   return {
-    dungeonRun:
-      runStart === undefined
-        ? null
-        : {
-            endedAtMilliseconds: null,
-            startedAtMilliseconds: runStart.startedAt.epochMilliseconds,
-            status: "ACTIVE",
-          },
+    dungeonRun,
     observations: createDungeonRunApiObservations(state),
   };
 }

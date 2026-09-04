@@ -43,3 +43,24 @@ export function createInitialDungeonRunState(): DungeonRunProcessingState {
     runTracker: initialDungeonRunTrackerState,
   };
 }
+
+export function interruptDungeonRunProcessingState({
+  endedAt,
+  state,
+}: {
+  readonly endedAt: DateTime.Utc;
+  readonly state: DungeonRunProcessingState;
+}): DungeonRunProcessingState {
+  if (state.dungeonRun?.status !== "ACTIVE") {
+    return state;
+  }
+
+  return {
+    ...state,
+    dungeonRun: {
+      endedAt,
+      startedAt: state.dungeonRun.startedAt,
+      status: "INTERRUPTED",
+    },
+  };
+}

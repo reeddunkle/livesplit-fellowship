@@ -1,4 +1,4 @@
-import * as DateTime from "effect/DateTime";
+import type * as DateTime from "effect/DateTime";
 import * as E from "effect/Effect";
 import * as Match from "effect/Match";
 import * as Option from "effect/Option";
@@ -28,7 +28,9 @@ type PersistDungeonRunEventResultOptions = {
 };
 
 export type DungeonRunPersistence = {
-  readonly interrupt: () => E.Effect<void, DungeonRunDAOError>;
+  readonly interrupt: (
+    endedAt: DateTime.Utc,
+  ) => E.Effect<void, DungeonRunDAOError>;
 
   readonly persist: (
     options: PersistDungeonRunEventResultOptions,
@@ -194,14 +196,12 @@ export const makeDungeonRunPersistence = E.fn(
 
   const interrupt: DungeonRunPersistence["interrupt"] = E.fn(
     "fellowship.dungeon-run.interrupt-persistence",
-  )(function* () {
+  )(function* (endedAt) {
     const dungeonRunId = yield* Ref.get(dungeonRunIdRef);
 
     if (Option.isNone(dungeonRunId)) {
       return;
     }
-
-    const endedAt = yield* DateTime.now;
 
     yield* dungeonRunDAO.interrupt({
       dungeonRunId: dungeonRunId.value,
