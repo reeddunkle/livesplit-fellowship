@@ -59,19 +59,11 @@ export function makeDungeonRunEventStore() {
       });
     }),
     Match.when({ type: "MESSAGE_RECEIVED" }, (event) => {
-      return E.gen(function* () {
-        yield* updateSnapshot((currentSnapshot) => {
-          return {
-            ...currentSnapshot,
-            runState: event.message.state,
-          };
-        });
-
-        /*
-         * When the WebSocket protocol exposes a specific terminal event such as
-         * RUN_EXITED / RUN_COMPLETED, trigger dungeon-run history invalidation
-         * here so HTTP history can be refreshed.
-         */
+      return updateSnapshot((currentSnapshot) => {
+        return {
+          ...currentSnapshot,
+          runState: event.message.state,
+        };
       });
     }),
     Match.exhaustive,

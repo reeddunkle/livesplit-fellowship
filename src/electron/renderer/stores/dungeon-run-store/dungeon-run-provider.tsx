@@ -1,4 +1,6 @@
+import * as A from "effect/Array";
 import * as E from "effect/Effect";
+import * as Option from "effect/Option";
 import {
   createContext,
   type ReactNode,
@@ -9,6 +11,10 @@ import {
   useSyncExternalStore,
 } from "react";
 
+import {
+  type DungeonRunObservationApi,
+  type DungeonRunStateApi,
+} from "@/api/websocket/dungeon-run/dungeon-run-api-message-schema.ts";
 import { type ApiConnectionState } from "@/electron/renderer/api/common.ts";
 import * as dungeonRunClient from "@/electron/renderer/api/dungeon-run/dungeon-run-client.ts";
 import {
@@ -51,7 +57,10 @@ export type DungeonRunActionState = {
 
 export type DungeonRunServerState = {
   readonly connectionState: ApiConnectionState;
+  readonly dungeonRun: DungeonRunStateApi["dungeonRun"];
   readonly history: DungeonRunApiHistory | null;
+  readonly latestObservation: DungeonRunObservationApi | undefined;
+  readonly observations: ReadonlyArray<DungeonRunObservationApi>;
   readonly runState: DungeonRunEventStoreSnapshot["runState"];
 };
 
@@ -162,9 +171,14 @@ export function useDungeonRunActionState(): DungeonRunActionState {
 export function useDungeonRunServerState(): DungeonRunServerState {
   const { connectionState, history, runState } = useDungeonRunContext();
 
+  const observations = runState?.observations ?? [];
+
   return {
     connectionState,
+    dungeonRun: runState?.dungeonRun ?? null,
     history,
+    latestObservation: A.last(observations).pipe(Option.getOrUndefined),
+    observations,
     runState,
   };
 }
