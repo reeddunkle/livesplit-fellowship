@@ -3,10 +3,8 @@ import * as Stream from "effect/Stream";
 
 import { type TrackingApiMessage } from "@/api/websocket/tracking/tracking-api-message-schema.ts";
 import { createTrackingApiStatus } from "@/application/tracking/create-tracking-api-status.ts";
-import {
-  FellowshipTracker,
-  type FellowshipTrackerStatus,
-} from "@/application/tracking/fellowship-tracker-service.ts";
+import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
+import { type FellowshipTrackerStatus } from "@/application/tracking/fellowship-tracker-service-types.ts";
 import {
   TrackingWebSocketBroadcaster,
   type WebSocketBroadcasterService,

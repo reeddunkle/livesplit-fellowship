@@ -1,7 +1,8 @@
 import * as Match from "effect/Match";
 
-import { type FellowshipTrackerStatus } from "@/application/tracking/fellowship-tracker-service.ts";
 import { type TrackingApiStatus } from "@/application/tracking/tracking-api-schema.ts";
+
+import { type FellowshipTrackerStatus } from "./fellowship-tracker-service-types.ts";
 
 export function createTrackingApiStatus(
   status: FellowshipTrackerStatus,

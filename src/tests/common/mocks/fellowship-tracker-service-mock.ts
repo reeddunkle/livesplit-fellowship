@@ -2,10 +2,8 @@ import * as E from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Stream from "effect/Stream";
 
-import {
-  FellowshipTracker,
-  type FellowshipTrackerServiceShape,
-} from "@/application/tracking/fellowship-tracker-service.ts";
+import { FellowshipTracker } from "@/application/tracking/fellowship-tracker-service.ts";
+import { type FellowshipTrackerServiceShape } from "@/application/tracking/fellowship-tracker-service-types.ts";
 
 export type MakeFellowshipTrackerMockOptions =
   Partial<FellowshipTrackerServiceShape>;
