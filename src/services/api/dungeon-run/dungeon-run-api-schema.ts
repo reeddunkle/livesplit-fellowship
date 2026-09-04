@@ -8,8 +8,8 @@ import {
 import { ConfigurationIdSchema } from "@/validation/configuration/configuration-id-schema.ts";
 
 export const DungeonRunApiObservationStatisticsSchema = Schema.Struct({
-  averageElapsedMilliseconds: Schema.Number,
   bestElapsedMilliseconds: Schema.Number,
+  meanElapsedMilliseconds: Schema.Number,
   medianElapsedMilliseconds: Schema.Number,
   occurrence: PositiveIntegerSchema,
   sampleCount: PositiveIntegerSchema,

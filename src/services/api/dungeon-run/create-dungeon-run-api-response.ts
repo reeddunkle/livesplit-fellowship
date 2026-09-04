@@ -1,12 +1,17 @@
 import * as A from "effect/Array";
 import { pipe } from "effect/Function";
 import * as Order from "effect/Order";
+import * as Schema from "effect/Schema";
 
 import { type DungeonRunObservationHistory } from "@/db/daos/dungeon-run-observation/dungeon-run-observation-dao.ts";
 import {
   type DungeonRunApiHistory,
   type DungeonRunApiObservationStatistics,
 } from "@/services/api/dungeon-run/dungeon-run-api-schema.ts";
+import {
+  type RequirementObservationOccurrenceIdentity,
+  RequirementObservationOccurrenceIdentityFromStringSchema,
+} from "@/validation/common/requirement-observation-identity-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 const DungeonRunApiObservationStatisticsOrder = Order.mapInput(
@@ -16,7 +21,7 @@ const DungeonRunApiObservationStatisticsOrder = Order.mapInput(
       statistics.type,
       statistics.targetId,
       statistics.occurrence,
-    ] as const;
+    ] satisfies RequirementObservationOccurrenceIdentity;
   },
 );
 
@@ -25,11 +30,9 @@ type CreateDungeonRunApiResponseOptions = {
   readonly observations: ReadonlyArray<DungeonRunObservationHistory>;
 };
 
-function getObservationKey(observation: DungeonRunObservationHistory): string {
-  return [observation.type, observation.targetId, observation.occurrence].join(
-    ":",
-  );
-}
+const encodeRequirementObservationOccurrenceIdentity = Schema.encodeSync(
+  RequirementObservationOccurrenceIdentityFromStringSchema,
+);
 
 function getMedian(values: ReadonlyArray<number>): number {
   const sortedValues = A.sort(values, Order.Number);
@@ -40,37 +43,46 @@ function getMedian(values: ReadonlyArray<number>): number {
     return sortedValues[middleIndex] ?? 0;
   }
 
-  const lower = sortedValues[middleIndex - 1] ?? 0;
-  const upper = sortedValues[middleIndex] ?? 0;
+  const lowerValue = sortedValues[middleIndex - 1] ?? 0;
+  const upperValue = sortedValues[middleIndex] ?? 0;
 
-  return (lower + upper) / 2;
+  return (lowerValue + upperValue) / 2;
 }
 
 export function createDungeonRunApiResponse({
   configurationId,
   observations,
 }: CreateDungeonRunApiResponseOptions): DungeonRunApiHistory {
-  const observationsByKey = observations.reduce((grouped, observation) => {
-    const key = getObservationKey(observation);
-    const existing = grouped.get(key);
+  const observationsByIdentity = A.reduce(
+    observations,
+    new Map<string, Array<DungeonRunObservationHistory>>(),
+    (accumulator, observation) => {
+      const key = encodeRequirementObservationOccurrenceIdentity([
+        observation.type,
+        observation.targetId,
+        observation.occurrence,
+      ]);
 
-    if (existing === undefined) {
-      grouped.set(key, [observation]);
+      const existingObservations = accumulator.get(key);
 
-      return grouped;
-    }
+      if (existingObservations === undefined) {
+        accumulator.set(key, [observation]);
 
-    existing.push(observation);
+        return accumulator;
+      }
 
-    return grouped;
-  }, new Map<string, Array<DungeonRunObservationHistory>>());
+      existingObservations.push(observation);
+
+      return accumulator;
+    },
+  );
 
   const observationStatistics = pipe(
-    Array.from(observationsByKey.values()),
+    A.fromIterable(observationsByIdentity.values()),
     A.map((groupedObservations) => {
-      const first = groupedObservations[0];
+      const firstObservation = groupedObservations[0];
 
-      if (first === undefined) {
+      if (firstObservation === undefined) {
         return undefined;
       }
 
@@ -78,22 +90,23 @@ export function createDungeonRunApiResponse({
         return observation.elapsedMilliseconds;
       });
 
-      const totalElapsedMilliseconds = elapsedMilliseconds.reduce(
+      const totalElapsedMilliseconds = A.reduce(
+        elapsedMilliseconds,
+        0,
         (total, elapsed) => {
           return total + elapsed;
         },
-        0,
       );
 
       return {
-        averageElapsedMilliseconds:
-          totalElapsedMilliseconds / elapsedMilliseconds.length,
         bestElapsedMilliseconds: Math.min(...elapsedMilliseconds),
+        meanElapsedMilliseconds:
+          totalElapsedMilliseconds / elapsedMilliseconds.length,
         medianElapsedMilliseconds: getMedian(elapsedMilliseconds),
-        occurrence: first.occurrence,
+        occurrence: firstObservation.occurrence,
         sampleCount: elapsedMilliseconds.length,
-        targetId: first.targetId,
-        type: first.type,
+        targetId: firstObservation.targetId,
+        type: firstObservation.type,
       } satisfies DungeonRunApiObservationStatistics;
     }),
     A.filter((statistics): statistics is DungeonRunApiObservationStatistics => {

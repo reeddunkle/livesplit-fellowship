@@ -1,6 +1,7 @@
 import * as A from "effect/Array";
 import * as E from "effect/Effect";
 import * as Option from "effect/Option";
+import * as Schema from "effect/Schema";
 import {
   createContext,
   type ReactNode,
@@ -21,7 +22,14 @@ import {
   type DungeonRunEventStoreSnapshot,
   dungeonRunEventStore,
 } from "@/electron/renderer/stores/dungeon-run-store/dungeon-run-event-store";
-import { type DungeonRunApiHistory } from "@/services/api/dungeon-run/dungeon-run-api-schema.ts";
+import {
+  type DungeonRunApiHistory,
+  type DungeonRunApiObservationStatistics,
+} from "@/services/api/dungeon-run/dungeon-run-api-schema.ts";
+import {
+  RequirementObservationIdentityFromStringSchema,
+  RequirementObservationOccurrenceIdentityFromStringSchema,
+} from "@/validation/common/requirement-observation-identity-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 type LoadDungeonRunHistoryActionInput = {
@@ -64,6 +72,27 @@ export type DungeonRunServerState = {
   readonly runState: DungeonRunEventStoreSnapshot["runState"];
 };
 
+export type DungeonRunObservationAnalytics = {
+  readonly bestElapsedMilliseconds: number;
+  readonly meanElapsedMilliseconds: number;
+  readonly medianElapsedMilliseconds: number;
+  readonly sampleCount: number;
+};
+
+export type DungeonRunObservationInterpretation = {
+  readonly analytics: DungeonRunObservationAnalytics | undefined;
+  readonly elapsedFromPreviousObservationMilliseconds: number | undefined;
+  readonly elapsedFromStartMilliseconds: number | undefined;
+  readonly observation: DungeonRunObservationApi;
+  readonly occurrence: number;
+  readonly previousObservation: DungeonRunObservationApi | undefined;
+};
+
+export type DungeonRunInterpretationState = {
+  readonly latestObservation: DungeonRunObservationInterpretation | undefined;
+  readonly observations: ReadonlyArray<DungeonRunObservationInterpretation>;
+};
+
 const INITIAL_DUNGEON_RUN_HISTORY_ACTION_RESULT: DungeonRunHistoryActionResult =
   {
     error: undefined,
@@ -73,6 +102,25 @@ const INITIAL_DUNGEON_RUN_HISTORY_ACTION_RESULT: DungeonRunHistoryActionResult =
 const DungeonRunContext = createContext<DungeonRunContextValue | undefined>(
   undefined,
 );
+
+const encodeRequirementObservationIdentity = Schema.encodeSync(
+  RequirementObservationIdentityFromStringSchema,
+);
+
+const encodeRequirementObservationOccurrenceIdentity = Schema.encodeSync(
+  RequirementObservationOccurrenceIdentityFromStringSchema,
+);
+
+function createObservationAnalytics(
+  statistics: DungeonRunApiObservationStatistics,
+): DungeonRunObservationAnalytics {
+  return {
+    bestElapsedMilliseconds: statistics.bestElapsedMilliseconds,
+    meanElapsedMilliseconds: statistics.meanElapsedMilliseconds,
+    medianElapsedMilliseconds: statistics.medianElapsedMilliseconds,
+    sampleCount: statistics.sampleCount,
+  };
+}
 
 export function DungeonRunProvider({ children }: DungeonRunProviderProps) {
   const dungeonRunSnapshot = useSyncExternalStore(
@@ -181,4 +229,95 @@ export function useDungeonRunServerState(): DungeonRunServerState {
     observations,
     runState,
   };
+}
+
+export function useDungeonRunInterpretationState(): DungeonRunInterpretationState {
+  const { dungeonRun, history, observations } = useDungeonRunServerState();
+
+  return useMemo(() => {
+    const historicalStatisticsByKey = A.reduce(
+      history?.observations ?? [],
+      new Map<string, DungeonRunApiObservationStatistics>(),
+      (accumulator, statistics) => {
+        const key = encodeRequirementObservationOccurrenceIdentity([
+          statistics.type,
+          statistics.targetId,
+          statistics.occurrence,
+        ]);
+
+        accumulator.set(key, statistics);
+
+        return accumulator;
+      },
+    );
+
+    const interpretationResult = A.reduce(
+      observations,
+      {
+        observations: [] as Array<DungeonRunObservationInterpretation>,
+        occurrencesByIdentity: new Map<string, number>(),
+      },
+      (accumulator, observation) => {
+        const observationIdentityKey = encodeRequirementObservationIdentity([
+          observation.type,
+          observation.targetId,
+        ]);
+
+        const occurrence =
+          (accumulator.occurrencesByIdentity.get(observationIdentityKey) ?? 0) +
+          1;
+
+        accumulator.occurrencesByIdentity.set(
+          observationIdentityKey,
+          occurrence,
+        );
+
+        const previousObservation = A.last(accumulator.observations).pipe(
+          Option.getOrUndefined,
+        )?.observation;
+
+        const elapsedFromStartMilliseconds =
+          dungeonRun?.startedAtMilliseconds === null ||
+          dungeonRun?.startedAtMilliseconds === undefined
+            ? undefined
+            : observation.timestampMilliseconds -
+              dungeonRun.startedAtMilliseconds;
+
+        const elapsedFromPreviousObservationMilliseconds =
+          previousObservation === undefined
+            ? undefined
+            : observation.timestampMilliseconds -
+              previousObservation.timestampMilliseconds;
+
+        const historicalStatistics = historicalStatisticsByKey.get(
+          encodeRequirementObservationOccurrenceIdentity([
+            observation.type,
+            observation.targetId,
+            occurrence,
+          ]),
+        );
+
+        accumulator.observations.push({
+          analytics:
+            historicalStatistics === undefined
+              ? undefined
+              : createObservationAnalytics(historicalStatistics),
+          elapsedFromPreviousObservationMilliseconds,
+          elapsedFromStartMilliseconds,
+          observation,
+          occurrence,
+          previousObservation,
+        });
+
+        return accumulator;
+      },
+    );
+
+    return {
+      latestObservation: A.last(interpretationResult.observations).pipe(
+        Option.getOrUndefined,
+      ),
+      observations: interpretationResult.observations,
+    };
+  }, [dungeonRun?.startedAtMilliseconds, history, observations]);
 }
