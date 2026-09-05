@@ -7,10 +7,10 @@ import * as KeyValueStore from "effect/unstable/persistence/KeyValueStore";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 import {
-  type AppState,
-  AppStateSchema,
-  DEFAULT_APP_STATE,
-} from "./app-state-schema.ts";
+  CURRENT_APP_STATE_VERSION,
+  PersistedAppStateSchema,
+} from "./app-state-persistence-schema.ts";
+import { type AppState, DEFAULT_APP_STATE } from "./app-state-schema.ts";
 
 const APP_STATE_KEY = "app-state";
 
@@ -50,24 +50,44 @@ export const makeAppStateStorage = E.gen(function* () {
 
   const appStateStorage = KeyValueStore.toSchemaStore(
     keyValueStore,
-    AppStateSchema,
+    PersistedAppStateSchema,
   );
 
   const get = appStateStorage.get(APP_STATE_KEY).pipe(
     E.map(
-      Option.getOrElse(() => {
-        return DEFAULT_APP_STATE;
+      Option.match({
+        onNone: () => {
+          return DEFAULT_APP_STATE;
+        },
+        onSome: (persistedAppState) => {
+          return persistedAppState.state;
+        },
       }),
     ),
     E.catchTag("SchemaError", (error) => {
-      return E.logWarning("Invalid persisted app state. Using defaults.", {
-        error,
-      }).pipe(E.as(DEFAULT_APP_STATE));
+      return E.gen(function* () {
+        yield* E.logWarning(
+          "Invalid persisted app state. Resetting to defaults.",
+          {
+            error,
+          },
+        );
+
+        yield* appStateStorage.set(APP_STATE_KEY, {
+          state: DEFAULT_APP_STATE,
+          version: CURRENT_APP_STATE_VERSION,
+        });
+
+        return DEFAULT_APP_STATE;
+      });
     }),
   );
 
   const set: AppStateStorageShape["set"] = (state) => {
-    return appStateStorage.set(APP_STATE_KEY, state);
+    return appStateStorage.set(APP_STATE_KEY, {
+      state,
+      version: CURRENT_APP_STATE_VERSION,
+    });
   };
 
   const update = (
