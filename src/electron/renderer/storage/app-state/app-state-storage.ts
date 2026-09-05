@@ -23,6 +23,10 @@ export type AppStateStorageShape = {
 
   readonly set: (state: AppState) => E.Effect<void, AppStateStorageError>;
 
+  readonly setDungeonRunVisibleTimeColumns: (
+    visibleTimeColumns: AppState["dungeonRun"]["visibleTimeColumns"],
+  ) => E.Effect<void, AppStateStorageError>;
+
   readonly setSelectedConfigurationId: (
     id: ConfigurationId | null,
   ) => E.Effect<void, AppStateStorageError>;
@@ -76,6 +80,19 @@ export const makeAppStateStorage = E.gen(function* () {
     });
   };
 
+  const setDungeonRunVisibleTimeColumns: AppStateStorageShape["setDungeonRunVisibleTimeColumns"] =
+    (visibleTimeColumns) => {
+      return update((state) => {
+        return {
+          ...state,
+          dungeonRun: {
+            ...state.dungeonRun,
+            visibleTimeColumns,
+          },
+        };
+      });
+    };
+
   const setSelectedConfigurationId: AppStateStorageShape["setSelectedConfigurationId"] =
     (id) => {
       return update((state) => {
@@ -109,6 +126,7 @@ export const makeAppStateStorage = E.gen(function* () {
   return {
     get,
     set,
+    setDungeonRunVisibleTimeColumns,
     setSelectedConfigurationId,
     setSidebarOpen,
     setTheme,
