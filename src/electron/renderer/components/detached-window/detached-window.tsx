@@ -69,6 +69,12 @@ function resizeDetachedWindowToContent({
   readonly childContainer: HTMLElement;
   readonly childWindow: Window;
 }) {
+  const childDocument = childWindow.document;
+
+  // Prevent a transient scrollbar while the native window catches up
+  // with the newly rendered content size.
+  childDocument.documentElement.style.overflowY = "hidden";
+
   const contentHeight = childContainer.scrollHeight;
   const contentWidth = childContainer.scrollWidth;
 
@@ -81,10 +87,9 @@ function resizeDetachedWindowToContent({
   const maxHeight = childWindow.screen.availHeight - WINDOW_VERTICAL_MARGIN;
   const maxWidth = childWindow.screen.availWidth - WINDOW_HORIZONTAL_MARGIN;
 
-  const height = Math.min(
-    Math.ceil(contentHeight) + windowChromeHeight,
-    maxHeight,
-  );
+  const desiredHeight = Math.ceil(contentHeight) + windowChromeHeight;
+
+  const height = Math.min(desiredHeight, maxHeight);
 
   const width = Math.min(
     Math.ceil(contentWidth) + windowChromeWidth + scrollbarGutterWidth,
@@ -92,6 +97,11 @@ function resizeDetachedWindowToContent({
   );
 
   childWindow.resizeTo(width, height);
+
+  childWindow.requestAnimationFrame(() => {
+    childDocument.documentElement.style.overflowY =
+      desiredHeight > maxHeight ? "auto" : "hidden";
+  });
 }
 
 function observeDetachedWindowContent({
