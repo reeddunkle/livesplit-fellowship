@@ -307,7 +307,6 @@ export function DungeonRun() {
         <div className="text-right">Segment</div>
         <div className="text-right">Total</div>
       </div>
-
       <div className="grid gap-1">
         {A.map(sortedMilestones, (milestone) => {
           return (
@@ -321,6 +320,7 @@ export function DungeonRun() {
       </div>
       <Separator />
       <DungeonRunTimer
+        className="justify-self-end text-end"
         initialElapsedMilliseconds={timerStartTimeMilliseconds}
         isRunning={isTimerRunning}
       />

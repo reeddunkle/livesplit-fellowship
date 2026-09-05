@@ -139,7 +139,7 @@ function RequirementRow({
   });
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_5.5rem_5.5rem_5.5rem] items-center gap-x-2 border-t px-3 py-1.5 text-xs">
+    <div className="grid grid-cols-[minmax(2rem,1fr)_4.25rem_4.25rem_4.25rem] items-center gap-x-2 border-t px-3 py-1.5 text-xs">
       <div className="min-w-0 pl-5">
         <div className="truncate text-muted-foreground">
           {targetLabel}

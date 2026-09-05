@@ -1,4 +1,9 @@
-import { ExternalLinkIcon, PlayIcon, SquareIcon } from "lucide-react";
+import {
+  Minimize2Icon,
+  PlayIcon,
+  SquareArrowOutUpRightIcon,
+  SquareIcon,
+} from "lucide-react";
 
 import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider";
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
@@ -78,16 +83,21 @@ export function HomeTrackingControls() {
           <SquareIcon className="fill-current" />
           Stop
         </Button>
-        <Button
-          disabled={detachedWindow.isOpen}
-          onClick={detachedWindow.open}
-          size="sm"
-          type="button"
-          variant="outline"
-        >
-          <ExternalLinkIcon />
-          Open tracker
-        </Button>
+        {detachedWindow.isOpen ? (
+          <Button
+            onClick={detachedWindow.close}
+            type="button"
+            variant="outline"
+          >
+            <Minimize2Icon />
+            Close tracker
+          </Button>
+        ) : (
+          <Button onClick={detachedWindow.open} type="button" variant="outline">
+            <SquareArrowOutUpRightIcon />
+            Open tracker
+          </Button>
+        )}
       </div>
 
       {configurationLabel !== undefined && (

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 
 import { formatDuration } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
+import { cn } from "@/util/class-names.ts";
 
 const TIMER_INTERVAL_MILLISECONDS = 1000 / 30;
 
 type DungeonRunTimerProps = {
+  className?: string;
   readonly initialElapsedMilliseconds: number | undefined;
   readonly isRunning: boolean;
 };
@@ -48,6 +50,7 @@ function useElapsedTimer({
 }
 
 export function DungeonRunTimer({
+  className,
   initialElapsedMilliseconds,
   isRunning,
 }: DungeonRunTimerProps) {
@@ -57,7 +60,9 @@ export function DungeonRunTimer({
   });
 
   return (
-    <div className="text-center font-mono text-5xl font-semibold tabular-nums">
+    <div
+      className={cn("font-mono text-5xl font-semibold tabular-nums", className)}
+    >
       {formatDuration(elapsedMilliseconds)}
     </div>
   );
