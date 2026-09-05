@@ -2,7 +2,6 @@ import * as A from "effect/Array";
 import * as Order from "effect/Order";
 import * as Predicate from "effect/Predicate";
 import { ChevronRightIcon } from "lucide-react";
-import { useState } from "react";
 
 import {
   DungeonRunTableLabelCell,
@@ -19,7 +18,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/electron/renderer/components/ui/collapsible.tsx";
-import { type DungeonRunObservationInterpretation } from "@/electron/renderer/stores/dungeon-run-store/dungeon-run-provider";
+import {
+  type DungeonRunObservationInterpretation,
+  useDungeonRunDisplayState,
+} from "@/electron/renderer/stores/dungeon-run-store/dungeon-run-provider";
 import { useFellowshipDataStore } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store";
 import { getRequirementTargetLabel } from "@/helpers/requirement-target-label";
 import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
@@ -144,7 +146,11 @@ export function DungeonRunMilestone({
   comparison,
   milestone,
 }: DungeonRunMilestoneProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isMilestoneExpanded, setMilestoneExpanded } =
+    useDungeonRunDisplayState();
+
+  const milestoneKey = String(milestone.milestoneIndex);
+  const isOpen = isMilestoneExpanded(milestoneKey);
 
   const sortedRequirementRows = A.sort(
     milestone.requirementRows,
@@ -154,7 +160,9 @@ export function DungeonRunMilestone({
   return (
     <Collapsible
       className="w-full min-w-0"
-      onOpenChange={setIsOpen}
+      onOpenChange={(isExpanded) => {
+        setMilestoneExpanded(milestoneKey, isExpanded);
+      }}
       open={isOpen}
     >
       <div

@@ -35,6 +35,13 @@ import {
 } from "@/validation/common/requirement-observation-identity-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
+export type DungeonRunMilestoneKey = string;
+
+type DungeonRunMilestoneExpansionState = {
+  readonly defaultIsExpanded: boolean;
+  readonly overrides: ReadonlySet<DungeonRunMilestoneKey>;
+};
+
 export const DUNGEON_RUN_TIME_COLUMN = {
   DELTA: "DELTA",
   SEGMENT: "SEGMENT",
@@ -45,8 +52,17 @@ export type DungeonRunTimeColumn =
   (typeof DUNGEON_RUN_TIME_COLUMN)[keyof typeof DUNGEON_RUN_TIME_COLUMN];
 
 export type DungeonRunDisplayState = {
+  readonly collapseAllMilestones: () => void;
   readonly comparison: DungeonRunComparison;
+  readonly expandAllMilestones: () => void;
+  readonly isMilestoneExpanded: (
+    milestoneKey: DungeonRunMilestoneKey,
+  ) => boolean;
   readonly setComparison: (comparison: DungeonRunComparison) => void;
+  readonly setMilestoneExpanded: (
+    milestoneKey: DungeonRunMilestoneKey,
+    isExpanded: boolean,
+  ) => void;
   readonly setTimeColumnVisible: (
     column: DungeonRunTimeColumn,
     isVisible: boolean,
@@ -64,14 +80,23 @@ type DungeonRunHistoryActionResult = {
 };
 
 type DungeonRunContextValue = {
+  readonly collapseAllMilestones: () => void;
   readonly comparison: DungeonRunComparison;
   readonly connectionState: ApiConnectionState;
+  readonly expandAllMilestones: () => void;
   readonly history: DungeonRunApiHistory | null;
   readonly historyError: unknown | undefined;
   readonly isLoadingHistory: boolean;
+  readonly isMilestoneExpanded: (
+    milestoneKey: DungeonRunMilestoneKey,
+  ) => boolean;
   readonly loadHistory: (configurationId: ConfigurationId) => void;
   readonly runState: DungeonRunEventStoreSnapshot["runState"];
   readonly setComparison: (comparison: DungeonRunComparison) => void;
+  readonly setMilestoneExpanded: (
+    milestoneKey: DungeonRunMilestoneKey,
+    isExpanded: boolean,
+  ) => void;
   readonly setTimeColumnVisible: (
     column: DungeonRunTimeColumn,
     isVisible: boolean,
@@ -157,6 +182,57 @@ export function DungeonRunProvider({ children }: DungeonRunProviderProps) {
     dungeonRunEventStore.getSnapshot,
   );
 
+  const [milestoneExpansionState, setMilestoneExpansionState] =
+    useState<DungeonRunMilestoneExpansionState>({
+      defaultIsExpanded: false,
+      overrides: new Set(),
+    });
+
+  const expandAllMilestones = useCallback(() => {
+    setMilestoneExpansionState({
+      defaultIsExpanded: true,
+      overrides: new Set(),
+    });
+  }, []);
+
+  const collapseAllMilestones = useCallback(() => {
+    setMilestoneExpansionState({
+      defaultIsExpanded: false,
+      overrides: new Set(),
+    });
+  }, []);
+
+  const isMilestoneExpanded = useCallback(
+    (milestoneKey: DungeonRunMilestoneKey) => {
+      const isOverridden = milestoneExpansionState.overrides.has(milestoneKey);
+
+      return isOverridden
+        ? !milestoneExpansionState.defaultIsExpanded
+        : milestoneExpansionState.defaultIsExpanded;
+    },
+    [milestoneExpansionState],
+  );
+
+  const setMilestoneExpanded = useCallback(
+    (milestoneKey: DungeonRunMilestoneKey, isExpanded: boolean) => {
+      setMilestoneExpansionState((currentState) => {
+        const overrides = new Set(currentState.overrides);
+
+        if (isExpanded === currentState.defaultIsExpanded) {
+          overrides.delete(milestoneKey);
+        } else {
+          overrides.add(milestoneKey);
+        }
+
+        return {
+          ...currentState,
+          overrides,
+        };
+      });
+    },
+    [],
+  );
+
   const [comparison, setComparison] = useState<DungeonRunComparison>("BEST");
 
   const [visibleTimeColumns, setVisibleTimeColumns] = useState<
@@ -216,11 +292,14 @@ export function DungeonRunProvider({ children }: DungeonRunProviderProps) {
 
   const contextValue = useMemo<DungeonRunContextValue>(() => {
     return {
+      collapseAllMilestones,
       comparison,
       connectionState: dungeonRunSnapshot.connectionState,
+      expandAllMilestones,
       history: historyState.history,
       historyError: historyState.error,
       isLoadingHistory,
+      isMilestoneExpanded,
       loadHistory: (configurationId) => {
         startTransition(() => {
           dispatchLoadHistory({
@@ -230,17 +309,22 @@ export function DungeonRunProvider({ children }: DungeonRunProviderProps) {
       },
       runState: dungeonRunSnapshot.runState,
       setComparison,
+      setMilestoneExpanded,
       setTimeColumnVisible,
       visibleTimeColumns,
     };
   }, [
+    collapseAllMilestones,
     comparison,
     dispatchLoadHistory,
     dungeonRunSnapshot.connectionState,
     dungeonRunSnapshot.runState,
+    expandAllMilestones,
     historyState.error,
     historyState.history,
     isLoadingHistory,
+    isMilestoneExpanded,
+    setMilestoneExpanded,
     setTimeColumnVisible,
     visibleTimeColumns,
   ]);
@@ -389,15 +473,23 @@ export function useDungeonRunInterpretationState(): DungeonRunInterpretationStat
 
 export function useDungeonRunDisplayState(): DungeonRunDisplayState {
   const {
+    collapseAllMilestones,
     comparison,
+    expandAllMilestones,
+    isMilestoneExpanded,
     setComparison,
+    setMilestoneExpanded,
     setTimeColumnVisible,
     visibleTimeColumns,
   } = useDungeonRunContext();
 
   return {
+    collapseAllMilestones,
     comparison,
+    expandAllMilestones,
+    isMilestoneExpanded,
     setComparison,
+    setMilestoneExpanded,
     setTimeColumnVisible,
     visibleTimeColumns,
   };

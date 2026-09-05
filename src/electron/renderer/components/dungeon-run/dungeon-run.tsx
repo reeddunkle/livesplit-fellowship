@@ -2,7 +2,13 @@ import * as A from "effect/Array";
 import { pipe } from "effect/Function";
 import * as Order from "effect/Order";
 import * as Predicate from "effect/Predicate";
-import { MenuIcon, SquareDashedBottomIcon, SquareIcon } from "lucide-react";
+import {
+  ChevronsDownUpIcon,
+  ChevronsUpDownIcon,
+  MenuIcon,
+  SquareDashedBottomIcon,
+  SquareIcon,
+} from "lucide-react";
 import { useMemo } from "react";
 
 import { DungeonRunDropdownMenu } from "@/electron/renderer/components/dungeon-run/dungeon-run-dropdown-menu.tsx";
@@ -88,7 +94,12 @@ export function DungeonRun() {
   const { resizeToContent } = useDetachedWindow();
   const configurations = useConfigurations();
   const selectedConfigurationId = useSelectedConfigurationId();
-  const { comparison } = useDungeonRunDisplayState();
+  const {
+    collapseAllMilestones,
+    comparison,
+    expandAllMilestones,
+    isMilestoneExpanded,
+  } = useDungeonRunDisplayState();
 
   const { trackingStatus } = useTrackingServerState();
   const { stop } = useTrackingActions();
@@ -226,6 +237,12 @@ export function DungeonRun() {
     });
   }, [dungeonRun?.startedAtMilliseconds, milestoneRows]);
 
+  const areAllMilestonesExpanded =
+    sortedMilestones.length > 0 &&
+    A.every(sortedMilestones, (milestone) => {
+      return isMilestoneExpanded(String(milestone.milestoneIndex));
+    });
+
   if (configuration === undefined) {
     return (
       <div className="flex min-h-40 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
@@ -252,6 +269,29 @@ export function DungeonRun() {
   return (
     <section className="grid min-w-105 w-fit gap-3">
       <div className="flex items-center justify-end gap-2">
+        <Button
+          onClick={() => {
+            const handleToggle = areAllMilestonesExpanded
+              ? collapseAllMilestones
+              : expandAllMilestones;
+
+            handleToggle();
+            resizeToContent();
+          }}
+          size="icon"
+          title={
+            areAllMilestonesExpanded
+              ? "Collapse all milestones"
+              : "Expand all milestones"
+          }
+          variant="outline"
+        >
+          {areAllMilestonesExpanded ? (
+            <ChevronsDownUpIcon />
+          ) : (
+            <ChevronsUpDownIcon />
+          )}
+        </Button>
         <Button onClick={resizeToContent} size="icon" variant="outline">
           <SquareDashedBottomIcon />
         </Button>
