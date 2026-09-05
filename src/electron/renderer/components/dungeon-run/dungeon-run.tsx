@@ -20,7 +20,10 @@ import {
   RadioGroupItem,
 } from "@/electron/renderer/components/ui/radio-group.tsx";
 import { Separator } from "@/electron/renderer/components/ui/separator";
-import { useSelectedConfigurationId } from "@/electron/renderer/stores/configurations-store/configurations-store";
+import {
+  useConfigurations,
+  useSelectedConfigurationId,
+} from "@/electron/renderer/stores/configurations-store/configurations-store";
 import {
   type DungeonRunObservationInterpretation,
   useDungeonRunInterpretationState,
@@ -59,10 +62,6 @@ const MilestoneCompletionOrder = Order.mapInput(
   },
 );
 
-type DungeonRunProps = {
-  readonly configurations: ReadonlyArray<ConfigurationApiConfiguration>;
-};
-
 const COMPARISON_OPTIONS = [
   {
     label: "Best",
@@ -98,7 +97,8 @@ function getConfigurationById({
   }).pipe((option) => (option._tag === "Some" ? option.value : undefined));
 }
 
-export function DungeonRun({ configurations }: DungeonRunProps) {
+export function DungeonRun() {
+  const configurations = useConfigurations();
   const selectedConfigurationId = useSelectedConfigurationId();
 
   const { trackingStatus } = useTrackingServerState();

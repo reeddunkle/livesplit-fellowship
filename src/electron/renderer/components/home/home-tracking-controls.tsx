@@ -1,5 +1,6 @@
 import { PlayIcon, SquareIcon } from "lucide-react";
 
+import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider";
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import { Spinner } from "@/electron/renderer/components/ui/spinner.tsx";
 import {
@@ -20,6 +21,8 @@ export function HomeTrackingControls() {
   const { start, stop } = useTrackingActions();
   const { isPending } = useTrackingActionState();
   const { trackingStatus } = useTrackingServerState();
+
+  const detachedWindow = useDetachedWindow();
 
   const isTracking = trackingStatus?.status === "Tracking";
 
@@ -47,6 +50,7 @@ export function HomeTrackingControls() {
             }
 
             start(selectedConfigurationId);
+            detachedWindow.open();
           }}
           size="xl"
           type="button"
@@ -63,7 +67,6 @@ export function HomeTrackingControls() {
             </>
           )}
         </Button>
-
         <Button
           className="min-w-32"
           disabled={!isTracking || isPending}
@@ -74,6 +77,9 @@ export function HomeTrackingControls() {
         >
           <SquareIcon className="fill-current" />
           Stop
+        </Button>
+        <Button disabled={detachedWindow.isOpen} onClick={detachedWindow.open}>
+          Open tracker
         </Button>
       </div>
 

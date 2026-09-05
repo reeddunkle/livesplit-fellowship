@@ -113,7 +113,6 @@ function RequirementRow({
             }`}
         </div>
       </div>
-
       <TimeColumns
         comparisonElapsedMilliseconds={comparisonElapsedMilliseconds}
         segmentMilliseconds={

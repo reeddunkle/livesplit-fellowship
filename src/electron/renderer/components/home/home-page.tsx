@@ -1,8 +1,11 @@
 import { ConfigurationEditorContainer } from "@/electron/renderer/components/configuration/configuration-editor-container.tsx";
 import { ConfigurationSidebar } from "@/electron/renderer/components/configuration/sidebar/configuration-sidebar.tsx";
 import { AppLayout } from "@/electron/renderer/components/core/app-layout.tsx";
+import { ManagedDetachedWindow } from "@/electron/renderer/components/detached-window";
+import { DungeonRun } from "@/electron/renderer/components/dungeon-run/dungeon-run";
 import { HomeTrackingControls } from "@/electron/renderer/components/home/home-tracking-controls.tsx";
 import { LiveSplitPanel } from "@/electron/renderer/components/live-split/live-split-panel.tsx";
+import { DetachedWindowProvider } from "@/electron/renderer/components/providers/detached-window-provider";
 import { ConfigurationProvider } from "@/electron/renderer/stores/configurations-store/configurations-store.tsx";
 import { FellowshipDataProvider } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store.tsx";
 import { type AbilityApiAbilityList } from "@/services/api/ability/ability-api-schema.ts";
@@ -34,13 +37,18 @@ export function HomePage({
       units={units}
     >
       <ConfigurationProvider configurations={configurations}>
-        <AppLayout sidebar={<ConfigurationSidebar />}>
-          <main className="mx-auto grid w-full gap-6 p-6">
-            <LiveSplitPanel />
-            <HomeTrackingControls />
-            <ConfigurationEditorContainer />
-          </main>
-        </AppLayout>
+        <DetachedWindowProvider>
+          <ManagedDetachedWindow>
+            <DungeonRun />
+          </ManagedDetachedWindow>
+          <AppLayout sidebar={<ConfigurationSidebar />}>
+            <main className="mx-auto grid w-full gap-6 p-6">
+              <LiveSplitPanel />
+              <HomeTrackingControls />
+              <ConfigurationEditorContainer />
+            </main>
+          </AppLayout>
+        </DetachedWindowProvider>
       </ConfigurationProvider>
     </FellowshipDataProvider>
   );
