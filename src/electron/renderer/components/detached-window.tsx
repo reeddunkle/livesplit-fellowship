@@ -25,6 +25,19 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
         return () => {};
       }
 
+      document
+        .querySelectorAll<HTMLLinkElement | HTMLStyleElement>(
+          'link[rel="stylesheet"], style',
+        )
+        .forEach((styleElement) => {
+          childWindow.document.head.append(styleElement.cloneNode(true));
+        });
+
+      childWindow.document.documentElement.className =
+        document.documentElement.className;
+
+      childWindow.document.body.className = document.body.className;
+
       const childContainer = childWindow.document.createElement("div");
       childContainer.id = "root";
 
