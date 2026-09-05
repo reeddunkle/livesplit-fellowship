@@ -12,7 +12,6 @@ import {
 import { useMemo } from "react";
 
 import { useDetachedWindow } from "@/electron/renderer/components/detached-window/detached-window-provider";
-import { useResizeDetachedWindowAfterUpdate } from "@/electron/renderer/components/detached-window/use-resize-detached-window-after-update.tsx";
 import { DungeonRunDropdownMenu } from "@/electron/renderer/components/dungeon-run/dungeon-run-dropdown-menu.tsx";
 import {
   DungeonRunMilestone,
@@ -93,7 +92,6 @@ function getConfigurationById({
 
 export function DungeonRun() {
   const { resizeToContent } = useDetachedWindow();
-  const resizeAfterUpdate = useResizeDetachedWindowAfterUpdate();
   const configurations = useConfigurations();
   const selectedConfigurationId = useSelectedConfigurationId();
   const {
@@ -272,13 +270,11 @@ export function DungeonRun() {
     <section className="grid min-w-105 w-fit gap-3">
       <div className="flex items-center justify-end gap-2">
         <Button
-          onClick={() => {
-            resizeAfterUpdate(
-              areAllMilestonesExpanded
-                ? collapseAllMilestones
-                : expandAllMilestones,
-            );
-          }}
+          onClick={
+            areAllMilestonesExpanded
+              ? collapseAllMilestones
+              : expandAllMilestones
+          }
           size="icon"
           title={
             areAllMilestonesExpanded

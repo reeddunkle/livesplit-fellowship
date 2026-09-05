@@ -8,8 +8,59 @@ import { createPortal } from "react-dom";
 
 import { useDetachedWindow } from "@/electron/renderer/components/detached-window/detached-window-provider";
 
-const WINDOW_VERTICAL_MARGIN = 32;
 const WINDOW_HORIZONTAL_MARGIN = 32;
+const WINDOW_VERTICAL_MARGIN = 32;
+
+function copyDocumentStyles({
+  sourceDocument,
+  targetDocument,
+}: {
+  readonly sourceDocument: Document;
+  readonly targetDocument: Document;
+}) {
+  sourceDocument
+    .querySelectorAll<HTMLLinkElement | HTMLStyleElement>(
+      'link[rel="stylesheet"], style',
+    )
+    .forEach((styleElement) => {
+      targetDocument.head.append(styleElement.cloneNode(true));
+    });
+}
+
+function configureDetachedDocument({
+  sourceDocument,
+  targetDocument,
+}: {
+  readonly sourceDocument: Document;
+  readonly targetDocument: Document;
+}) {
+  targetDocument.documentElement.className =
+    sourceDocument.documentElement.className;
+
+  targetDocument.documentElement.classList.add(
+    "[scrollbar-gutter:stable_both-edges]",
+  );
+
+  targetDocument.body.className = sourceDocument.body.className;
+}
+
+function createDetachedWindowContainer(document: Document) {
+  const container = document.createElement("div");
+
+  container.id = "root";
+
+  /*
+   * Keep the portal root sized to its contents rather than allowing the
+   * normal block layout to stretch it to the detached viewport width.
+   *
+   * This keeps content measurements independent of the current window size.
+   */
+  container.style.width = "fit-content";
+
+  document.body.append(container);
+
+  return container;
+}
 
 function resizeDetachedWindowToContent({
   childContainer,
@@ -24,7 +75,7 @@ function resizeDetachedWindowToContent({
   const windowChromeHeight = childWindow.outerHeight - childWindow.innerHeight;
   const windowChromeWidth = childWindow.outerWidth - childWindow.innerWidth;
 
-  const scrollbarWidth =
+  const scrollbarGutterWidth =
     childWindow.innerWidth - childWindow.document.documentElement.clientWidth;
 
   const maxHeight = childWindow.screen.availHeight - WINDOW_VERTICAL_MARGIN;
@@ -36,11 +87,44 @@ function resizeDetachedWindowToContent({
   );
 
   const width = Math.min(
-    Math.ceil(contentWidth) + windowChromeWidth + scrollbarWidth,
+    Math.ceil(contentWidth) + windowChromeWidth + scrollbarGutterWidth,
     maxWidth,
   );
 
   childWindow.resizeTo(width, height);
+}
+
+function observeDetachedWindowContent({
+  childContainer,
+  childWindow,
+  resizeToContent,
+}: {
+  readonly childContainer: HTMLElement;
+  readonly childWindow: Window;
+  readonly resizeToContent: () => void;
+}) {
+  let animationFrameId: number | undefined;
+
+  const resizeObserver = new ResizeObserver(() => {
+    if (animationFrameId !== undefined) {
+      childWindow.cancelAnimationFrame(animationFrameId);
+    }
+
+    animationFrameId = childWindow.requestAnimationFrame(() => {
+      animationFrameId = undefined;
+      resizeToContent();
+    });
+  });
+
+  resizeObserver.observe(childContainer);
+
+  return () => {
+    if (animationFrameId !== undefined) {
+      childWindow.cancelAnimationFrame(animationFrameId);
+    }
+
+    resizeObserver.unobserve(childContainer);
+  };
 }
 
 type DetachedWindowProps = {
@@ -67,27 +151,17 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
       const childDocument = childWindow.document;
 
-      document
-        .querySelectorAll<HTMLLinkElement | HTMLStyleElement>(
-          'link[rel="stylesheet"], style',
-        )
-        .forEach((styleElement) => {
-          childDocument.head.append(styleElement.cloneNode(true));
-        });
+      copyDocumentStyles({
+        sourceDocument: document,
+        targetDocument: childDocument,
+      });
 
-      childDocument.documentElement.className =
-        document.documentElement.className;
+      configureDetachedDocument({
+        sourceDocument: document,
+        targetDocument: childDocument,
+      });
 
-      childDocument.documentElement.classList.add(
-        "[scrollbar-gutter:stable_both-edges]",
-      );
-
-      childDocument.body.className = document.body.className;
-
-      const childContainer = childDocument.createElement("div");
-      childContainer.id = "root";
-
-      childDocument.body.append(childContainer);
+      const childContainer = createDetachedWindowContainer(childDocument);
 
       childWindowRef.current = childWindow;
       childContainerRef.current = childContainer;
@@ -103,12 +177,21 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
       setResizeToContent(resizeToContent);
 
-      const handleClose = () => {
+      let stopObservingContent: (() => void) | undefined;
+      let initializationFrameId: number | undefined;
+      let isCancelled = false;
+
+      const clearReferences = () => {
         setPortalContainer(null);
         setResizeToContent(null);
 
         childWindowRef.current = null;
         childContainerRef.current = null;
+      };
+
+      const handleClose = () => {
+        stopObservingContent?.();
+        clearReferences();
 
         onStoreChange();
         onClose();
@@ -116,10 +199,8 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
       childWindow.addEventListener("beforeunload", handleClose);
 
+      // Publish the container to `useSyncExternalStore`
       onStoreChange();
-
-      let animationFrameId: number | undefined;
-      let isCancelled = false;
 
       const initializeWindow = async () => {
         await childDocument.fonts.ready;
@@ -128,8 +209,21 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
           return;
         }
 
-        animationFrameId = childWindow.requestAnimationFrame(() => {
+        initializationFrameId = childWindow.requestAnimationFrame(() => {
+          if (isCancelled) {
+            return;
+          }
+
+          // Portal is rendered and ready
           resizeToContent();
+
+          // Observe only after the initial resize
+          stopObservingContent = observeDetachedWindowContent({
+            childContainer,
+            childWindow,
+            resizeToContent,
+          });
+
           childWindow.electronAPI.showWindow();
         });
       };
@@ -139,18 +233,19 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
       return () => {
         isCancelled = true;
 
-        if (animationFrameId !== undefined) {
-          childWindow.cancelAnimationFrame(animationFrameId);
+        if (initializationFrameId !== undefined) {
+          childWindow.cancelAnimationFrame(initializationFrameId);
         }
 
-        setPortalContainer(null);
-        setResizeToContent(null);
+        stopObservingContent?.();
 
         childWindow.removeEventListener("beforeunload", handleClose);
-        childWindow.close();
 
-        childWindowRef.current = null;
-        childContainerRef.current = null;
+        clearReferences();
+
+        if (!childWindow.closed) {
+          childWindow.close();
+        }
       };
     },
     [onClose, setPortalContainer, setResizeToContent],
