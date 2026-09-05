@@ -78,7 +78,9 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
       childDocument.documentElement.className =
         document.documentElement.className;
 
-      childDocument.documentElement.classList.add("scrollbar-gutter-stable");
+      childDocument.documentElement.classList.add(
+        "[scrollbar-gutter:stable_both-edges]",
+      );
 
       childDocument.body.className = document.body.className;
 
