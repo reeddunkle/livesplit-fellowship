@@ -1,3 +1,4 @@
+import * as R from "effect/Record";
 import {
   createContext,
   type PropsWithChildren,
@@ -10,10 +11,22 @@ import {
   createRequirementTargetsByEventType,
   type RequirementTargetsByEventType,
 } from "@/electron/renderer/stores/fellowship-data/create-requirement-target-data.ts";
-import { type AbilityApiAbilityList } from "@/services/api/ability/ability-api-schema.ts";
-import { type DungeonApiDungeonList } from "@/services/api/dungeon/dungeon-api-schema.ts";
-import { type EncounterApiEncounterList } from "@/services/api/encounter/encounter-api-schema.ts";
-import { type UnitApiUnitList } from "@/services/api/unit/unit-api-schema.ts";
+import {
+  type AbilityApiAbility,
+  type AbilityApiAbilityList,
+} from "@/services/api/ability/ability-api-schema.ts";
+import {
+  type DungeonApiDungeon,
+  type DungeonApiDungeonList,
+} from "@/services/api/dungeon/dungeon-api-schema.ts";
+import {
+  type EncounterApiEncounter,
+  type EncounterApiEncounterList,
+} from "@/services/api/encounter/encounter-api-schema.ts";
+import {
+  type UnitApiUnit,
+  type UnitApiUnitList,
+} from "@/services/api/unit/unit-api-schema.ts";
 
 export type FellowshipDataStoreProps = {
   readonly abilities: AbilityApiAbilityList;
@@ -23,14 +36,30 @@ export type FellowshipDataStoreProps = {
 };
 
 export type FellowshipDataStoreState = FellowshipDataStoreProps & {
+  readonly abilitiesById: Readonly<Record<string, AbilityApiAbility>>;
+  readonly dungeonsById: Readonly<Record<string, DungeonApiDungeon>>;
+  readonly encountersById: Readonly<Record<string, EncounterApiEncounter>>;
   readonly requirementTargetsByEventType: RequirementTargetsByEventType;
+  readonly unitsById: Readonly<Record<string, UnitApiUnit>>;
 };
 
 export function createFellowshipDataStore(props: FellowshipDataStoreProps) {
   return createStore<FellowshipDataStoreState>()(() => {
     return {
       ...props,
+      abilitiesById: R.fromIterableBy(props.abilities, (ability) => {
+        return ability.id;
+      }),
+      dungeonsById: R.fromIterableBy(props.dungeons, (dungeon) => {
+        return dungeon.id;
+      }),
+      encountersById: R.fromIterableBy(props.encounters, (encounter) => {
+        return encounter.id;
+      }),
       requirementTargetsByEventType: createRequirementTargetsByEventType(props),
+      unitsById: R.fromIterableBy(props.units, (unit) => {
+        return unit.id;
+      }),
     };
   });
 }

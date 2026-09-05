@@ -40,7 +40,6 @@
     "@tanstack/react-router": "catalog:tanstack",
     "class-variance-authority": "catalog:tailwind",
     "clsx": "catalog:tailwind",
-    "cn": "^0.1.1",
     "date-fns": "catalog:util",
     "dotenv": "catalog:runtime",
     "effect": "catalog:effect",

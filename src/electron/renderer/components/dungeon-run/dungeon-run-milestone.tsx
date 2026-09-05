@@ -90,10 +90,12 @@ function RequirementRow({
   readonly row: DungeonRunRequirementRow;
   readonly segmentElapsedMilliseconds: number | undefined;
 }) {
-  const abilities = useFellowshipDataStore((state) => state.abilities);
-  const dungeons = useFellowshipDataStore((state) => state.dungeons);
-  const encounters = useFellowshipDataStore((state) => state.encounters);
-  const units = useFellowshipDataStore((state) => state.units);
+  const abilitiesById = useFellowshipDataStore((state) => state.abilitiesById);
+  const dungeonsById = useFellowshipDataStore((state) => state.dungeonsById);
+  const encountersById = useFellowshipDataStore(
+    (state) => state.encountersById,
+  );
+  const unitsById = useFellowshipDataStore((state) => state.unitsById);
 
   const observation = row.completedObservation;
 
@@ -106,12 +108,12 @@ function RequirementRow({
         });
 
   const targetLabel = getRequirementTargetLabel({
-    abilities,
-    dungeons,
-    encounters,
+    abilitiesById,
+    dungeonsById,
+    encountersById,
     eventType: row.requirement.type,
     targetId: row.requirement.targetId,
-    units,
+    unitsById,
   });
 
   return (

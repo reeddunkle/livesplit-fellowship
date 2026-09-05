@@ -1,6 +1,4 @@
-import * as A from "effect/Array";
 import * as Match from "effect/Match";
-import * as Option from "effect/Option";
 
 import { FELLOWSHIP_EVENT } from "@/services/fellowship/constants/fellowship-event.ts";
 import { type RequirementEventType } from "@/services/fellowship/validation/requirement-event-type-schema.ts";
@@ -27,10 +25,10 @@ type Unit = {
 };
 
 type RequirementTargetLabelData = {
-  readonly abilities: ReadonlyArray<Ability>;
-  readonly dungeons: ReadonlyArray<Dungeon>;
-  readonly encounters: ReadonlyArray<Encounter>;
-  readonly units: ReadonlyArray<Unit>;
+  readonly abilitiesById: Readonly<Record<string, Ability>>;
+  readonly dungeonsById: Readonly<Record<string, Dungeon>>;
+  readonly encountersById: Readonly<Record<string, Encounter>>;
+  readonly unitsById: Readonly<Record<string, Unit>>;
 };
 
 type GetRequirementTargetLabelOptions = RequirementTargetLabelData & {
@@ -38,67 +36,40 @@ type GetRequirementTargetLabelOptions = RequirementTargetLabelData & {
   readonly targetId: string;
 };
 
-export function getUnitTargetLabel(unit: Unit): string {
+function getUnitTargetLabel(unit: Unit): string {
   return unit.variant === null ? unit.name : `${unit.name} (${unit.variant})`;
 }
 
-function findNameById(
-  values: ReadonlyArray<{
-    readonly id: string;
-    readonly name: string;
-  }>,
-  targetId: string,
-): string | undefined {
-  return Option.getOrUndefined(
-    A.findFirst(values, (value) => {
-      return value.id === targetId;
-    }).pipe(
-      Option.map((value) => {
-        return value.name;
-      }),
-    ),
-  );
-}
-
-function findUnitLabelById(
-  units: ReadonlyArray<Unit>,
-  targetId: string,
-): string | undefined {
-  return Option.getOrUndefined(
-    A.findFirst(units, (unit) => {
-      return unit.id === targetId;
-    }).pipe(Option.map(getUnitTargetLabel)),
-  );
-}
-
 export function getRequirementTargetLabel({
-  abilities,
-  dungeons,
-  encounters,
+  abilitiesById,
+  dungeonsById,
+  encountersById,
   eventType,
   targetId,
-  units,
+  unitsById,
 }: GetRequirementTargetLabelOptions): string {
   const label = Match.value(eventType).pipe(
     Match.when(FELLOWSHIP_EVENT.ABILITY_ACTIVATED, () => {
-      return findNameById(abilities, targetId);
+      return abilitiesById[targetId]?.name;
     }),
     Match.whenOr(
       FELLOWSHIP_EVENT.DUNGEON_START,
       FELLOWSHIP_EVENT.DUNGEON_END,
       () => {
-        return findNameById(dungeons, targetId);
+        return dungeonsById[targetId]?.name;
       },
     ),
     Match.whenOr(
       FELLOWSHIP_EVENT.ENCOUNTER_START,
       FELLOWSHIP_EVENT.ENCOUNTER_END,
       () => {
-        return findNameById(encounters, targetId);
+        return encountersById[targetId]?.name;
       },
     ),
     Match.when(FELLOWSHIP_EVENT.UNIT_DEATH, () => {
-      return findUnitLabelById(units, targetId);
+      const unit = unitsById[targetId];
+
+      return unit === undefined ? undefined : getUnitTargetLabel(unit);
     }),
     Match.exhaustive,
   );
