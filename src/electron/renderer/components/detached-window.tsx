@@ -8,6 +8,29 @@ import { createPortal } from "react-dom";
 
 import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider.tsx";
 
+const WINDOW_VERTICAL_MARGIN = 32;
+
+function resizeDetachedWindowToContent({
+  childContainer,
+  childWindow,
+}: {
+  readonly childContainer: HTMLElement;
+  readonly childWindow: Window;
+}) {
+  const contentHeight = childContainer.getBoundingClientRect().height;
+
+  const windowChromeHeight = childWindow.outerHeight - childWindow.innerHeight;
+
+  const maxHeight = childWindow.screen.availHeight - WINDOW_VERTICAL_MARGIN;
+
+  const height = Math.min(
+    Math.ceil(contentHeight) + windowChromeHeight,
+    maxHeight,
+  );
+
+  childWindow.resizeTo(childWindow.outerWidth, height);
+}
+
 type DetachedWindowProps = {
   readonly children: ReactNode;
   readonly onClose: () => void;
@@ -16,6 +39,7 @@ type DetachedWindowProps = {
 function DetachedWindow({ children, onClose }: DetachedWindowProps) {
   const childWindowRef = useRef<Window | null>(null);
   const childContainerRef = useRef<HTMLElement | null>(null);
+  const { setResizeToContent } = useDetachedWindow();
 
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
@@ -60,7 +84,18 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
       onStoreChange();
 
+      const resizeToContent = () => {
+        resizeDetachedWindowToContent({
+          childContainer,
+          childWindow,
+        });
+      };
+
+      setResizeToContent(resizeToContent);
+
       return () => {
+        setResizeToContent(null);
+
         childWindow.removeEventListener("beforeunload", handleClose);
         childWindow.close();
 

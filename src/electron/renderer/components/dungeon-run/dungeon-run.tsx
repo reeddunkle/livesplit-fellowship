@@ -2,7 +2,7 @@ import * as A from "effect/Array";
 import { pipe } from "effect/Function";
 import * as Order from "effect/Order";
 import * as Predicate from "effect/Predicate";
-import { SquareIcon } from "lucide-react";
+import { ProportionsIcon, SquareIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
@@ -14,6 +14,7 @@ import {
   getComparisonElapsedMilliseconds,
 } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
 import { DungeonRunTimer } from "@/electron/renderer/components/dungeon-run/dungeon-run-timer.tsx";
+import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider.tsx";
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import { Label } from "@/electron/renderer/components/ui/label.tsx";
 import {
@@ -99,6 +100,7 @@ function getConfigurationById({
 }
 
 export function DungeonRun() {
+  const { resizeToContent } = useDetachedWindow();
   const configurations = useConfigurations();
   const selectedConfigurationId = useSelectedConfigurationId();
 
@@ -265,6 +267,11 @@ export function DungeonRun() {
 
   return (
     <section className="grid w-full gap-3">
+      <div>
+        <Button onClick={resizeToContent} size="icon" variant="outline">
+          <ProportionsIcon />
+        </Button>
+      </div>
       <header className="grid w-full gap-1">
         <h2 className="truncate text-sm font-semibold">
           {configuration.label}
