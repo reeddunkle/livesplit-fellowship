@@ -2,12 +2,7 @@ import * as A from "effect/Array";
 import { pipe } from "effect/Function";
 import * as Order from "effect/Order";
 import * as Predicate from "effect/Predicate";
-import {
-  MenuIcon,
-  ProportionsIcon,
-  SquareDashedBottomIcon,
-  SquareIcon,
-} from "lucide-react";
+import { MenuIcon, SquareDashedBottomIcon, SquareIcon } from "lucide-react";
 import { useMemo } from "react";
 
 import { DungeonRunDropdownMenu } from "@/electron/renderer/components/dungeon-run/dungeon-run-dropdown-menu.tsx";
@@ -15,6 +10,12 @@ import {
   DungeonRunMilestone,
   type DungeonRunMilestoneRow,
 } from "@/electron/renderer/components/dungeon-run/dungeon-run-milestone.tsx";
+import {
+  DungeonRunTable,
+  DungeonRunTableLabelCell,
+  DungeonRunTableRow,
+  DungeonRunTableTimeHeaders,
+} from "@/electron/renderer/components/dungeon-run/dungeon-run-table.tsx";
 import { getComparisonElapsedMilliseconds } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
 import { DungeonRunTimer } from "@/electron/renderer/components/dungeon-run/dungeon-run-timer.tsx";
 import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider.tsx";
@@ -277,23 +278,23 @@ export function DungeonRun() {
               : "No historical data loaded"}
         </p>
       </header>
-      <div className="grid grid-cols-[minmax(0,1fr)_5.5rem_5.5rem_5.5rem] gap-x-2 px-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-        <div>Milestone</div>
-        <div className="text-right">Delta</div>
-        <div className="text-right">Segment</div>
-        <div className="text-right">Total</div>
-      </div>
-      <div className="grid gap-1">
-        {A.map(sortedMilestones, (milestone) => {
-          return (
-            <DungeonRunMilestone
-              comparison={comparison}
-              key={`${configuration.id}:${milestone.milestoneIndex}`}
-              milestone={milestone}
-            />
-          );
-        })}
-      </div>
+      <DungeonRunTable>
+        <DungeonRunTableRow className="px-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+          <DungeonRunTableLabelCell>Milestone</DungeonRunTableLabelCell>
+          <DungeonRunTableTimeHeaders />
+        </DungeonRunTableRow>
+        <div className="grid gap-1">
+          {A.map(sortedMilestones, (milestone) => {
+            return (
+              <DungeonRunMilestone
+                comparison={comparison}
+                key={`${configuration.id}:${milestone.milestoneIndex}`}
+                milestone={milestone}
+              />
+            );
+          })}
+        </div>
+      </DungeonRunTable>
       <Separator />
       <DungeonRunTimer
         className="justify-self-end text-end"

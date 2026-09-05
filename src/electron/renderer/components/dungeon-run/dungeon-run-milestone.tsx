@@ -5,9 +5,13 @@ import { ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
 
 import {
+  DungeonRunTableLabelCell,
+  DungeonRunTableRow,
+  DungeonRunTableTimeCells,
+  DungeonRunTableTriggerRow,
+} from "@/electron/renderer/components/dungeon-run/dungeon-run-table.tsx";
+import {
   type DungeonRunComparison,
-  formatDuration,
-  formatSignedDuration,
   getObservationComparisonElapsedMilliseconds,
 } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
 import {
@@ -50,9 +54,6 @@ type DungeonRunMilestoneProps = {
   readonly milestone: DungeonRunMilestoneRow;
 };
 
-const DUNGEON_RUN_ROW_GRID =
-  "grid grid-cols-[minmax(0,1fr)_4.25rem_4.25rem_4.25rem] gap-x-2";
-
 const UndefinedLastNumberOrder = Order.make<number | undefined>(
   (left, right) => {
     if (left === undefined && right === undefined) {
@@ -77,36 +78,6 @@ const RequirementCompletionOrder = Order.mapInput(
     return row.completedObservation?.observation.timestampMilliseconds;
   },
 );
-
-function TimeColumns({
-  comparisonElapsedMilliseconds,
-  segmentMilliseconds,
-  totalMilliseconds,
-}: {
-  readonly comparisonElapsedMilliseconds: number | undefined;
-  readonly segmentMilliseconds: number | undefined;
-  readonly totalMilliseconds: number | undefined;
-}) {
-  const deltaMilliseconds =
-    totalMilliseconds === undefined ||
-    comparisonElapsedMilliseconds === undefined
-      ? undefined
-      : totalMilliseconds - comparisonElapsedMilliseconds;
-
-  return (
-    <>
-      <div className="min-w-0 text-right font-mono tabular-nums">
-        {formatSignedDuration(deltaMilliseconds)}
-      </div>
-      <div className="min-w-0 text-right font-mono tabular-nums">
-        {formatDuration(segmentMilliseconds)}
-      </div>
-      <div className="min-w-0 text-right font-mono tabular-nums">
-        {formatDuration(totalMilliseconds)}
-      </div>
-    </>
-  );
-}
 
 function RequirementRow({
   comparison,
@@ -142,13 +113,8 @@ function RequirementRow({
   });
 
   return (
-    <div
-      className={cn(
-        DUNGEON_RUN_ROW_GRID,
-        "w-full min-w-0 items-center border-t px-3 py-1.5 text-xs",
-      )}
-    >
-      <div className="min-w-0 overflow-hidden pl-5">
+    <DungeonRunTableRow className="w-full items-center border-t px-3 py-1.5 text-xs">
+      <DungeonRunTableLabelCell className="pl-5">
         <div className="truncate text-muted-foreground">
           {targetLabel}
           <span className="px-1">·</span>
@@ -163,13 +129,14 @@ function RequirementRow({
               1
             }`}
         </div>
-      </div>
-      <TimeColumns
+      </DungeonRunTableLabelCell>
+
+      <DungeonRunTableTimeCells
         comparisonElapsedMilliseconds={comparisonElapsedMilliseconds}
         segmentMilliseconds={segmentElapsedMilliseconds}
         totalMilliseconds={observation?.elapsedFromStartMilliseconds}
       />
-    </div>
+    </DungeonRunTableRow>
   );
 }
 
@@ -197,35 +164,38 @@ export function DungeonRunMilestone({
         )}
       >
         <CollapsibleTrigger
-          className={cn(
-            DUNGEON_RUN_ROW_GRID,
-            "w-full min-w-0 items-center px-3 py-2 text-left text-sm hover:bg-muted/40",
-          )}
-        >
-          <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
-            <ChevronRightIcon
-              className={cn(
-                "size-3.5 shrink-0 text-muted-foreground transition-transform",
-                isOpen && "rotate-90",
-              )}
-            />
-            <span
-              className={cn(
-                "min-w-0 truncate font-medium",
-                !milestone.isCompleted && "text-muted-foreground",
-              )}
-            >
-              {milestone.milestone.label}
-            </span>
-          </div>
-          <TimeColumns
-            comparisonElapsedMilliseconds={
-              milestone.comparisonElapsedMilliseconds
-            }
-            segmentMilliseconds={milestone.segmentElapsedMilliseconds}
-            totalMilliseconds={milestone.elapsedMilliseconds}
-          />
-        </CollapsibleTrigger>
+          render={
+            <DungeonRunTableTriggerRow className="w-full items-center px-3 py-2 text-left text-sm hover:bg-muted/40">
+              <DungeonRunTableLabelCell>
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <ChevronRightIcon
+                    className={cn(
+                      "size-3.5 shrink-0 text-muted-foreground transition-transform",
+                      isOpen && "rotate-90",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "min-w-0 truncate font-medium",
+                      !milestone.isCompleted && "text-muted-foreground",
+                    )}
+                  >
+                    {milestone.milestone.label}
+                  </span>
+                </div>
+              </DungeonRunTableLabelCell>
+
+              <DungeonRunTableTimeCells
+                comparisonElapsedMilliseconds={
+                  milestone.comparisonElapsedMilliseconds
+                }
+                segmentMilliseconds={milestone.segmentElapsedMilliseconds}
+                totalMilliseconds={milestone.elapsedMilliseconds}
+              />
+            </DungeonRunTableTriggerRow>
+          }
+        />
+
         <CollapsibleContent className="min-w-0 overflow-hidden">
           {A.map(sortedRequirementRows, (row, index) => {
             const observationTimestamp =
