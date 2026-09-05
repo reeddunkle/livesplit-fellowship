@@ -32,7 +32,7 @@ import {
 } from "@/electron/renderer/components/ui/dropdown-menu.tsx";
 import { Separator } from "@/electron/renderer/components/ui/separator";
 import {
-  useConfigurations,
+  useConfigurationById,
   useSelectedConfigurationId,
 } from "@/electron/renderer/stores/configurations-store/configurations-store";
 import {
@@ -46,7 +46,6 @@ import {
   useTrackingActions,
   useTrackingServerState,
 } from "@/electron/renderer/stores/tracking-store/tracking-store";
-import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
 import { isNil } from "@/util/is-nil.ts";
 
 const UndefinedLastNumberOrder = Order.make<number | undefined>(
@@ -74,25 +73,8 @@ const MilestoneCompletionOrder = Order.mapInput(
   },
 );
 
-function getConfigurationById({
-  configurationId,
-  configurations,
-}: {
-  readonly configurationId: string | null | undefined;
-  readonly configurations: ReadonlyArray<ConfigurationApiConfiguration>;
-}): ConfigurationApiConfiguration | undefined {
-  if (configurationId === null || configurationId === undefined) {
-    return undefined;
-  }
-
-  return A.findFirst(configurations, (configuration) => {
-    return configuration.id === configurationId;
-  }).pipe((option) => (option._tag === "Some" ? option.value : undefined));
-}
-
 export function DungeonRun() {
   const { resizeToContent } = useDetachedWindow();
-  const configurations = useConfigurations();
   const selectedConfigurationId = useSelectedConfigurationId();
   const {
     collapseAllMilestones,
@@ -116,12 +98,7 @@ export function DungeonRun() {
 
   const configurationId = trackedConfigurationId ?? selectedConfigurationId;
 
-  const configuration = useMemo(() => {
-    return getConfigurationById({
-      configurationId,
-      configurations,
-    });
-  }, [configurationId, configurations]);
+  const configuration = useConfigurationById(configurationId);
 
   const milestoneRows = useMemo(() => {
     if (configuration === undefined) {

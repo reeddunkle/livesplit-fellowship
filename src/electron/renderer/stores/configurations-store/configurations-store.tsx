@@ -433,11 +433,11 @@ export function useConfigurationGroups(): ReadonlyArray<ConfigurationDungeonGrou
 }
 
 export function useConfigurationById(
-  id: ConfigurationId | null,
+  id: ConfigurationId | null | undefined,
 ): ConfigurationApiConfiguration | undefined {
   const { configurationsById } = useConfigurationState();
 
-  if (id === null) {
+  if (id === null || id === undefined) {
     return undefined;
   }
 
