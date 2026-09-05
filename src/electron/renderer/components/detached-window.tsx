@@ -19,7 +19,7 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
-      const childWindow = window.open("", "tracking-window", "width=425");
+      const childWindow = window.open("", "tracking-window", "width=450");
 
       if (childWindow === null) {
         return () => {};
@@ -35,6 +35,8 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
       childWindow.document.documentElement.className =
         document.documentElement.className;
+
+      childWindow.document.documentElement.style.scrollbarGutter = "auto";
 
       childWindow.document.body.className = document.body.className;
 
@@ -105,7 +107,7 @@ export function ManagedDetachedWindow({
 
   return (
     <DetachedWindow onClose={close}>
-      <main className="mx-auto w-full">{children}</main>
+      <main className="mx-auto w-full p-2">{children}</main>
     </DetachedWindow>
   );
 }

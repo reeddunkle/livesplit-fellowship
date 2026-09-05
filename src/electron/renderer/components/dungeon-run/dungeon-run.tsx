@@ -252,22 +252,21 @@ export function DungeonRun() {
 
   return (
     <section className="grid w-full gap-3">
-      <header className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <h2 className="truncate text-sm font-semibold">
-            {configuration.label}
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            {isTracking
-              ? "Live run"
-              : hasMatchingHistory
-                ? "Historical comparison"
-                : "No historical data loaded"}
-          </p>
-        </div>
+      <header className="grid w-full gap-1">
+        <h2 className="truncate text-sm font-semibold">
+          {configuration.label}
+        </h2>
+
+        <p className="text-xs text-muted-foreground">
+          {isTracking
+            ? "Live run"
+            : hasMatchingHistory
+              ? "Historical comparison"
+              : "No historical data loaded"}
+        </p>
 
         <RadioGroup
-          className="flex items-center gap-3"
+          className="mt-1 flex w-full flex-wrap items-center gap-x-3 gap-y-2"
           onValueChange={(value) => {
             setComparison(value as DungeonRunComparison);
           }}
