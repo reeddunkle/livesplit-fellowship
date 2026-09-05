@@ -60,8 +60,6 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
       childWindow.document.documentElement.className =
         document.documentElement.className;
 
-      childWindow.document.documentElement.style.scrollbarGutter = "auto";
-
       childWindow.document.body.className = document.body.className;
 
       const childContainer = childWindow.document.createElement("div");
@@ -147,7 +145,7 @@ export function ManagedDetachedWindow({
 
   return (
     <DetachedWindow onClose={close}>
-      <main className="mx-auto w-full p-2">{children}</main>
+      <main className="mx-auto w-full p-2 sidebar-gutter-auto">{children}</main>
     </DetachedWindow>
   );
 }

@@ -5,54 +5,133 @@ import {
   type DungeonRunComparison,
 } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
 import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider.tsx";
-import {
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/electron/renderer/components/ui/dropdown-menu.tsx";
+import { Checkbox } from "@/electron/renderer/components/ui/checkbox.tsx";
+import { DropdownMenuContent } from "@/electron/renderer/components/ui/dropdown-menu.tsx";
 import { Label } from "@/electron/renderer/components/ui/label.tsx";
 import {
   RadioGroup,
   RadioGroupItem,
 } from "@/electron/renderer/components/ui/radio-group.tsx";
+import { Separator } from "@/electron/renderer/components/ui/separator.tsx";
+import {
+  DUNGEON_RUN_TIME_COLUMN,
+  type DungeonRunTimeColumn,
+  useDungeonRunDisplayState,
+} from "@/electron/renderer/stores/dungeon-run-store/dungeon-run-provider.tsx";
+import { cn } from "@/util/class-names.ts";
 
-type DungeonRunDropdownMenuProps = {
-  comparison: DungeonRunComparison;
-  setComparison: (comparison: DungeonRunComparison) => void;
-};
+const TIME_COLUMN_OPTIONS = [
+  {
+    label: "Delta",
+    value: DUNGEON_RUN_TIME_COLUMN.DELTA,
+  },
+  {
+    label: "Segment",
+    value: DUNGEON_RUN_TIME_COLUMN.SEGMENT,
+  },
+  {
+    label: "Total",
+    value: DUNGEON_RUN_TIME_COLUMN.TOTAL,
+  },
+] as const satisfies ReadonlyArray<{
+  readonly label: string;
+  readonly value: DungeonRunTimeColumn;
+}>;
 
-export function DungeonRunDropdownMenu({
-  comparison,
-  setComparison,
-}: DungeonRunDropdownMenuProps) {
+export function DungeonRunDropdownMenu() {
   const { portalContainer } = useDetachedWindow();
+
+  const {
+    comparison,
+    setComparison,
+    setTimeColumnVisible,
+    visibleTimeColumns,
+  } = useDungeonRunDisplayState();
+
   return (
-    <DropdownMenuContent container={portalContainer}>
-      <DropdownMenuItem>
-        <RadioGroup
-          className="mt-1 flex w-full flex-wrap items-center gap-x-3 gap-y-2"
-          onValueChange={(value) => {
-            setComparison(value as DungeonRunComparison);
-          }}
-          value={comparison}
-        >
-          {A.map(COMPARISON_OPTIONS, (option) => {
-            return (
-              <div className="flex items-center gap-1.5" key={option.value}>
-                <RadioGroupItem
-                  id={`comparison-${option.value}`}
-                  value={option.value}
-                />
+    <DropdownMenuContent
+      align="end"
+      className="min-w-72 bg-popover p-3"
+      container={portalContainer}
+    >
+      <div className="grid gap-3">
+        <section className="grid gap-2">
+          <div>
+            <div className="text-sm font-medium">Comparison</div>
+            <div className="text-xs text-muted-foreground">
+              Compare the current run against historical times.
+            </div>
+          </div>
+
+          <RadioGroup
+            className="flex items-center gap-1.5"
+            onValueChange={(value) => {
+              setComparison(value as DungeonRunComparison);
+            }}
+            value={comparison}
+          >
+            {A.map(COMPARISON_OPTIONS, (option) => {
+              const isSelected = comparison === option.value;
+
+              return (
                 <Label
-                  className="cursor-pointer text-xs font-normal"
+                  className={cn(
+                    "flex cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition",
+                    "hover:bg-accent hover:text-accent-foreground",
+                    isSelected &&
+                      "translate-y-px border-border bg-muted shadow-inner",
+                  )}
                   htmlFor={`comparison-${option.value}`}
+                  key={option.value}
                 >
-                  {option.label}
+                  <RadioGroupItem
+                    className="size-4"
+                    id={`comparison-${option.value}`}
+                    value={option.value}
+                  />
+
+                  <span className="whitespace-nowrap">{option.label}</span>
                 </Label>
-              </div>
-            );
-          })}
-        </RadioGroup>
-      </DropdownMenuItem>
+              );
+            })}
+          </RadioGroup>
+        </section>
+
+        <Separator />
+
+        <section className="grid gap-2">
+          <div>
+            <div className="text-sm font-medium">Time columns</div>
+            <div className="text-xs text-muted-foreground">
+              Choose which timing columns are visible.
+            </div>
+          </div>
+
+          <div className="grid gap-1.5">
+            {A.map(TIME_COLUMN_OPTIONS, (option) => {
+              const isVisible = visibleTimeColumns.has(option.value);
+
+              return (
+                <Label
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent"
+                  htmlFor={`time-column-${option.value}`}
+                  key={option.value}
+                >
+                  <Checkbox
+                    checked={isVisible}
+                    id={`time-column-${option.value}`}
+                    onCheckedChange={(checked) => {
+                      setTimeColumnVisible(option.value, checked === true);
+                    }}
+                  />
+
+                  <span>{option.label}</span>
+                </Label>
+              );
+            })}
+          </div>
+        </section>
+      </div>
     </DropdownMenuContent>
   );
 }

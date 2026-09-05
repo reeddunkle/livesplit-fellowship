@@ -7,8 +7,10 @@ import {
   type ReactNode,
   startTransition,
   useActionState,
+  useCallback,
   useContext,
   useMemo,
+  useState,
   useSyncExternalStore,
 } from "react";
 
@@ -18,6 +20,7 @@ import {
 } from "@/api/websocket/dungeon-run/dungeon-run-api-message-schema.ts";
 import { type ApiConnectionState } from "@/electron/renderer/api/common.ts";
 import * as dungeonRunClient from "@/electron/renderer/api/dungeon-run/dungeon-run-client.ts";
+import { type DungeonRunComparison } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
 import {
   type DungeonRunEventStoreSnapshot,
   dungeonRunEventStore,
@@ -32,6 +35,25 @@ import {
 } from "@/validation/common/requirement-observation-identity-schema.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
+export const DUNGEON_RUN_TIME_COLUMN = {
+  DELTA: "DELTA",
+  SEGMENT: "SEGMENT",
+  TOTAL: "TOTAL",
+} as const;
+
+export type DungeonRunTimeColumn =
+  (typeof DUNGEON_RUN_TIME_COLUMN)[keyof typeof DUNGEON_RUN_TIME_COLUMN];
+
+export type DungeonRunDisplayState = {
+  readonly comparison: DungeonRunComparison;
+  readonly setComparison: (comparison: DungeonRunComparison) => void;
+  readonly setTimeColumnVisible: (
+    column: DungeonRunTimeColumn,
+    isVisible: boolean,
+  ) => void;
+  readonly visibleTimeColumns: ReadonlySet<DungeonRunTimeColumn>;
+};
+
 type LoadDungeonRunHistoryActionInput = {
   readonly configurationId: ConfigurationId;
 };
@@ -42,12 +64,19 @@ type DungeonRunHistoryActionResult = {
 };
 
 type DungeonRunContextValue = {
+  readonly comparison: DungeonRunComparison;
   readonly connectionState: ApiConnectionState;
   readonly history: DungeonRunApiHistory | null;
   readonly historyError: unknown | undefined;
   readonly isLoadingHistory: boolean;
   readonly loadHistory: (configurationId: ConfigurationId) => void;
   readonly runState: DungeonRunEventStoreSnapshot["runState"];
+  readonly setComparison: (comparison: DungeonRunComparison) => void;
+  readonly setTimeColumnVisible: (
+    column: DungeonRunTimeColumn,
+    isVisible: boolean,
+  ) => void;
+  readonly visibleTimeColumns: ReadonlySet<DungeonRunTimeColumn>;
 };
 
 type DungeonRunProviderProps = {
@@ -128,6 +157,35 @@ export function DungeonRunProvider({ children }: DungeonRunProviderProps) {
     dungeonRunEventStore.getSnapshot,
   );
 
+  const [comparison, setComparison] = useState<DungeonRunComparison>("BEST");
+
+  const [visibleTimeColumns, setVisibleTimeColumns] = useState<
+    ReadonlySet<DungeonRunTimeColumn>
+  >(() => {
+    return new Set([
+      DUNGEON_RUN_TIME_COLUMN.DELTA,
+      DUNGEON_RUN_TIME_COLUMN.SEGMENT,
+      DUNGEON_RUN_TIME_COLUMN.TOTAL,
+    ]);
+  });
+
+  const setTimeColumnVisible = useCallback(
+    (column: DungeonRunTimeColumn, isVisible: boolean) => {
+      setVisibleTimeColumns((currentVisibleTimeColumns) => {
+        const nextVisibleTimeColumns = new Set(currentVisibleTimeColumns);
+
+        if (isVisible) {
+          nextVisibleTimeColumns.add(column);
+        } else {
+          nextVisibleTimeColumns.delete(column);
+        }
+
+        return nextVisibleTimeColumns;
+      });
+    },
+    [],
+  );
+
   const [historyState, dispatchLoadHistory, isLoadingHistory] = useActionState(
     (
       _previousState: DungeonRunHistoryActionResult,
@@ -158,6 +216,7 @@ export function DungeonRunProvider({ children }: DungeonRunProviderProps) {
 
   const contextValue = useMemo<DungeonRunContextValue>(() => {
     return {
+      comparison,
       connectionState: dungeonRunSnapshot.connectionState,
       history: historyState.history,
       historyError: historyState.error,
@@ -170,14 +229,20 @@ export function DungeonRunProvider({ children }: DungeonRunProviderProps) {
         });
       },
       runState: dungeonRunSnapshot.runState,
+      setComparison,
+      setTimeColumnVisible,
+      visibleTimeColumns,
     };
   }, [
+    comparison,
     dispatchLoadHistory,
     dungeonRunSnapshot.connectionState,
     dungeonRunSnapshot.runState,
     historyState.error,
     historyState.history,
     isLoadingHistory,
+    setTimeColumnVisible,
+    visibleTimeColumns,
   ]);
 
   return (
@@ -320,4 +385,20 @@ export function useDungeonRunInterpretationState(): DungeonRunInterpretationStat
       observations: interpretationResult.observations,
     };
   }, [dungeonRun?.startedAtMilliseconds, history, observations]);
+}
+
+export function useDungeonRunDisplayState(): DungeonRunDisplayState {
+  const {
+    comparison,
+    setComparison,
+    setTimeColumnVisible,
+    visibleTimeColumns,
+  } = useDungeonRunContext();
+
+  return {
+    comparison,
+    setComparison,
+    setTimeColumnVisible,
+    visibleTimeColumns,
+  };
 }

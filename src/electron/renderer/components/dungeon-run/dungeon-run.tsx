@@ -3,17 +3,14 @@ import { pipe } from "effect/Function";
 import * as Order from "effect/Order";
 import * as Predicate from "effect/Predicate";
 import { MenuIcon, ProportionsIcon, SquareIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { DungeonRunDropdownMenu } from "@/electron/renderer/components/dungeon-run/dungeon-run-dropdown-menu.tsx";
 import {
   DungeonRunMilestone,
   type DungeonRunMilestoneRow,
 } from "@/electron/renderer/components/dungeon-run/dungeon-run-milestone.tsx";
-import {
-  type DungeonRunComparison,
-  getComparisonElapsedMilliseconds,
-} from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
+import { getComparisonElapsedMilliseconds } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
 import { DungeonRunTimer } from "@/electron/renderer/components/dungeon-run/dungeon-run-timer.tsx";
 import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider.tsx";
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
@@ -28,6 +25,7 @@ import {
 } from "@/electron/renderer/stores/configurations-store/configurations-store";
 import {
   type DungeonRunObservationInterpretation,
+  useDungeonRunDisplayState,
   useDungeonRunInterpretationState,
   useDungeonRunServerState,
 } from "@/electron/renderer/stores/dungeon-run-store/dungeon-run-provider";
@@ -84,6 +82,7 @@ export function DungeonRun() {
   const { resizeToContent } = useDetachedWindow();
   const configurations = useConfigurations();
   const selectedConfigurationId = useSelectedConfigurationId();
+  const { comparison } = useDungeonRunDisplayState();
 
   const { trackingStatus } = useTrackingServerState();
   const { stop } = useTrackingActions();
@@ -91,8 +90,6 @@ export function DungeonRun() {
   const { dungeonRun, history } = useDungeonRunServerState();
   const { latestObservation, observations } =
     useDungeonRunInterpretationState();
-
-  const [comparison, setComparison] = useState<DungeonRunComparison>("BEST");
 
   const trackedConfigurationId =
     trackingStatus?.status === "Tracking" &&
@@ -252,7 +249,7 @@ export function DungeonRun() {
         <Button onClick={resizeToContent} size="icon" variant="outline">
           <ProportionsIcon />
         </Button>
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger
             render={
               <Button size="icon" variant="outline">
@@ -260,10 +257,7 @@ export function DungeonRun() {
               </Button>
             }
           />
-          <DungeonRunDropdownMenu
-            comparison={comparison}
-            setComparison={setComparison}
-          />
+          <DungeonRunDropdownMenu />
         </DropdownMenu>
       </div>
       <header className="grid w-full gap-1">
