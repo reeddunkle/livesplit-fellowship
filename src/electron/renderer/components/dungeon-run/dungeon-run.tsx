@@ -2,9 +2,10 @@ import * as A from "effect/Array";
 import { pipe } from "effect/Function";
 import * as Order from "effect/Order";
 import * as Predicate from "effect/Predicate";
-import { ProportionsIcon, SquareIcon } from "lucide-react";
+import { MenuIcon, ProportionsIcon, SquareIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { DungeonRunDropdownMenu } from "@/electron/renderer/components/dungeon-run/dungeon-run-dropdown-menu.tsx";
 import {
   DungeonRunMilestone,
   type DungeonRunMilestoneRow,
@@ -16,11 +17,10 @@ import {
 import { DungeonRunTimer } from "@/electron/renderer/components/dungeon-run/dungeon-run-timer.tsx";
 import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider.tsx";
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
-import { Label } from "@/electron/renderer/components/ui/label.tsx";
 import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/electron/renderer/components/ui/radio-group.tsx";
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from "@/electron/renderer/components/ui/dropdown-menu.tsx";
 import { Separator } from "@/electron/renderer/components/ui/separator";
 import {
   useConfigurations,
@@ -63,25 +63,6 @@ const MilestoneCompletionOrder = Order.mapInput(
     return milestone.completedAtMilliseconds;
   },
 );
-
-const COMPARISON_OPTIONS = [
-  {
-    label: "Best",
-    value: "BEST",
-  },
-  {
-    label: "Average",
-    value: "AVERAGE",
-  },
-  {
-    label: "Median",
-    value: "MEDIAN",
-  },
-  {
-    label: "Last run",
-    value: "LAST_RUN",
-  },
-] as const;
 
 function getConfigurationById({
   configurationId,
@@ -267,10 +248,23 @@ export function DungeonRun() {
 
   return (
     <section className="grid w-full gap-3">
-      <div>
+      <div className="flex items-center justify-end gap-2">
         <Button onClick={resizeToContent} size="icon" variant="outline">
           <ProportionsIcon />
         </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button size="icon" variant="outline">
+                <MenuIcon />
+              </Button>
+            }
+          />
+          <DungeonRunDropdownMenu
+            comparison={comparison}
+            setComparison={setComparison}
+          />
+        </DropdownMenu>
       </div>
       <header className="grid w-full gap-1">
         <h2 className="truncate text-sm font-semibold">
@@ -283,30 +277,6 @@ export function DungeonRun() {
               ? "Historical comparison"
               : "No historical data loaded"}
         </p>
-        <RadioGroup
-          className="mt-1 flex w-full flex-wrap items-center gap-x-3 gap-y-2"
-          onValueChange={(value) => {
-            setComparison(value as DungeonRunComparison);
-          }}
-          value={comparison}
-        >
-          {A.map(COMPARISON_OPTIONS, (option) => {
-            return (
-              <div className="flex items-center gap-1.5" key={option.value}>
-                <RadioGroupItem
-                  id={`comparison-${option.value}`}
-                  value={option.value}
-                />
-                <Label
-                  className="cursor-pointer text-xs font-normal"
-                  htmlFor={`comparison-${option.value}`}
-                >
-                  {option.label}
-                </Label>
-              </div>
-            );
-          })}
-        </RadioGroup>
       </header>
       <div className="grid grid-cols-[minmax(0,1fr)_5.5rem_5.5rem_5.5rem] gap-x-2 px-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         <div>Milestone</div>

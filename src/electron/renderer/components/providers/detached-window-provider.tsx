@@ -14,7 +14,9 @@ type DetachedWindowContextValue = {
   readonly close: () => void;
   readonly isOpen: boolean;
   readonly open: () => void;
+  readonly portalContainer: HTMLElement | null;
   readonly resizeToContent: () => void;
+  readonly setPortalContainer: (portalContainer: HTMLElement | null) => void;
   readonly setResizeToContent: (
     resizeToContent: ResizeToContent | null,
   ) => void;
@@ -32,6 +34,10 @@ export function DetachedWindowProvider({
   children,
 }: DetachedWindowProviderProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(
+    null,
+  );
+
   const resizeToContentRef = useRef<ResizeToContent | null>(null);
 
   const open = useCallback(() => {
@@ -67,10 +73,12 @@ export function DetachedWindowProvider({
       close,
       isOpen,
       open,
+      portalContainer,
       resizeToContent,
+      setPortalContainer,
       setResizeToContent,
     }),
-    [close, isOpen, open, resizeToContent, setResizeToContent],
+    [close, isOpen, open, portalContainer, resizeToContent, setResizeToContent],
   );
 
   return (

@@ -5,7 +5,26 @@ import { pipe } from "effect/Function";
 
 import { type DungeonRunObservationInterpretation } from "@/electron/renderer/stores/dungeon-run-store/dungeon-run-provider.tsx";
 
-export type DungeonRunComparison = "AVERAGE" | "BEST" | "LAST_RUN" | "MEDIAN";
+export const COMPARISON_OPTIONS = [
+  {
+    label: "Best",
+    value: "BEST",
+  },
+  {
+    label: "Average",
+    value: "AVERAGE",
+  },
+  {
+    label: "Median",
+    value: "MEDIAN",
+  },
+  {
+    label: "Last run",
+    value: "LAST_RUN",
+  },
+] as const;
+
+export type DungeonRunComparison = (typeof COMPARISON_OPTIONS)[number]["value"];
 
 type RequirementRow = {
   readonly completedObservation:

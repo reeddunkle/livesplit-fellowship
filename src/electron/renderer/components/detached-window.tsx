@@ -39,7 +39,7 @@ type DetachedWindowProps = {
 function DetachedWindow({ children, onClose }: DetachedWindowProps) {
   const childWindowRef = useRef<Window | null>(null);
   const childContainerRef = useRef<HTMLElement | null>(null);
-  const { setResizeToContent } = useDetachedWindow();
+  const { setPortalContainer, setResizeToContent } = useDetachedWindow();
 
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
@@ -72,7 +72,11 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
       childWindowRef.current = childWindow;
       childContainerRef.current = childContainer;
 
+      setPortalContainer(childWindow.document.body);
+
       const handleClose = () => {
+        setPortalContainer(null);
+
         childWindowRef.current = null;
         childContainerRef.current = null;
 
@@ -94,6 +98,7 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
       setResizeToContent(resizeToContent);
 
       return () => {
+        setPortalContainer(null);
         setResizeToContent(null);
 
         childWindow.removeEventListener("beforeunload", handleClose);
@@ -103,7 +108,7 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
         childContainerRef.current = null;
       };
     },
-    [onClose],
+    [onClose, setPortalContainer, setResizeToContent],
   );
 
   const getSnapshot = useCallback(() => {
