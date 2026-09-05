@@ -50,6 +50,9 @@ type DungeonRunMilestoneProps = {
   readonly milestone: DungeonRunMilestoneRow;
 };
 
+const DUNGEON_RUN_ROW_GRID =
+  "grid grid-cols-[minmax(0,1fr)_4.25rem_4.25rem_4.25rem] gap-x-2";
+
 const UndefinedLastNumberOrder = Order.make<number | undefined>(
   (left, right) => {
     if (left === undefined && right === undefined) {
@@ -92,13 +95,13 @@ function TimeColumns({
 
   return (
     <>
-      <div className="text-right font-mono tabular-nums">
+      <div className="min-w-0 text-right font-mono tabular-nums">
         {formatSignedDuration(deltaMilliseconds)}
       </div>
-      <div className="text-right font-mono tabular-nums">
+      <div className="min-w-0 text-right font-mono tabular-nums">
         {formatDuration(segmentMilliseconds)}
       </div>
-      <div className="text-right font-mono tabular-nums">
+      <div className="min-w-0 text-right font-mono tabular-nums">
         {formatDuration(totalMilliseconds)}
       </div>
     </>
@@ -139,14 +142,19 @@ function RequirementRow({
   });
 
   return (
-    <div className="grid grid-cols-[minmax(2rem,1fr)_4.25rem_4.25rem_4.25rem] items-center gap-x-2 border-t px-3 py-1.5 text-xs">
-      <div className="min-w-0 pl-5">
+    <div
+      className={cn(
+        DUNGEON_RUN_ROW_GRID,
+        "w-full min-w-0 items-center border-t px-3 py-1.5 text-xs",
+      )}
+    >
+      <div className="min-w-0 overflow-hidden pl-5">
         <div className="truncate text-muted-foreground">
           {targetLabel}
           <span className="px-1">·</span>
           {row.requirement.type}
         </div>
-        <div className="text-[10px] text-muted-foreground/70">
+        <div className="truncate text-[10px] text-muted-foreground/70">
           occurrence {row.requirement.startOccurrence}
           {row.requirement.requiredCount > 1 &&
             `–${
@@ -177,15 +185,24 @@ export function DungeonRunMilestone({
   );
 
   return (
-    <Collapsible onOpenChange={setIsOpen} open={isOpen}>
+    <Collapsible
+      className="w-full min-w-0"
+      onOpenChange={setIsOpen}
+      open={isOpen}
+    >
       <div
         className={cn(
-          "overflow-hidden rounded-md border bg-card",
+          "w-full min-w-0 overflow-hidden rounded-md border bg-card",
           milestone.isCompleted && "border-border",
         )}
       >
-        <CollapsibleTrigger className="grid w-full grid-cols-[minmax(0,1fr)_4.25rem_4.25rem_4.25rem] items-center gap-x-2 px-3 py-2 text-left text-sm hover:bg-muted/40">
-          <div className="flex min-w-0 items-center gap-1.5">
+        <CollapsibleTrigger
+          className={cn(
+            DUNGEON_RUN_ROW_GRID,
+            "w-full min-w-0 items-center px-3 py-2 text-left text-sm hover:bg-muted/40",
+          )}
+        >
+          <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
             <ChevronRightIcon
               className={cn(
                 "size-3.5 shrink-0 text-muted-foreground transition-transform",
@@ -194,7 +211,7 @@ export function DungeonRunMilestone({
             />
             <span
               className={cn(
-                "truncate font-medium",
+                "min-w-0 truncate font-medium",
                 !milestone.isCompleted && "text-muted-foreground",
               )}
             >
@@ -209,7 +226,7 @@ export function DungeonRunMilestone({
             totalMilliseconds={milestone.elapsedMilliseconds}
           />
         </CollapsibleTrigger>
-        <CollapsibleContent>
+        <CollapsibleContent className="min-w-0 overflow-hidden">
           {A.map(sortedRequirementRows, (row, index) => {
             const observationTimestamp =
               row.completedObservation?.observation.timestampMilliseconds;

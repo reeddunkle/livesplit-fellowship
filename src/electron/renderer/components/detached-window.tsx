@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider.tsx";
 
 const WINDOW_VERTICAL_MARGIN = 32;
+const WINDOW_HORIZONTAL_MARGIN = 32;
 
 function resizeDetachedWindowToContent({
   childContainer,
@@ -23,15 +24,21 @@ function resizeDetachedWindowToContent({
   const windowChromeHeight = childWindow.outerHeight - childWindow.innerHeight;
   const windowChromeWidth = childWindow.outerWidth - childWindow.innerWidth;
 
+  const scrollbarWidth =
+    childWindow.innerWidth - childWindow.document.documentElement.clientWidth;
+
   const maxHeight = childWindow.screen.availHeight - WINDOW_VERTICAL_MARGIN;
-  const maxWidth = childWindow.screen.availWidth - WINDOW_VERTICAL_MARGIN;
+  const maxWidth = childWindow.screen.availWidth - WINDOW_HORIZONTAL_MARGIN;
 
   const height = Math.min(
     Math.ceil(contentHeight) + windowChromeHeight,
     maxHeight,
   );
 
-  const width = Math.min(Math.ceil(contentWidth) + windowChromeWidth, maxWidth);
+  const width = Math.min(
+    Math.ceil(contentWidth) + windowChromeWidth + scrollbarWidth,
+    maxWidth,
+  );
 
   childWindow.resizeTo(width, height);
 }
@@ -70,6 +77,8 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
       childDocument.documentElement.className =
         document.documentElement.className;
+
+      childDocument.documentElement.classList.add("scrollbar-gutter-stable");
 
       childDocument.body.className = document.body.className;
 

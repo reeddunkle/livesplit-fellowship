@@ -2,7 +2,12 @@ import * as A from "effect/Array";
 import { pipe } from "effect/Function";
 import * as Order from "effect/Order";
 import * as Predicate from "effect/Predicate";
-import { MenuIcon, ProportionsIcon, SquareIcon } from "lucide-react";
+import {
+  MenuIcon,
+  ProportionsIcon,
+  SquareDashedBottomIcon,
+  SquareIcon,
+} from "lucide-react";
 import { useMemo } from "react";
 
 import { DungeonRunDropdownMenu } from "@/electron/renderer/components/dungeon-run/dungeon-run-dropdown-menu.tsx";
@@ -247,7 +252,7 @@ export function DungeonRun() {
     <section className="grid min-w-105 w-fit gap-3">
       <div className="flex items-center justify-end gap-2">
         <Button onClick={resizeToContent} size="icon" variant="outline">
-          <ProportionsIcon />
+          <SquareDashedBottomIcon />
         </Button>
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger
