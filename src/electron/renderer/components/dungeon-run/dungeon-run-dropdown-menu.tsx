@@ -51,18 +51,12 @@ export function DungeonRunDropdownMenu() {
   return (
     <DropdownMenuContent
       align="end"
-      className="min-w-72 bg-popover p-3"
+      className="min-w-72 border bg-popover p-6 shadow-2xl ring-1 ring-foreground/15 dark:bg-muted rounded-2xl"
       container={portalContainer}
     >
       <div className="grid gap-3">
         <section className="grid gap-2">
-          <div>
-            <div className="text-sm font-medium">Comparison</div>
-            <div className="text-xs text-muted-foreground">
-              Compare the current run against historical times.
-            </div>
-          </div>
-
+          <div className="text-sm font-medium">Select comparison:</div>
           <RadioGroup
             className="flex items-center gap-1.5"
             onValueChange={(value) => {
@@ -77,9 +71,9 @@ export function DungeonRunDropdownMenu() {
                 <Label
                   className={cn(
                     "flex cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition",
-                    "hover:bg-accent hover:text-accent-foreground",
+                    "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                     isSelected &&
-                      "translate-y-px border-border bg-muted shadow-inner",
+                      "translate-y-px border-foreground bg-muted text-foreground shadow-inner",
                   )}
                   htmlFor={`comparison-${option.value}`}
                   key={option.value}
@@ -100,13 +94,7 @@ export function DungeonRunDropdownMenu() {
         <Separator />
 
         <section className="grid gap-2">
-          <div>
-            <div className="text-sm font-medium">Time columns</div>
-            <div className="text-xs text-muted-foreground">
-              Choose which timing columns are visible.
-            </div>
-          </div>
-
+          <div className="text-sm font-medium">Select time columns:</div>
           <div className="grid gap-1.5">
             {A.map(TIME_COLUMN_OPTIONS, (option) => {
               const isVisible = visibleTimeColumns.has(option.value);
@@ -124,7 +112,6 @@ export function DungeonRunDropdownMenu() {
                       setTimeColumnVisible(option.value, checked === true);
                     }}
                   />
-
                   <span>{option.label}</span>
                 </Label>
               );
