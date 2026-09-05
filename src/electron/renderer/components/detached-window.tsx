@@ -17,18 +17,23 @@ function resizeDetachedWindowToContent({
   readonly childContainer: HTMLElement;
   readonly childWindow: Window;
 }) {
-  const contentHeight = childContainer.getBoundingClientRect().height;
+  const contentHeight = childContainer.scrollHeight;
+  const contentWidth = childContainer.scrollWidth;
 
   const windowChromeHeight = childWindow.outerHeight - childWindow.innerHeight;
+  const windowChromeWidth = childWindow.outerWidth - childWindow.innerWidth;
 
   const maxHeight = childWindow.screen.availHeight - WINDOW_VERTICAL_MARGIN;
+  const maxWidth = childWindow.screen.availWidth - WINDOW_VERTICAL_MARGIN;
 
   const height = Math.min(
     Math.ceil(contentHeight) + windowChromeHeight,
     maxHeight,
   );
 
-  childWindow.resizeTo(childWindow.outerWidth, height);
+  const width = Math.min(Math.ceil(contentWidth) + windowChromeWidth, maxWidth);
+
+  childWindow.resizeTo(width, height);
 }
 
 type DetachedWindowProps = {
@@ -43,11 +48,30 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
-      const childWindow = window.open("", "tracking-window", "width=450");
+      const isDarkTheme = document.documentElement.classList.contains("dark");
+
+      const backgroundColor = isDarkTheme
+        ? "rgb(36, 36, 36)"
+        : "rgb(255, 255, 255)";
+
+      const childWindow = window.open(
+        "",
+        "tracking-window",
+        `width=460,backgroundColor=${backgroundColor}`,
+      );
 
       if (childWindow === null) {
         return () => {};
       }
+
+      const childDocumentElement = childWindow.document.documentElement;
+
+      childDocumentElement.style.backgroundColor = isDarkTheme
+        ? "oklch(0.145 0 0)"
+        : "oklch(1 0 0)";
+
+      childDocumentElement.style.overflow = "hidden";
+      childDocumentElement.style.visibility = "hidden";
 
       document
         .querySelectorAll<HTMLLinkElement | HTMLStyleElement>(
@@ -57,10 +81,10 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
           childWindow.document.head.append(styleElement.cloneNode(true));
         });
 
-      childWindow.document.documentElement.className =
-        document.documentElement.className;
+      childDocumentElement.className = document.documentElement.className;
 
       childWindow.document.body.className = document.body.className;
+      childWindow.document.body.style.backgroundColor = "var(--background)";
 
       const childContainer = childWindow.document.createElement("div");
       childContainer.id = "root";
@@ -84,8 +108,6 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
       childWindow.addEventListener("beforeunload", handleClose);
 
-      onStoreChange();
-
       const resizeToContent = () => {
         resizeDetachedWindowToContent({
           childContainer,
@@ -95,7 +117,36 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
       setResizeToContent(resizeToContent);
 
+      onStoreChange();
+
+      let animationFrameId: number | undefined;
+      let isCancelled = false;
+
+      const initializeWindow = async () => {
+        await childWindow.document.fonts.ready;
+
+        if (isCancelled) {
+          return;
+        }
+
+        animationFrameId = childWindow.requestAnimationFrame(() => {
+          resizeToContent();
+
+          childDocumentElement.style.backgroundColor = "";
+          childDocumentElement.style.overflow = "";
+          childDocumentElement.style.visibility = "";
+        });
+      };
+
+      void initializeWindow();
+
       return () => {
+        isCancelled = true;
+
+        if (animationFrameId !== undefined) {
+          childWindow.cancelAnimationFrame(animationFrameId);
+        }
+
         setPortalContainer(null);
         setResizeToContent(null);
 
@@ -145,7 +196,7 @@ export function ManagedDetachedWindow({
 
   return (
     <DetachedWindow onClose={close}>
-      <main className="mx-auto w-full p-2 sidebar-gutter-auto">{children}</main>
+      <main className="mx-auto w-fit p-2 sidebar-gutter-auto">{children}</main>
     </DetachedWindow>
   );
 }
