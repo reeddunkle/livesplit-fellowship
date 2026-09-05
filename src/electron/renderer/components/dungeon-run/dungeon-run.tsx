@@ -201,6 +201,8 @@ export function DungeonRun() {
         milestone,
         milestoneIndex,
         requirementRows,
+        segmentElapsedMilliseconds: undefined,
+        segmentStartedAtMilliseconds: undefined,
       };
     });
   }, [
@@ -211,8 +213,30 @@ export function DungeonRun() {
   ]);
 
   const sortedMilestones = useMemo(() => {
-    return A.sort(milestoneRows, MilestoneCompletionOrder);
-  }, [milestoneRows]);
+    const sorted = A.sort(milestoneRows, MilestoneCompletionOrder);
+    const startedAtMilliseconds = dungeonRun?.startedAtMilliseconds;
+
+    return A.map(sorted, (milestone, index) => {
+      if (
+        Predicate.isUndefined(milestone.completedAtMilliseconds) ||
+        isNil(startedAtMilliseconds)
+      ) {
+        return milestone;
+      }
+
+      const previousMilestone = sorted[index - 1];
+
+      const segmentStartedAtMilliseconds =
+        previousMilestone?.completedAtMilliseconds ?? startedAtMilliseconds;
+
+      return {
+        ...milestone,
+        segmentElapsedMilliseconds:
+          milestone.completedAtMilliseconds - segmentStartedAtMilliseconds,
+        segmentStartedAtMilliseconds,
+      };
+    });
+  }, [dungeonRun?.startedAtMilliseconds, milestoneRows]);
 
   if (configuration === undefined) {
     return (
@@ -286,7 +310,9 @@ export function DungeonRun() {
           );
         })}
       </div>
+
       <Separator />
+
       <Button
         className="min-w-32"
         disabled={!isTracking || isPending}

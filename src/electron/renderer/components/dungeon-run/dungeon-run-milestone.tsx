@@ -1,5 +1,6 @@
 import * as A from "effect/Array";
-import { pipe } from "effect/Function";
+import * as Order from "effect/Order";
+import * as Predicate from "effect/Predicate";
 import { ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -38,12 +39,39 @@ export type DungeonRunMilestoneRow = {
   readonly milestone: Milestone;
   readonly milestoneIndex: number;
   readonly requirementRows: ReadonlyArray<DungeonRunRequirementRow>;
+  readonly segmentElapsedMilliseconds: number | undefined;
+  readonly segmentStartedAtMilliseconds: number | undefined;
 };
 
 type DungeonRunMilestoneProps = {
   readonly comparison: DungeonRunComparison;
   readonly milestone: DungeonRunMilestoneRow;
 };
+
+const UndefinedLastNumberOrder = Order.make<number | undefined>(
+  (left, right) => {
+    if (left === undefined && right === undefined) {
+      return 0;
+    }
+
+    if (left === undefined) {
+      return 1;
+    }
+
+    if (right === undefined) {
+      return -1;
+    }
+
+    return Order.Number(left, right);
+  },
+);
+
+const RequirementCompletionOrder = Order.mapInput(
+  UndefinedLastNumberOrder,
+  (row: DungeonRunRequirementRow) => {
+    return row.completedObservation?.observation.timestampMilliseconds;
+  },
+);
 
 function TimeColumns({
   comparisonElapsedMilliseconds,
@@ -65,11 +93,9 @@ function TimeColumns({
       <div className="text-right font-mono tabular-nums">
         {formatSignedDuration(deltaMilliseconds)}
       </div>
-
       <div className="text-right font-mono tabular-nums">
         {formatDuration(segmentMilliseconds)}
       </div>
-
       <div className="text-right font-mono tabular-nums">
         {formatDuration(totalMilliseconds)}
       </div>
@@ -80,9 +106,11 @@ function TimeColumns({
 function RequirementRow({
   comparison,
   row,
+  segmentElapsedMilliseconds,
 }: {
   readonly comparison: DungeonRunComparison;
   readonly row: DungeonRunRequirementRow;
+  readonly segmentElapsedMilliseconds: number | undefined;
 }) {
   const observation = row.completedObservation;
 
@@ -102,7 +130,6 @@ function RequirementRow({
           <span className="px-1">·</span>
           {row.requirement.targetId}
         </div>
-
         <div className="text-[10px] text-muted-foreground/70">
           occurrence {row.requirement.startOccurrence}
           {row.requirement.requiredCount > 1 &&
@@ -115,9 +142,7 @@ function RequirementRow({
       </div>
       <TimeColumns
         comparisonElapsedMilliseconds={comparisonElapsedMilliseconds}
-        segmentMilliseconds={
-          observation?.elapsedFromPreviousObservationMilliseconds
-        }
+        segmentMilliseconds={segmentElapsedMilliseconds}
         totalMilliseconds={observation?.elapsedFromStartMilliseconds}
       />
     </div>
@@ -130,23 +155,10 @@ export function DungeonRunMilestone({
 }: DungeonRunMilestoneProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const completedRequirementObservations = pipe(
+  const sortedRequirementRows = A.sort(
     milestone.requirementRows,
-    A.map((row) => {
-      return row.completedObservation;
-    }),
-    A.filter(
-      (observation): observation is DungeonRunObservationInterpretation => {
-        return observation !== undefined;
-      },
-    ),
+    RequirementCompletionOrder,
   );
-
-  const lastCompletedRequirementObservation =
-    completedRequirementObservations.at(-1);
-
-  const segmentMilliseconds =
-    lastCompletedRequirementObservation?.elapsedFromPreviousObservationMilliseconds;
 
   return (
     <Collapsible onOpenChange={setIsOpen} open={isOpen}>
@@ -164,7 +176,6 @@ export function DungeonRunMilestone({
                 isOpen && "rotate-90",
               )}
             />
-
             <span
               className={cn(
                 "truncate font-medium",
@@ -174,23 +185,38 @@ export function DungeonRunMilestone({
               {milestone.milestone.label}
             </span>
           </div>
-
           <TimeColumns
             comparisonElapsedMilliseconds={
               milestone.comparisonElapsedMilliseconds
             }
-            segmentMilliseconds={segmentMilliseconds}
+            segmentMilliseconds={milestone.segmentElapsedMilliseconds}
             totalMilliseconds={milestone.elapsedMilliseconds}
           />
         </CollapsibleTrigger>
-
         <CollapsibleContent>
-          {A.map(milestone.requirementRows, (row, index) => {
+          {A.map(sortedRequirementRows, (row, index) => {
+            const observationTimestamp =
+              row.completedObservation?.observation.timestampMilliseconds;
+
+            const previousRequirement = sortedRequirementRows[index - 1];
+
+            const previousTimestamp =
+              previousRequirement?.completedObservation?.observation
+                .timestampMilliseconds ??
+              milestone.segmentStartedAtMilliseconds;
+
+            const segmentElapsedMilliseconds =
+              Predicate.isUndefined(observationTimestamp) ||
+              Predicate.isUndefined(previousTimestamp)
+                ? undefined
+                : observationTimestamp - previousTimestamp;
+
             return (
               <RequirementRow
                 comparison={comparison}
                 key={`${row.requirement.type}:${row.requirement.targetId}:${index}`}
                 row={row}
+                segmentElapsedMilliseconds={segmentElapsedMilliseconds}
               />
             );
           })}
