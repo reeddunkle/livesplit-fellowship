@@ -45,7 +45,7 @@ export function HomeTrackingControls() {
 
   return (
     <section className="flex flex-col items-end gap-3">
-      <div className="flex gap-3">
+      <div className="flex gap-3 items-center">
         <Button
           className="min-w-32 bg-green-600 text-white hover:bg-green-700"
           disabled={selectedConfigurationId === null || isTracking || isPending}
