@@ -10,6 +10,7 @@ export function useAppStore(): UseAppStoreResult {
 
   return {
     ...state,
+    setDungeonRunVisibleTimeColumns: appStore.setDungeonRunVisibleTimeColumns,
     setSelectedConfigurationId: appStore.setSelectedConfigurationId,
     setSidebarOpen: appStore.setSidebarOpen,
     setTheme: appStore.setTheme,

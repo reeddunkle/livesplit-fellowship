@@ -21,6 +21,8 @@ import {
 import { type ApiConnectionState } from "@/electron/renderer/api/common.ts";
 import * as dungeonRunClient from "@/electron/renderer/api/dungeon-run/dungeon-run-client.ts";
 import { type DungeonRunComparison } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
+import { type DungeonRunTimeColumn } from "@/electron/renderer/storage/app-state/app-state-schema.ts";
+import { useAppStore } from "@/electron/renderer/stores/app-state-store/use-app-store.ts";
 import {
   type DungeonRunEventStoreSnapshot,
   dungeonRunEventStore,
@@ -41,15 +43,6 @@ type DungeonRunMilestoneExpansionState = {
   readonly defaultIsExpanded: boolean;
   readonly overrides: ReadonlySet<DungeonRunMilestoneKey>;
 };
-
-export const DUNGEON_RUN_TIME_COLUMN = {
-  DELTA: "DELTA",
-  SEGMENT: "SEGMENT",
-  TOTAL: "TOTAL",
-} as const;
-
-export type DungeonRunTimeColumn =
-  (typeof DUNGEON_RUN_TIME_COLUMN)[keyof typeof DUNGEON_RUN_TIME_COLUMN];
 
 export type DungeonRunDisplayState = {
   readonly collapseAllMilestones: () => void;
@@ -182,6 +175,9 @@ export function DungeonRunProvider({ children }: DungeonRunProviderProps) {
     dungeonRunEventStore.getSnapshot,
   );
 
+  const { dungeonRun: dungeonRunAppState, setDungeonRunVisibleTimeColumns } =
+    useAppStore();
+
   const [milestoneExpansionState, setMilestoneExpansionState] =
     useState<DungeonRunMilestoneExpansionState>({
       defaultIsExpanded: false,
@@ -235,31 +231,23 @@ export function DungeonRunProvider({ children }: DungeonRunProviderProps) {
 
   const [comparison, setComparison] = useState<DungeonRunComparison>("BEST");
 
-  const [visibleTimeColumns, setVisibleTimeColumns] = useState<
-    ReadonlySet<DungeonRunTimeColumn>
-  >(() => {
-    return new Set([
-      DUNGEON_RUN_TIME_COLUMN.DELTA,
-      DUNGEON_RUN_TIME_COLUMN.SEGMENT,
-      DUNGEON_RUN_TIME_COLUMN.TOTAL,
-    ]);
-  });
+  const visibleTimeColumns = useMemo<ReadonlySet<DungeonRunTimeColumn>>(() => {
+    return new Set(dungeonRunAppState.visibleTimeColumns);
+  }, [dungeonRunAppState.visibleTimeColumns]);
 
   const setTimeColumnVisible = useCallback(
     (column: DungeonRunTimeColumn, isVisible: boolean) => {
-      setVisibleTimeColumns((currentVisibleTimeColumns) => {
-        const nextVisibleTimeColumns = new Set(currentVisibleTimeColumns);
+      const nextVisibleTimeColumns = new Set(visibleTimeColumns);
 
-        if (isVisible) {
-          nextVisibleTimeColumns.add(column);
-        } else {
-          nextVisibleTimeColumns.delete(column);
-        }
+      if (isVisible) {
+        nextVisibleTimeColumns.add(column);
+      } else {
+        nextVisibleTimeColumns.delete(column);
+      }
 
-        return nextVisibleTimeColumns;
-      });
+      setDungeonRunVisibleTimeColumns(Array.from(nextVisibleTimeColumns));
     },
-    [],
+    [setDungeonRunVisibleTimeColumns, visibleTimeColumns],
   );
 
   const [historyState, dispatchLoadHistory, isLoadingHistory] = useActionState(

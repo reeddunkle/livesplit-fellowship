@@ -4,6 +4,7 @@ import { browserRuntime } from "@/electron/renderer/runtimes/browser-runtime.ts"
 import {
   type AppState,
   DEFAULT_APP_STATE,
+  type DungeonRunTimeColumn,
   type Theme,
 } from "@/electron/renderer/storage/app-state/app-state-schema.ts";
 import { AppStateStorage } from "@/electron/renderer/storage/app-state/app-state-storage.ts";
@@ -12,6 +13,10 @@ import { type ConfigurationId } from "@/validation/configuration/configuration-i
 type Listener = () => void;
 
 export type AppStoreActions = {
+  readonly setDungeonRunVisibleTimeColumns: (
+    visibleTimeColumns: ReadonlyArray<DungeonRunTimeColumn>,
+  ) => void;
+
   readonly setSelectedConfigurationId: (
     selectedConfigurationId: ConfigurationId | null,
   ) => void;
@@ -78,6 +83,22 @@ export function makeAppStore(): AppStore {
     );
   }
 
+  function setDungeonRunVisibleTimeColumns(
+    visibleTimeColumns: ReadonlyArray<DungeonRunTimeColumn>,
+  ): void {
+    updateSnapshot((state) => {
+      return {
+        ...state,
+        dungeonRun: {
+          ...state.dungeonRun,
+          visibleTimeColumns,
+        },
+      };
+    });
+
+    persist(snapshot);
+  }
+
   function setSelectedConfigurationId(
     selectedConfigurationId: ConfigurationId | null,
   ): void {
@@ -129,6 +150,7 @@ export function makeAppStore(): AppStore {
 
   return {
     getSnapshot,
+    setDungeonRunVisibleTimeColumns,
     setSelectedConfigurationId,
     setSidebarOpen,
     setTheme,
