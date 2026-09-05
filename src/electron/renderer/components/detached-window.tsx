@@ -19,7 +19,7 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
-      const childWindow = window.open("", "tracking-window");
+      const childWindow = window.open("", "tracking-window", "width=425");
 
       if (childWindow === null) {
         return () => {};
@@ -103,5 +103,9 @@ export function ManagedDetachedWindow({
     return null;
   }
 
-  return <DetachedWindow onClose={close}>{children}</DetachedWindow>;
+  return (
+    <DetachedWindow onClose={close}>
+      <main className="mx-auto w-full">{children}</main>
+    </DetachedWindow>
+  );
 }

@@ -16,6 +16,8 @@ import {
   CollapsibleTrigger,
 } from "@/electron/renderer/components/ui/collapsible.tsx";
 import { type DungeonRunObservationInterpretation } from "@/electron/renderer/stores/dungeon-run-store/dungeon-run-provider";
+import { useFellowshipDataStore } from "@/electron/renderer/stores/fellowship-data/fellowship-data-store";
+import { getRequirementTargetLabel } from "@/helpers/requirement-target-label";
 import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
 import { cn } from "@/util/class-names";
 
@@ -112,6 +114,11 @@ function RequirementRow({
   readonly row: DungeonRunRequirementRow;
   readonly segmentElapsedMilliseconds: number | undefined;
 }) {
+  const abilities = useFellowshipDataStore((state) => state.abilities);
+  const dungeons = useFellowshipDataStore((state) => state.dungeons);
+  const encounters = useFellowshipDataStore((state) => state.encounters);
+  const units = useFellowshipDataStore((state) => state.units);
+
   const observation = row.completedObservation;
 
   const comparisonElapsedMilliseconds =
@@ -122,13 +129,22 @@ function RequirementRow({
           observation,
         });
 
+  const targetLabel = getRequirementTargetLabel({
+    abilities,
+    dungeons,
+    encounters,
+    eventType: row.requirement.type,
+    targetId: row.requirement.targetId,
+    units,
+  });
+
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_5.5rem_5.5rem_5.5rem] items-center gap-x-2 border-t px-3 py-1.5 text-xs">
       <div className="min-w-0 pl-5">
         <div className="truncate text-muted-foreground">
-          {row.requirement.type}
+          {targetLabel}
           <span className="px-1">·</span>
-          {row.requirement.targetId}
+          {row.requirement.type}
         </div>
         <div className="text-[10px] text-muted-foreground/70">
           occurrence {row.requirement.startOccurrence}

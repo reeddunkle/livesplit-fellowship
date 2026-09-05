@@ -6,6 +6,10 @@ import {
 } from "react";
 import { createStore, useStore } from "zustand";
 
+import {
+  createRequirementTargetsByEventType,
+  type RequirementTargetsByEventType,
+} from "@/electron/renderer/stores/fellowship-data/create-requirement-target-data.ts";
 import { type AbilityApiAbilityList } from "@/services/api/ability/ability-api-schema.ts";
 import { type DungeonApiDungeonList } from "@/services/api/dungeon/dungeon-api-schema.ts";
 import { type EncounterApiEncounterList } from "@/services/api/encounter/encounter-api-schema.ts";
@@ -18,12 +22,15 @@ export type FellowshipDataStoreProps = {
   readonly units: UnitApiUnitList;
 };
 
-export type FellowshipDataStoreState = FellowshipDataStoreProps;
+export type FellowshipDataStoreState = FellowshipDataStoreProps & {
+  readonly requirementTargetsByEventType: RequirementTargetsByEventType;
+};
 
 export function createFellowshipDataStore(props: FellowshipDataStoreProps) {
   return createStore<FellowshipDataStoreState>()(() => {
     return {
       ...props,
+      requirementTargetsByEventType: createRequirementTargetsByEventType(props),
     };
   });
 }
