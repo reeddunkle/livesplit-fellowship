@@ -1,13 +1,13 @@
 import * as E from "effect/Effect";
 
 import { browserRuntime } from "@/electron/renderer/runtimes/browser-runtime.ts";
-import { AppStateStorage } from "@/electron/renderer/storage/app-state/app-state-storage.ts";
 import {
   type AppState,
   DEFAULT_APP_STATE,
   type DungeonRunTimeColumn,
   type Theme,
-} from "@/electron/renderer/storage/app-state/persistence/app-state-v1-schema";
+} from "@/electron/renderer/storage/app-state/app-state-schema";
+import { AppStateStorage } from "@/electron/renderer/storage/app-state/app-state-storage.ts";
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
 type Listener = () => void;

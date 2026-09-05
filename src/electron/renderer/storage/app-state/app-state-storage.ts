@@ -6,15 +6,12 @@ import * as KeyValueStore from "effect/unstable/persistence/KeyValueStore";
 
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
+import { type AppState, DEFAULT_APP_STATE } from "./app-state-schema.ts";
 import { migratePersistedAppState } from "./persistence/app-state-migrations.ts";
 import {
   CURRENT_APP_STATE_VERSION,
   PersistedAppStateSchema,
 } from "./persistence/app-state-persistence-schema.ts";
-import {
-  type AppState,
-  DEFAULT_APP_STATE,
-} from "./persistence/app-state-schema.ts";
 
 const APP_STATE_KEY = "app-state";
 
