@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 import { formatDuration } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
 
+const TIMER_INTERVAL_MILLISECONDS = 1000 / 30;
+
 type DungeonRunTimerProps = {
   readonly initialElapsedMilliseconds: number | undefined;
   readonly isRunning: boolean;
@@ -29,18 +31,16 @@ function useElapsedTimer({
 
     const startedAt = performance.now();
 
-    const update = () => {
+    const intervalId = window.setInterval(() => {
       const elapsedSinceStart = performance.now() - startedAt;
 
-      setElapsedMilliseconds(initialElapsedMilliseconds + elapsedSinceStart);
-
-      animationFrameId = requestAnimationFrame(update);
-    };
-
-    let animationFrameId = requestAnimationFrame(update);
+      setElapsedMilliseconds(
+        Math.floor(initialElapsedMilliseconds + elapsedSinceStart),
+      );
+    }, TIMER_INTERVAL_MILLISECONDS);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
+      window.clearInterval(intervalId);
     };
   }, [initialElapsedMilliseconds, isRunning]);
 

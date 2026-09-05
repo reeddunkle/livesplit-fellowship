@@ -254,9 +254,12 @@ export function DungeonRun() {
 
   const isTimerRunning = dungeonRun?.status === "ACTIVE";
 
-  const timerStartTimeMilliseconds =
-    latestObservation === undefined || isNil(dungeonRun?.startedAtMilliseconds)
-      ? undefined
+  const timerStartTimeMilliseconds = isNil(dungeonRun?.startedAtMilliseconds)
+    ? undefined
+    : latestObservation === undefined
+      ? isTimerRunning
+        ? 0
+        : undefined
       : latestObservation.observation.timestampMilliseconds -
         dungeonRun.startedAtMilliseconds;
 
