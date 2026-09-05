@@ -48,65 +48,40 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
-      const isDarkTheme = document.documentElement.classList.contains("dark");
-
-      const backgroundColor = isDarkTheme
-        ? "rgb(36, 36, 36)"
-        : "rgb(255, 255, 255)";
-
       const childWindow = window.open(
         "",
         "tracking-window",
-        `width=460,backgroundColor=${backgroundColor}`,
+        "width=460,detachedWindow=true",
       );
 
       if (childWindow === null) {
         return () => {};
       }
 
-      const childDocumentElement = childWindow.document.documentElement;
-
-      childDocumentElement.style.backgroundColor = isDarkTheme
-        ? "oklch(0.145 0 0)"
-        : "oklch(1 0 0)";
-
-      childDocumentElement.style.overflow = "hidden";
-      childDocumentElement.style.visibility = "hidden";
+      const childDocument = childWindow.document;
 
       document
         .querySelectorAll<HTMLLinkElement | HTMLStyleElement>(
           'link[rel="stylesheet"], style',
         )
         .forEach((styleElement) => {
-          childWindow.document.head.append(styleElement.cloneNode(true));
+          childDocument.head.append(styleElement.cloneNode(true));
         });
 
-      childDocumentElement.className = document.documentElement.className;
+      childDocument.documentElement.className =
+        document.documentElement.className;
 
-      childWindow.document.body.className = document.body.className;
-      childWindow.document.body.style.backgroundColor = "var(--background)";
+      childDocument.body.className = document.body.className;
 
-      const childContainer = childWindow.document.createElement("div");
+      const childContainer = childDocument.createElement("div");
       childContainer.id = "root";
 
-      childWindow.document.body.append(childContainer);
+      childDocument.body.append(childContainer);
 
       childWindowRef.current = childWindow;
       childContainerRef.current = childContainer;
 
-      setPortalContainer(childWindow.document.body);
-
-      const handleClose = () => {
-        setPortalContainer(null);
-
-        childWindowRef.current = null;
-        childContainerRef.current = null;
-
-        onStoreChange();
-        onClose();
-      };
-
-      childWindow.addEventListener("beforeunload", handleClose);
+      setPortalContainer(childDocument.body);
 
       const resizeToContent = () => {
         resizeDetachedWindowToContent({
@@ -117,13 +92,26 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
       setResizeToContent(resizeToContent);
 
+      const handleClose = () => {
+        setPortalContainer(null);
+        setResizeToContent(null);
+
+        childWindowRef.current = null;
+        childContainerRef.current = null;
+
+        onStoreChange();
+        onClose();
+      };
+
+      childWindow.addEventListener("beforeunload", handleClose);
+
       onStoreChange();
 
       let animationFrameId: number | undefined;
       let isCancelled = false;
 
       const initializeWindow = async () => {
-        await childWindow.document.fonts.ready;
+        await childDocument.fonts.ready;
 
         if (isCancelled) {
           return;
@@ -131,10 +119,7 @@ function DetachedWindow({ children, onClose }: DetachedWindowProps) {
 
         animationFrameId = childWindow.requestAnimationFrame(() => {
           resizeToContent();
-
-          childDocumentElement.style.backgroundColor = "";
-          childDocumentElement.style.overflow = "";
-          childDocumentElement.style.visibility = "";
+          childWindow.electronAPI.showWindow();
         });
       };
 

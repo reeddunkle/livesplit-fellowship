@@ -8,10 +8,10 @@ export default defineConfig({
     emptyOutDir: false,
     outDir: "dist/electron",
     rollupOptions: {
-      input: path.resolve(projectRoot, "src/electron/main.ts"),
+      input: path.resolve(projectRoot, "src/electron/preload.ts"),
       output: {
-        entryFileNames: "main.js",
-        format: "es",
+        entryFileNames: "preload.cjs",
+        format: "cjs",
       },
     },
     ssr: true,

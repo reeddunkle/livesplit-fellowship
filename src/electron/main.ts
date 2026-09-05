@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import * as E from "effect/Effect";
 import { app, BrowserWindow } from "electron";
 
+import { configureWindowIpc } from "@/electron/application/configure-window-ipc.ts";
 import { env } from "@/env.ts";
 import { makeApiRuntime } from "@/runtimes/api-runtime.ts";
 
@@ -28,6 +29,8 @@ const windowOptions = {
 };
 
 void app.whenReady().then(() => {
+  configureWindowIpc();
+
   apiRuntime.runFork(
     runElectronApplication(windowOptions).pipe(
       E.catch((error) => {
