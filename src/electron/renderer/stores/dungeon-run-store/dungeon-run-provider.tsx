@@ -21,7 +21,7 @@ import {
 import { type ApiConnectionState } from "@/electron/renderer/api/common.ts";
 import * as dungeonRunClient from "@/electron/renderer/api/dungeon-run/dungeon-run-client.ts";
 import { type DungeonRunComparison } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
-import { type DungeonRunTimeColumn } from "@/electron/renderer/storage/app-state/app-state-schema.ts";
+import { type DungeonRunTimeColumn } from "@/electron/renderer/storage/app-state/persistence/app-state-schema";
 import { useAppStore } from "@/electron/renderer/stores/app-state-store/use-app-store.ts";
 import {
   type DungeonRunEventStoreSnapshot,

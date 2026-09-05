@@ -14,7 +14,7 @@
     "../../types/vite-env.d.ts",
     "../../services/api/**/*.ts",
     "../../util/**/*.ts",
-    "../../validation/**/*.ts",
+    "../../validation/**/*.ts"
   ],
   "exclude": []
 }

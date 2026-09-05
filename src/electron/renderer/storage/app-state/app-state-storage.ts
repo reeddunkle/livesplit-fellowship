@@ -6,11 +6,15 @@ import * as KeyValueStore from "effect/unstable/persistence/KeyValueStore";
 
 import { type ConfigurationId } from "@/validation/configuration/configuration-id-schema.ts";
 
+import { migratePersistedAppState } from "./persistence/app-state-migrations.ts";
 import {
   CURRENT_APP_STATE_VERSION,
   PersistedAppStateSchema,
-} from "./app-state-persistence-schema.ts";
-import { type AppState, DEFAULT_APP_STATE } from "./app-state-schema.ts";
+} from "./persistence/app-state-persistence-schema.ts";
+import {
+  type AppState,
+  DEFAULT_APP_STATE,
+} from "./persistence/app-state-schema.ts";
 
 const APP_STATE_KEY = "app-state";
 
@@ -54,13 +58,27 @@ export const makeAppStateStorage = E.gen(function* () {
   );
 
   const get = appStateStorage.get(APP_STATE_KEY).pipe(
-    E.map(
+    E.flatMap(
       Option.match({
         onNone: () => {
-          return DEFAULT_APP_STATE;
+          return E.succeed(DEFAULT_APP_STATE);
         },
         onSome: (persistedAppState) => {
-          return persistedAppState.state;
+          return E.gen(function* () {
+            const currentPersistedAppState =
+              migratePersistedAppState(persistedAppState);
+
+            if (
+              currentPersistedAppState.version !== persistedAppState.version
+            ) {
+              yield* appStateStorage.set(
+                APP_STATE_KEY,
+                currentPersistedAppState,
+              );
+            }
+
+            return currentPersistedAppState.state;
+          });
         },
       }),
     ),

@@ -1,6 +1,6 @@
 import { createContext, type ReactNode, useContext, useEffect } from "react";
 
-import { type Theme } from "@/electron/renderer/storage/app-state/app-state-schema.ts";
+import { type Theme } from "@/electron/renderer/storage/app-state/persistence/app-state-schema";
 import { useAppStore } from "@/electron/renderer/stores/app-state-store/use-app-store.ts";
 
 type ThemeProviderProps = {
