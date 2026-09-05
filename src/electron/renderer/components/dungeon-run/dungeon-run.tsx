@@ -1,6 +1,7 @@
 import * as A from "effect/Array";
 import { pipe } from "effect/Function";
 import * as Order from "effect/Order";
+import * as Predicate from "effect/Predicate";
 import { SquareIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -31,6 +32,7 @@ import {
   useTrackingServerState,
 } from "@/electron/renderer/stores/tracking-store/tracking-store";
 import { type ConfigurationApiConfiguration } from "@/services/api/configuration/configuration-api-schema.ts";
+import { isNil } from "@/util/is-nil.ts";
 
 const UndefinedLastNumberOrder = Order.make<number | undefined>(
   (left, right) => {
@@ -130,12 +132,15 @@ export function DungeonRun({ configurations }: DungeonRunProps) {
     return A.map(configuration.milestones, (milestone, milestoneIndex) => {
       const requirementRows = A.map(milestone.requirements, (requirement) => {
         const matchingObservations = A.filter(observations, (observation) => {
-          return (
-            observation.observation.type === requirement.type &&
-            observation.observation.targetId === requirement.targetId &&
-            observation.occurrence >= requirement.startOccurrence &&
-            observation.occurrence <
-              requirement.startOccurrence + requirement.requiredCount
+          return A.every(
+            [
+              observation.observation.type === requirement.type,
+              observation.observation.targetId === requirement.targetId,
+              observation.occurrence >= requirement.startOccurrence,
+              observation.occurrence <
+                requirement.startOccurrence + requirement.requiredCount,
+            ],
+            Boolean,
           );
         });
 
@@ -175,12 +180,13 @@ export function DungeonRun({ configurations }: DungeonRunProps) {
           )
         : undefined;
 
+      const startedAtMilliseconds = dungeonRun?.startedAtMilliseconds;
+
       const elapsedMilliseconds =
-        completedAtMilliseconds === undefined ||
-        dungeonRun?.startedAtMilliseconds === null ||
-        dungeonRun?.startedAtMilliseconds === undefined
+        Predicate.isUndefined(completedAtMilliseconds) ||
+        isNil(startedAtMilliseconds)
           ? undefined
-          : completedAtMilliseconds - dungeonRun.startedAtMilliseconds;
+          : completedAtMilliseconds - startedAtMilliseconds;
 
       const comparisonElapsedMilliseconds = getComparisonElapsedMilliseconds({
         comparison,

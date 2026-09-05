@@ -8,6 +8,13 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["**/*.ts", "**/*.tsx", "../../types/vite-env.d.ts"],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../../types/vite-env.d.ts",
+    "../../services/api/**/*.ts",
+    "../../util/**/*.ts",
+    "../../validation/**/*.ts",
+  ],
   "exclude": []
 }

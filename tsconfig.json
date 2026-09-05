@@ -1,4 +1,5 @@
 {
+  "$schema": "./node_modules/@effect/tsgo/schema.json",
   "compilerOptions": {
     "module": "nodenext",
     "moduleDetection": "force",
@@ -33,7 +34,8 @@
 
     "plugins": [
       {
-        "name": "@effect/language-service",
+        "name": "@effect/tsgo",
+        "completions": true,
         "diagnosticSeverity": {
           "importFromBarrel": "error"
         },

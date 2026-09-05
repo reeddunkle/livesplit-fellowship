@@ -49,7 +49,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:biome",
-    "@effect/language-service": "catalog:effect",
+    "@effect/tsgo": "catalog:effect",
     "@fontsource-variable/geist": "catalog:ui",
     "@standard-schema/spec": "catalog:validation",
     "@tailwindcss/vite": "catalog:tailwind",
