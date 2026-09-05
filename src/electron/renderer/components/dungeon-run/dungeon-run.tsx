@@ -13,6 +13,7 @@ import {
   type DungeonRunComparison,
   getComparisonElapsedMilliseconds,
 } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
+import { DungeonRunTimer } from "@/electron/renderer/components/dungeon-run/dungeon-run-timer.tsx";
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import { Label } from "@/electron/renderer/components/ui/label.tsx";
 import {
@@ -105,7 +106,8 @@ export function DungeonRun() {
   const { stop } = useTrackingActions();
   const { isPending } = useTrackingActionState();
   const { dungeonRun, history } = useDungeonRunServerState();
-  const { observations } = useDungeonRunInterpretationState();
+  const { latestObservation, observations } =
+    useDungeonRunInterpretationState();
 
   const [comparison, setComparison] = useState<DungeonRunComparison>("BEST");
 
@@ -250,13 +252,20 @@ export function DungeonRun() {
 
   const hasMatchingHistory = history?.configurationId === configuration.id;
 
+  const isTimerRunning = dungeonRun?.status === "ACTIVE";
+
+  const timerStartTimeMilliseconds =
+    latestObservation === undefined || isNil(dungeonRun?.startedAtMilliseconds)
+      ? undefined
+      : latestObservation.observation.timestampMilliseconds -
+        dungeonRun.startedAtMilliseconds;
+
   return (
     <section className="grid w-full gap-3">
       <header className="grid w-full gap-1">
         <h2 className="truncate text-sm font-semibold">
           {configuration.label}
         </h2>
-
         <p className="text-xs text-muted-foreground">
           {isTracking
             ? "Live run"
@@ -264,7 +273,6 @@ export function DungeonRun() {
               ? "Historical comparison"
               : "No historical data loaded"}
         </p>
-
         <RadioGroup
           className="mt-1 flex w-full flex-wrap items-center gap-x-3 gap-y-2"
           onValueChange={(value) => {
@@ -290,7 +298,6 @@ export function DungeonRun() {
           })}
         </RadioGroup>
       </header>
-
       <div className="grid grid-cols-[minmax(0,1fr)_5.5rem_5.5rem_5.5rem] gap-x-2 px-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         <div>Milestone</div>
         <div className="text-right">Delta</div>
@@ -309,9 +316,11 @@ export function DungeonRun() {
           );
         })}
       </div>
-
       <Separator />
-
+      <DungeonRunTimer
+        initialElapsedMilliseconds={timerStartTimeMilliseconds}
+        isRunning={isTimerRunning}
+      />
       <Button
         className="min-w-32"
         disabled={!isTracking || isPending}
