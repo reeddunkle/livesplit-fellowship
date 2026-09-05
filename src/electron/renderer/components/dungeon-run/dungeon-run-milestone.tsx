@@ -184,7 +184,7 @@ export function DungeonRunMilestone({
           milestone.isCompleted && "border-border",
         )}
       >
-        <CollapsibleTrigger className="grid w-full grid-cols-[minmax(0,1fr)_5.5rem_5.5rem_5.5rem] items-center gap-x-2 px-3 py-2 text-left text-sm hover:bg-muted/40">
+        <CollapsibleTrigger className="grid w-full grid-cols-[minmax(0,1fr)_4.25rem_4.25rem_4.25rem] items-center gap-x-2 px-3 py-2 text-left text-sm hover:bg-muted/40">
           <div className="flex min-w-0 items-center gap-1.5">
             <ChevronRightIcon
               className={cn(
