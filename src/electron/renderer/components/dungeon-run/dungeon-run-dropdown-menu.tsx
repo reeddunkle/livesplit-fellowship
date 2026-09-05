@@ -16,8 +16,8 @@ import { Separator } from "@/electron/renderer/components/ui/separator.tsx";
 import {
   DUNGEON_RUN_TIME_COLUMN,
   type DungeonRunTimeColumn,
-  useDungeonRunDisplayState,
-} from "@/electron/renderer/stores/dungeon-run-store/dungeon-run-provider.tsx";
+} from "@/electron/renderer/storage/app-state/app-state-schema.ts";
+import { useDungeonRunDisplayState } from "@/electron/renderer/stores/dungeon-run-store/dungeon-run-provider.tsx";
 import { cn } from "@/util/class-names.ts";
 
 const TIME_COLUMN_OPTIONS = [
