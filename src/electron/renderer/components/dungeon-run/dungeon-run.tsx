@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 
+import { useDetachedWindow } from "@/electron/renderer/components/detached-window/detached-window-provider";
+import { useResizeDetachedWindowAfterUpdate } from "@/electron/renderer/components/detached-window/use-resize-detached-window-after-update.tsx";
 import { DungeonRunDropdownMenu } from "@/electron/renderer/components/dungeon-run/dungeon-run-dropdown-menu.tsx";
 import {
   DungeonRunMilestone,
@@ -24,7 +26,6 @@ import {
 } from "@/electron/renderer/components/dungeon-run/dungeon-run-table.tsx";
 import { getComparisonElapsedMilliseconds } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
 import { DungeonRunTimer } from "@/electron/renderer/components/dungeon-run/dungeon-run-timer.tsx";
-import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider.tsx";
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import {
   DropdownMenu,
@@ -92,6 +93,7 @@ function getConfigurationById({
 
 export function DungeonRun() {
   const { resizeToContent } = useDetachedWindow();
+  const resizeAfterUpdate = useResizeDetachedWindowAfterUpdate();
   const configurations = useConfigurations();
   const selectedConfigurationId = useSelectedConfigurationId();
   const {
@@ -271,12 +273,11 @@ export function DungeonRun() {
       <div className="flex items-center justify-end gap-2">
         <Button
           onClick={() => {
-            const handleToggle = areAllMilestonesExpanded
-              ? collapseAllMilestones
-              : expandAllMilestones;
-
-            handleToggle();
-            resizeToContent();
+            resizeAfterUpdate(
+              areAllMilestonesExpanded
+                ? collapseAllMilestones
+                : expandAllMilestones,
+            );
           }}
           size="icon"
           title={

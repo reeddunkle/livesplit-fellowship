@@ -6,7 +6,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider.tsx";
+import { useDetachedWindow } from "@/electron/renderer/components/detached-window/detached-window-provider";
 
 const WINDOW_VERTICAL_MARGIN = 32;
 const WINDOW_HORIZONTAL_MARGIN = 32;

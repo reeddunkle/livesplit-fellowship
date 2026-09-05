@@ -5,7 +5,7 @@ import {
   SquareIcon,
 } from "lucide-react";
 
-import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider";
+import { useDetachedWindow } from "@/electron/renderer/components/detached-window/detached-window-provider";
 import { Button } from "@/electron/renderer/components/ui/button.tsx";
 import { Spinner } from "@/electron/renderer/components/ui/spinner.tsx";
 import {

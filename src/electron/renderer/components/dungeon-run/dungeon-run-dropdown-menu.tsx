@@ -1,10 +1,10 @@
 import * as A from "effect/Array";
 
+import { useDetachedWindow } from "@/electron/renderer/components/detached-window/detached-window-provider";
 import {
   COMPARISON_OPTIONS,
   type DungeonRunComparison,
 } from "@/electron/renderer/components/dungeon-run/dungeon-run-time.ts";
-import { useDetachedWindow } from "@/electron/renderer/components/providers/detached-window-provider.tsx";
 import { Checkbox } from "@/electron/renderer/components/ui/checkbox.tsx";
 import { DropdownMenuContent } from "@/electron/renderer/components/ui/dropdown-menu.tsx";
 import { Label } from "@/electron/renderer/components/ui/label.tsx";
